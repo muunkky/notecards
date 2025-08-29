@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Test styles to verify Tailwind is working */
+.test-bg {
+  background-color: red;
+}
+
+.test-text {
+  color: blue;
+  font-size: 2rem;
+}
