@@ -1,201 +1,410 @@
 import {
   collection,
-  addDoc,
-  getDocs,
   doc,
+  addDoc,
   updateDoc,
   deleteDoc,
+  getDocs,
+  getDoc,
   query,
   where,
   orderBy,
   onSnapshot,
+  writeBatch,
+  serverTimestamp,
   Timestamp,
-  QueryDocumentSnapshot,
-  DocumentData
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Deck, Notecard, StudySession } from '../types';
+import type {
+  Deck,
+  Card,
+  OrderSnapshot,
+  DeckData,
+  CardData,
+  OrderSnapshotData,
+  UserData,
+  ApiResponse,
+  FirestoreError,
+} from '../types';
 
-// Helper function to convert Firestore document to Deck
-const convertToDeck = (doc: QueryDocumentSnapshot<DocumentData>): Deck => {
-  const data = doc.data();
+// Collection references
+const USERS_COLLECTION = 'users';
+const DECKS_COLLECTION = 'decks';
+const CARDS_COLLECTION = 'cards';
+const ORDER_SNAPSHOTS_COLLECTION = 'orderSnapshots';
+
+// Helper function to convert Firestore timestamp to Date
+const convertTimestamp = (timestamp: any): Date => {
+  // Handle test environment where Timestamp might not be a proper constructor
+  if (timestamp && typeof timestamp.toDate === 'function') {
+    return timestamp.toDate();
+  }
+  // Fallback for test environment or invalid timestamps
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+  return timestamp || new Date();
+};
+
+// Helper function to handle Firestore errors
+const handleFirestoreError = (error: any): FirestoreError => {
+  console.error('Firestore error:', error);
   return {
-    id: doc.id,
-    name: data.name,
-    description: data.description,
-    createdAt: data.createdAt?.toDate() || new Date(),
-    updatedAt: data.updatedAt?.toDate() || new Date(),
-    userId: data.userId
+    code: error.code || 'unknown',
+    message: error.message || 'An unknown error occurred',
   };
 };
 
-// Helper function to convert Firestore document to Notecard
-const convertToNotecard = (doc: QueryDocumentSnapshot<DocumentData>): Notecard => {
-  const data = doc.data();
-  return {
-    id: doc.id,
-    deckId: data.deckId,
-    front: data.front,
-    back: data.back,
-    createdAt: data.createdAt?.toDate() || new Date(),
-    updatedAt: data.updatedAt?.toDate() || new Date(),
-    userId: data.userId
-  };
-};
-
-// Deck operations
-export const deckOperations = {
-  // Create a new deck
-  async create(deck: Omit<Deck, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-    const now = Timestamp.now();
-    const docRef = await addDoc(collection(db, 'decks'), {
-      ...deck,
-      createdAt: now,
-      updatedAt: now
+// User Services
+export const createUserDocument = async (
+  userId: string,
+  userData: UserData
+): Promise<ApiResponse<void>> => {
+  try {
+    const userRef = doc(db, USERS_COLLECTION, userId);
+    await updateDoc(userRef, {
+      ...userData,
+      createdAt: serverTimestamp(),
     });
-    return docRef.id;
-  },
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
 
-  // Get all decks for a user
-  async getByUserId(userId: string): Promise<Deck[]> {
-    const q = query(
-      collection(db, 'decks'),
-      where('userId', '==', userId),
-      orderBy('updatedAt', 'desc')
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(convertToDeck);
-  },
-
-  // Subscribe to real-time updates for user's decks
-  subscribeToUserDecks(userId: string, callback: (decks: Deck[]) => void): () => void {
-    const q = query(
-      collection(db, 'decks'),
-      where('userId', '==', userId),
-      orderBy('updatedAt', 'desc')
-    );
+export const getUserDocument = async (userId: string): Promise<ApiResponse<UserData>> => {
+  try {
+    const userRef = doc(db, USERS_COLLECTION, userId);
+    const userSnap = await getDoc(userRef);
     
-    return onSnapshot(q, (querySnapshot) => {
-      const decks = querySnapshot.docs.map(convertToDeck);
-      callback(decks);
-    });
-  },
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      return {
+        success: true,
+        data: {
+          email: data.email,
+          displayName: data.displayName,
+          createdAt: convertTimestamp(data.createdAt),
+        },
+      };
+    } else {
+      return { success: false, error: { code: 'not-found', message: 'User not found' } };
+    }
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
 
-  // Update a deck
-  async update(id: string, updates: Partial<Omit<Deck, 'id' | 'createdAt' | 'userId'>>): Promise<void> {
-    const deckRef = doc(db, 'decks', id);
+// Deck Services
+export const createDeck = async (
+  userId: string,
+  title: string
+): Promise<ApiResponse<string>> => {
+  try {
+    const trimmedTitle = title.trim();
+    const deckData: DeckData = {
+      title: trimmedTitle,
+      ownerId: userId,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(collection(db, DECKS_COLLECTION), deckData);
+    return { success: true, data: docRef.id };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+export const updateDeck = async (
+  deckId: string,
+  updates: Partial<DeckData>
+): Promise<ApiResponse<void>> => {
+  try {
+    const deckRef = doc(db, DECKS_COLLECTION, deckId);
     await updateDoc(deckRef, {
       ...updates,
-      updatedAt: Timestamp.now()
+      title: updates.title?.trim(),
+      updatedAt: serverTimestamp(),
     });
-  },
-
-  // Delete a deck
-  async delete(id: string): Promise<void> {
-    await deleteDoc(doc(db, 'decks', id));
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
   }
 };
 
-// Notecard operations
-export const notecardOperations = {
-  // Create a new notecard
-  async create(notecard: Omit<Notecard, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
-    const now = Timestamp.now();
-    const docRef = await addDoc(collection(db, 'notecards'), {
-      ...notecard,
-      createdAt: now,
-      updatedAt: now
+export const deleteDeck = async (deckId: string): Promise<ApiResponse<void>> => {
+  try {
+    // First delete all cards in the deck
+    const cardsQuery = query(
+      collection(db, CARDS_COLLECTION),
+      where('deckId', '==', deckId)
+    );
+    const cardsSnapshot = await getDocs(cardsQuery);
+
+    // Delete all order snapshots for this deck
+    const snapshotsQuery = query(
+      collection(db, ORDER_SNAPSHOTS_COLLECTION),
+      where('deckId', '==', deckId)
+    );
+    const snapshotsSnapshot = await getDocs(snapshotsQuery);
+
+    // Use batch to delete everything
+    const batch = writeBatch(db);
+
+    // Delete all cards
+    cardsSnapshot.forEach((cardDoc) => {
+      batch.delete(cardDoc.ref);
     });
-    return docRef.id;
-  },
 
-  // Get all notecards for a deck
-  async getByDeckId(deckId: string): Promise<Notecard[]> {
-    const q = query(
-      collection(db, 'notecards'),
-      where('deckId', '==', deckId),
-      orderBy('createdAt', 'asc')
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(convertToNotecard);
-  },
+    // Delete all snapshots
+    snapshotsSnapshot.forEach((snapshotDoc) => {
+      batch.delete(snapshotDoc.ref);
+    });
 
-  // Subscribe to real-time updates for deck's notecards
-  subscribeToDeckNotecards(deckId: string, callback: (notecards: Notecard[]) => void): () => void {
-    const q = query(
-      collection(db, 'notecards'),
-      where('deckId', '==', deckId),
-      orderBy('createdAt', 'asc')
+    // Delete the deck itself
+    const deckRef = doc(db, DECKS_COLLECTION, deckId);
+    batch.delete(deckRef);
+
+    await batch.commit();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+export const getUserDecks = async (userId: string): Promise<ApiResponse<Deck[]>> => {
+  try {
+    const decksQuery = query(
+      collection(db, DECKS_COLLECTION),
+      where('ownerId', '==', userId),
+      orderBy('updatedAt', 'desc')
     );
+
+    const querySnapshot = await getDocs(decksQuery);
+    const decks: Deck[] = [];
+
+    for (const deckDoc of querySnapshot.docs) {
+      const deckData = deckDoc.data();
+      
+      // Count cards in this deck
+      const cardsQuery = query(
+        collection(db, CARDS_COLLECTION),
+        where('deckId', '==', deckDoc.id)
+      );
+      const cardsSnapshot = await getDocs(cardsQuery);
+      const cardCount = cardsSnapshot.size;
+
+      const deck: Deck = {
+        id: deckDoc.id,
+        title: deckData.title,
+        ownerId: deckData.ownerId,
+        createdAt: convertTimestamp(deckData.createdAt),
+        updatedAt: convertTimestamp(deckData.updatedAt),
+        cardCount,
+      };
+
+      decks.push(deck);
+    }
+
+    return { success: true, data: decks };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+// Card Services
+export const createCard = async (
+  deckId: string,
+  title: string,
+  body: string = ''
+): Promise<ApiResponse<string>> => {
+  try {
+    // Get the current card count to determine the order index
+    const cardsQuery = query(
+      collection(db, CARDS_COLLECTION),
+      where('deckId', '==', deckId)
+    );
+    const cardsSnapshot = await getDocs(cardsQuery);
+    const orderIndex = cardsSnapshot.size;
+
+    const trimmedTitle = title.trim();
+    const trimmedBody = body.trim();
+
+    const cardData: CardData = {
+      title: trimmedTitle,
+      body: trimmedBody,
+      orderIndex,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(collection(db, CARDS_COLLECTION), cardData);
     
-    return onSnapshot(q, (querySnapshot) => {
-      const notecards = querySnapshot.docs.map(convertToNotecard);
-      callback(notecards);
-    });
-  },
+    // Update deck's updatedAt timestamp
+    const deckRef = doc(db, DECKS_COLLECTION, deckId);
+    await updateDoc(deckRef, { updatedAt: serverTimestamp() });
 
-  // Update a notecard
-  async update(id: string, updates: Partial<Omit<Notecard, 'id' | 'createdAt' | 'deckId' | 'userId'>>): Promise<void> {
-    const notecardRef = doc(db, 'notecards', id);
-    await updateDoc(notecardRef, {
-      ...updates,
-      updatedAt: Timestamp.now()
-    });
-  },
-
-  // Delete a notecard
-  async delete(id: string): Promise<void> {
-    await deleteDoc(doc(db, 'notecards', id));
+    return { success: true, data: docRef.id };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
   }
 };
 
-// Study session operations
-export const studySessionOperations = {
-  // Create a new study session
-  async create(session: Omit<StudySession, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, 'studySessions'), {
-      ...session,
-      startedAt: Timestamp.fromDate(session.startedAt),
-      completedAt: session.completedAt ? Timestamp.fromDate(session.completedAt) : null
+export const updateCard = async (
+  deckId: string,
+  cardId: string,
+  updates: Partial<CardData>
+): Promise<ApiResponse<void>> => {
+  try {
+    const cardRef = doc(db, CARDS_COLLECTION, cardId);
+    await updateDoc(cardRef, {
+      ...updates,
+      title: updates.title?.trim(),
+      body: updates.body?.trim(),
+      updatedAt: serverTimestamp(),
     });
-    return docRef.id;
-  },
 
-  // Get study sessions for a user
-  async getByUserId(userId: string): Promise<StudySession[]> {
-    const q = query(
-      collection(db, 'studySessions'),
-      where('userId', '==', userId),
-      orderBy('startedAt', 'desc')
+    // Update deck's updatedAt timestamp
+    const deckRef = doc(db, DECKS_COLLECTION, deckId);
+    await updateDoc(deckRef, { updatedAt: serverTimestamp() });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+export const deleteCard = async (
+  deckId: string,
+  cardId: string
+): Promise<ApiResponse<void>> => {
+  try {
+    const cardRef = doc(db, CARDS_COLLECTION, cardId);
+    await deleteDoc(cardRef);
+
+    // Update deck's updatedAt timestamp
+    const deckRef = doc(db, DECKS_COLLECTION, deckId);
+    await updateDoc(deckRef, { updatedAt: serverTimestamp() });
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+export const getDeckCards = async (deckId: string): Promise<ApiResponse<Card[]>> => {
+  try {
+    const cardsQuery = query(
+      collection(db, CARDS_COLLECTION),
+      where('deckId', '==', deckId),
+      orderBy('orderIndex', 'asc')
     );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => {
-      const data = doc.data();
+
+    const querySnapshot = await getDocs(cardsQuery);
+    const cards: Card[] = querySnapshot.docs.map(cardDoc => {
+      const cardData = cardDoc.data();
       return {
-        id: doc.id,
-        deckId: data.deckId,
-        userId: data.userId,
-        startedAt: data.startedAt?.toDate() || new Date(),
-        completedAt: data.completedAt?.toDate(),
-        score: data.score,
-        totalCards: data.totalCards,
-        correctAnswers: data.correctAnswers
+        id: cardDoc.id,
+        deckId,
+        title: cardData.title,
+        body: cardData.body,
+        orderIndex: cardData.orderIndex,
+        createdAt: convertTimestamp(cardData.createdAt),
+        updatedAt: convertTimestamp(cardData.updatedAt),
       };
     });
-  },
 
-  // Update a study session
-  async update(id: string, updates: Partial<Omit<StudySession, 'id' | 'userId' | 'deckId'>>): Promise<void> {
-    const sessionRef = doc(db, 'studySessions', id);
-    const updateData: any = { ...updates };
-    
-    if (updates.startedAt) {
-      updateData.startedAt = Timestamp.fromDate(updates.startedAt);
-    }
-    if (updates.completedAt) {
-      updateData.completedAt = Timestamp.fromDate(updates.completedAt);
-    }
-    
-    await updateDoc(sessionRef, updateData);
+    return { success: true, data: cards };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
   }
+};
+
+export const reorderCards = async (
+  cardUpdates: Array<{ id: string; orderIndex: number }>
+): Promise<ApiResponse<void>> => {
+  try {
+    const batch = writeBatch(db);
+
+    cardUpdates.forEach(({ id, orderIndex }) => {
+      const cardRef = doc(db, CARDS_COLLECTION, id);
+      batch.update(cardRef, { 
+        orderIndex,
+        updatedAt: serverTimestamp() 
+      });
+    });
+
+    await batch.commit();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+// Order Snapshot Services
+export const saveOrderSnapshot = async (
+  deckId: string,
+  name: string,
+  cardOrder: string[]
+): Promise<ApiResponse<string>> => {
+  try {
+    const trimmedName = name.trim();
+    const snapshotData: OrderSnapshotData = {
+      name: trimmedName,
+      cardOrder,
+      createdAt: serverTimestamp(),
+    };
+
+    const docRef = await addDoc(collection(db, ORDER_SNAPSHOTS_COLLECTION), snapshotData);
+    return { success: true, data: docRef.id };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+export const getOrderSnapshots = async (deckId: string): Promise<ApiResponse<OrderSnapshot[]>> => {
+  try {
+    const snapshotsQuery = query(
+      collection(db, ORDER_SNAPSHOTS_COLLECTION),
+      where('deckId', '==', deckId),
+      orderBy('createdAt', 'desc')
+    );
+
+    const querySnapshot = await getDocs(snapshotsQuery);
+    const snapshots: OrderSnapshot[] = querySnapshot.docs.map(snapshotDoc => {
+      const snapshotData = snapshotDoc.data();
+      return {
+        id: snapshotDoc.id,
+        deckId,
+        name: snapshotData.name,
+        cardOrder: snapshotData.cardOrder,
+        createdAt: convertTimestamp(snapshotData.createdAt),
+      };
+    });
+
+    return { success: true, data: snapshots };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+export const deleteOrderSnapshot = async (snapshotId: string): Promise<ApiResponse<void>> => {
+  try {
+    const snapshotRef = doc(db, ORDER_SNAPSHOTS_COLLECTION, snapshotId);
+    await deleteDoc(snapshotRef);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) };
+  }
+};
+
+// Utility Functions
+export const shuffleArray = <T>(array: T[]): T[] => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
 };
