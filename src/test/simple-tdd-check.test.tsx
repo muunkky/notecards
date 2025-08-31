@@ -1,17 +1,17 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import DeckScreen from '../../features/decks/DeckScreen'
-import { AuthProvider } from '../../providers/AuthProvider'
+import DeckScreen from '../features/decks/DeckScreen'
+import { AuthProvider } from '../providers/AuthProvider'
 
 // Mock Firebase to avoid initialization issues
-vi.mock('../../firebase/firebase', () => ({
+vi.mock('../firebase/firebase', () => ({
   db: { _type: 'firestore' },
   auth: { _type: 'auth' },
 }))
 
 // Mock Firebase Auth
 vi.mock('firebase/auth', () => ({
-  onAuthStateChanged: vi.fn((auth: any, callback: any) => {
+  onAuthStateChanged: vi.fn((auth, callback) => {
     // Simulate no user initially
     callback(null)
     return () => {} // unsubscribe function
