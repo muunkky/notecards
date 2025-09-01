@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card } from '../types'
-import { moveCardInDeck, createCardInDeck, updateCardInDeck, deleteCardFromDeck } from '../firebase/firestore'
+import { moveCardInDeck, createCardInDeck, updateCardInDeck, deleteCardFromDeck, reorderCards } from '../firebase/firestore'
 
 export interface UseCardOperationsResult {
   createCard: (deckId: string, title: string, content: string) => Promise<void>
@@ -8,6 +8,8 @@ export interface UseCardOperationsResult {
   deleteCard: (cardId: string, deckId: string) => Promise<void>
   moveCardUp: (cardId: string, cards: Card[]) => Promise<void>
   moveCardDown: (cardId: string, cards: Card[]) => Promise<void>
+  reorderByDrag: (sourceIndex: number, destinationIndex: number, cards: Card[]) => Promise<void>
+  duplicateCard: (deckId: string, sourceCard: Card) => Promise<void>
   loading: boolean
   error: string | null
 }
@@ -93,12 +95,57 @@ export function useCardOperations(): UseCardOperationsResult {
     }
   }
 
+  // Generic drag-and-drop reorder (sourceIndex -> destinationIndex) operating on the full cards array
+  const reorderByDrag = async (sourceIndex: number, destinationIndex: number, cards: Card[]): Promise<void> => {
+    // Ignore no-op
+    if (sourceIndex === destinationIndex) return
+    if (sourceIndex < 0 || destinationIndex < 0 || sourceIndex >= cards.length || destinationIndex >= cards.length) return
+    setLoading(true)
+    setError(null)
+    try {
+      const deckId = cards[0]?.deckId
+      if (!deckId) throw new Error('Deck ID not found for drag reorder')
+      const reordered = [...cards]
+      const [moved] = reordered.splice(sourceIndex, 1)
+      reordered.splice(destinationIndex, 0, moved)
+      const updates = reordered.map((c, idx) => ({ cardId: c.id, orderIndex: idx }))
+      const res = await reorderCards(deckId, updates)
+      if (!res.success) throw new Error(res.error?.message || 'Failed to reorder cards by drag')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to reorder cards by drag'
+      setError(errorMessage)
+      console.error('Failed to reorder cards by drag:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Duplicate a card placing the copy at end of deck (simple baseline implementation)
+  const duplicateCard = async (deckId: string, sourceCard: Card): Promise<void> => {
+    setLoading(true)
+    setError(null)
+    try {
+      const newTitle = `${sourceCard.title} (Copy)`
+      await createCardInDeck(deckId, newTitle, sourceCard.body)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to duplicate card'
+      setError(errorMessage)
+      console.error('Failed to duplicate card:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     createCard,
     updateCard,
     deleteCard,
     moveCardUp,
     moveCardDown,
+    reorderByDrag,
+  duplicateCard,
     loading,
     error
   }
