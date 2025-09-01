@@ -10,6 +10,7 @@ export interface UseCardOperationsResult {
   moveCardDown: (cardId: string, cards: Card[]) => Promise<void>
   reorderByDrag: (sourceIndex: number, destinationIndex: number, cards: Card[]) => Promise<void>
   duplicateCard: (deckId: string, sourceCard: Card) => Promise<void>
+  toggleFavorite: (card: Card) => Promise<void>
   loading: boolean
   error: string | null
 }
@@ -138,6 +139,21 @@ export function useCardOperations(): UseCardOperationsResult {
     }
   }
 
+  const toggleFavorite = async (card: Card): Promise<void> => {
+    setLoading(true)
+    setError(null)
+    try {
+      await updateCardInDeck(card.id, { deckId: card.deckId, favorite: !card.favorite })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to toggle favorite'
+      setError(errorMessage)
+      console.error('Failed to toggle favorite:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     createCard,
     updateCard,
@@ -146,6 +162,7 @@ export function useCardOperations(): UseCardOperationsResult {
     moveCardDown,
     reorderByDrag,
   duplicateCard,
+  toggleFavorite,
     loading,
     error
   }

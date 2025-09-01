@@ -11,6 +11,7 @@ interface CardListItemProps {
   onEdit: (id: string) => void
   onDelete: (id: string) => void
   onDuplicate?: (id: string) => void
+  onToggleFavorite?: (id: string) => void
   onMoveUp: (id: string) => void
   onMoveDown: (id: string) => void
   canMoveUp: boolean
@@ -30,6 +31,7 @@ export const CardListItem: React.FC<CardListItemProps> = ({
   onEdit, 
   onDelete, 
   onDuplicate,
+  onToggleFavorite,
   onMoveUp, 
   onMoveDown, 
   canMoveUp, 
@@ -173,6 +175,20 @@ export const CardListItem: React.FC<CardListItemProps> = ({
               <span className="text-lg">📄</span>
             </button>
           )}
+          {onToggleFavorite && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                safeHandleClick(() => onToggleFavorite(card.id))
+              }}
+              onKeyDown={(e) => handleKeyDown(e, () => onToggleFavorite(card.id))}
+              className={`p-2 rounded-lg transition-colors duration-200 ${card.favorite ? 'text-yellow-400 hover:text-yellow-500 hover:bg-yellow-50' : 'text-gray-300 hover:text-yellow-400 hover:bg-yellow-50'}`}
+              aria-label={`favorite ${card.id}`}
+              title={card.favorite ? 'Unfavorite card' : 'Favorite card'}
+            >
+              <span className="text-lg">⭐</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -190,6 +206,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
     moveCardDown,
     reorderByDrag,
   duplicateCard,
+  toggleFavorite,
     loading: operationLoading,
     error: operationError
   } = useCardOperations()
@@ -313,6 +330,17 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
       console.log('Duplicated card:', cardId)
     } catch (err) {
       console.error('Failed to duplicate card:', err)
+    }
+  }
+
+  const handleToggleFavorite = async (cardId: string) => {
+    const card = cards.find(c => c.id === cardId)
+    if (!card) return
+    try {
+      await toggleFavorite(card)
+      console.log('Toggled favorite:', cardId)
+    } catch (err) {
+      console.error('Failed to toggle favorite:', err)
     }
   }
 
@@ -482,6 +510,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
                                 onEdit={handleCardEdit}
                                 onDelete={handleCardDelete}
                                 onDuplicate={handleCardDuplicate}
+                                onToggleFavorite={handleToggleFavorite}
                                 onMoveUp={handleMoveCardUp}
                                 onMoveDown={handleMoveCardDown}
                                 canMoveUp={index > 0}

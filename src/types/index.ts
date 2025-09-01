@@ -26,6 +26,7 @@ export interface Card {
   orderIndex: number;
   createdAt: Date;
   updatedAt: Date;
+  favorite?: boolean; // Optional favorite flag
 }
 
 // Order Snapshot model - stores saved card orderings
@@ -72,6 +73,7 @@ export interface CardData {
   orderIndex: number;
   createdAt: Date;
   updatedAt: Date;
+  favorite?: boolean;
 }
 
 export interface OrderSnapshotData {
