@@ -27,6 +27,7 @@ export interface Card {
   createdAt: Date;
   updatedAt: Date;
   favorite?: boolean; // Optional favorite flag
+  archived?: boolean; // Soft-delete/archive flag
 }
 
 // Order Snapshot model - stores saved card orderings
@@ -74,6 +75,7 @@ export interface CardData {
   createdAt: Date;
   updatedAt: Date;
   favorite?: boolean;
+  archived?: boolean;
 }
 
 export interface OrderSnapshotData {

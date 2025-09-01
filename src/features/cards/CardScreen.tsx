@@ -12,6 +12,7 @@ interface CardListItemProps {
   onDelete: (id: string) => void
   onDuplicate?: (id: string) => void
   onToggleFavorite?: (id: string) => void
+  onArchive?: (id: string) => void
   onMoveUp: (id: string) => void
   onMoveDown: (id: string) => void
   canMoveUp: boolean
@@ -32,6 +33,7 @@ export const CardListItem: React.FC<CardListItemProps> = ({
   onDelete, 
   onDuplicate,
   onToggleFavorite,
+  onArchive,
   onMoveUp, 
   onMoveDown, 
   canMoveUp, 
@@ -189,6 +191,20 @@ export const CardListItem: React.FC<CardListItemProps> = ({
               <span className="text-lg">⭐</span>
             </button>
           )}
+          {onArchive && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                safeHandleClick(() => onArchive(card.id))
+              }}
+              onKeyDown={(e) => handleKeyDown(e, () => onArchive(card.id))}
+              className="p-2 rounded-lg transition-colors duration-200 text-gray-300 hover:text-purple-600 hover:bg-purple-50"
+              aria-label={`${card.archived ? 'unarchive' : 'archive'} ${card.id}`}
+              title={card.archived ? 'Unarchive card' : 'Archive card'}
+            >
+              <span className="text-lg">{card.archived ? '📦' : '🗃️'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -207,6 +223,8 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
     reorderByDrag,
   duplicateCard,
   toggleFavorite,
+  archiveCard,
+  unarchiveCard,
     loading: operationLoading,
     error: operationError
   } = useCardOperations()
@@ -341,6 +359,22 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
       console.log('Toggled favorite:', cardId)
     } catch (err) {
       console.error('Failed to toggle favorite:', err)
+    }
+  }
+
+  const handleArchive = async (cardId: string) => {
+    const card = cards.find(c => c.id === cardId)
+    if (!card) return
+    try {
+      if (card.archived) {
+        await unarchiveCard(card)
+        console.log('Unarchived card:', cardId)
+      } else {
+        await archiveCard(card)
+        console.log('Archived card:', cardId)
+      }
+    } catch (err) {
+      console.error('Archive/unarchive failed:', err)
     }
   }
 
@@ -516,6 +550,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
                                 canMoveUp={index > 0}
                                 canMoveDown={index < filteredCards.length - 1}
                                 isReordering={operationLoading}
+                                onArchive={handleArchive}
                               />
                             </div>
                           )}

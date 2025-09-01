@@ -11,6 +11,8 @@ export interface UseCardOperationsResult {
   reorderByDrag: (sourceIndex: number, destinationIndex: number, cards: Card[]) => Promise<void>
   duplicateCard: (deckId: string, sourceCard: Card) => Promise<void>
   toggleFavorite: (card: Card) => Promise<void>
+  archiveCard: (card: Card) => Promise<void>
+  unarchiveCard: (card: Card) => Promise<void>
   loading: boolean
   error: string | null
 }
@@ -154,6 +156,36 @@ export function useCardOperations(): UseCardOperationsResult {
     }
   }
 
+  const archiveCard = async (card: Card): Promise<void> => {
+    setLoading(true)
+    setError(null)
+    try {
+      await updateCardInDeck(card.id, { deckId: card.deckId, archived: true })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to archive card'
+      setError(errorMessage)
+      console.error('Failed to archive card:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const unarchiveCard = async (card: Card): Promise<void> => {
+    setLoading(true)
+    setError(null)
+    try {
+      await updateCardInDeck(card.id, { deckId: card.deckId, archived: false })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to unarchive card'
+      setError(errorMessage)
+      console.error('Failed to unarchive card:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     createCard,
     updateCard,
@@ -163,6 +195,8 @@ export function useCardOperations(): UseCardOperationsResult {
     reorderByDrag,
   duplicateCard,
   toggleFavorite,
+  archiveCard,
+  unarchiveCard,
     loading,
     error
   }
