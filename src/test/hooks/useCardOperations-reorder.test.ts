@@ -67,7 +67,7 @@ describe('useCardOperations - Reorder Functionality', () => {
 
   describe('moveCardUp', () => {
     it('should move a card up one position', async () => {
-      const { result } = renderHook(() => useCardOperations(deckId))
+  const { result } = renderHook(() => useCardOperations())
       const testCards = createReorderTestCards()
       const cardToMove = testCards[2] // Third card (index 2)
       
@@ -122,9 +122,18 @@ describe('useCardOperations - Reorder Functionality', () => {
       })
     })
 
-    it.skip('should handle authentication error', async () => {
-      // This test is temporarily skipped due to vitest mocking complexities
-      // TODO: Fix authentication error testing approach
+    it('should surface underlying moveCardUp error (e.g., authentication)', async () => {
+      const testCards = createReorderTestCards()
+      // Force batch commit to throw (simulating auth / permission issue)
+      mockBatch.commit.mockRejectedValueOnce(new Error('Authentication required'))
+      const { result } = renderHook(() => useCardOperations(deckId))
+
+      await act(async () => {
+        await expect(result.current.moveCardUp('card-2', testCards))
+          .rejects.toThrow('Authentication required')
+      })
+
+      expect(result.current.error).toBe('Authentication required')
     })
   })
 

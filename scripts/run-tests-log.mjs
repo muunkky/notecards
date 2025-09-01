@@ -52,17 +52,51 @@ console.log(`▶️  Executing vitest programmatic API: run ${extraArgs.join(' '
 // Dynamic import to avoid issues if vitest not installed
 ;(async () => {
   let exitCode = 0
+  let summary = null
   try {
     const { startVitest } = await import('vitest/node')
     const ctx = await startVitest('run', extraArgs, { watch: false })
-    // Wait for completion (ctx may expose state) – rely on process exit code determined by vitest
-    // If failures exist, determine exit code from reported results
-    const failures = ctx?.state?.getFiles()?.filter(f => f.result?.state === 'fail').length || 0
+    const files = ctx?.state?.getFiles?.() || []
+    const fileSummaries = files.map(f => {
+      const allTests = f.result?.tests || f.result?.testResults || []
+      return {
+        file: f.filepath,
+        tests: allTests.length,
+        failed: allTests.filter(t => (t.result?.state || t.state) === 'fail').length,
+        skipped: allTests.filter(t => t.mode === 'skip').length,
+        durationMs: f.result?.duration || 0,
+        state: f.result?.state
+      }
+    })
+    const totalTests = fileSummaries.reduce((a, f) => a + f.tests, 0)
+    const totalFailed = fileSummaries.reduce((a, f) => a + f.failed, 0)
+    const totalSkipped = fileSummaries.reduce((a, f) => a + f.skipped, 0)
+    summary = {
+      startedAt: new Date().toISOString(),
+      totalFiles: fileSummaries.length,
+      totalTests,
+      totalFailed,
+      totalSkipped,
+      passed: totalFailed === 0,
+      files: fileSummaries
+    }
+    const failures = totalFailed
     exitCode = failures > 0 ? 1 : 0
   } catch (err) {
     console.error('[vitest-error]', err?.message || err)
+    summary = { error: err?.message || String(err) }
     exitCode = 1
   } finally {
+    try {
+      if (summary) {
+        const jsonPath = logFile.replace(/\.log$/, '.json')
+        // Write JSON summary separately (not via tee to keep structure clean)
+        import('node:fs').then(fs => {
+          fs.writeFileSync(jsonPath, JSON.stringify(summary, null, 2), 'utf8')
+          console.log(`🧾 JSON summary written: ${jsonPath}`)
+        })
+      }
+    } catch {/* ignore */}
     out.end(() => {
       if (exitCode === 0) {
         console.log(`✅ Tests completed successfully. Log: ${logFile}`)

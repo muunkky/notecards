@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import { useCards } from '../../hooks/useCards'
 import { useCardOperations } from '../../hooks/useCardOperations'
@@ -242,6 +242,24 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
   const [showArchived, setShowArchived] = useState(false) // Hidden by default
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
+  // Load persisted filter preferences (one-time)
+  useEffect(() => {
+    try {
+      const favStored = localStorage.getItem('cardFilters.showFavoritesOnly')
+      const archStored = localStorage.getItem('cardFilters.showArchived')
+      if (favStored === 'true') setShowFavoritesOnly(true)
+      if (archStored === 'true') setShowArchived(true)
+    } catch {/* ignore storage errors */}
+  }, [])
+
+  // Persist changes
+  useEffect(() => {
+    try { localStorage.setItem('cardFilters.showFavoritesOnly', String(showFavoritesOnly)) } catch {/* ignore */}
+  }, [showFavoritesOnly])
+  useEffect(() => {
+    try { localStorage.setItem('cardFilters.showArchived', String(showArchived)) } catch {/* ignore */}
+  }, [showArchived])
+
   // TDD Phase 2A.1: Filter cards based on favorites / archived / search
   const filteredCards = React.useMemo(() => {
     let working = [...cards]
@@ -469,6 +487,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
                 type="button"
                 aria-label="Toggle favorites filter"
                 onClick={() => setShowFavoritesOnly(v => !v)}
+                aria-pressed={showFavoritesOnly ? 'true' : 'false'}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border ${showFavoritesOnly ? 'bg-yellow-400 text-slate-900 border-yellow-500' : 'bg-white/10 text-yellow-300 border-yellow-500/30 hover:bg-white/20'}`}
               >
                 {showFavoritesOnly ? '⭐ Favorites Only' : '☆ All Cards'}
@@ -477,6 +496,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
                 type="button"
                 aria-label="Toggle archived visibility"
                 onClick={() => setShowArchived(v => !v)}
+                aria-pressed={showArchived ? 'true' : 'false'}
                 className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border ${showArchived ? 'bg-purple-400 text-slate-900 border-purple-500' : 'bg-white/10 text-purple-300 border-purple-500/30 hover:bg-white/20'}`}
               >
                 {showArchived ? '📦 Showing Archived' : '🗃️ Hide Archived'}
