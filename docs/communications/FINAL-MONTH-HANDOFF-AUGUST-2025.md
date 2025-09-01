@@ -1,4 +1,6 @@
-# 📖 FINAL MONTH HANDOFF - AUGUST 2025
+# 📖 FINAL MONTH HANDOFF - AUGUST 2025 (ARCHIVED)
+
+> Archived 2025-09-01. Authoritative consolidated history now lives in `docs/HISTORY.md`. Keep for provenance; do not update.
 
 **Team Transition Document**  
 **Status: PRODUCTION READY** ⭐  

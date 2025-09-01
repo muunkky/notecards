@@ -154,9 +154,11 @@ Stores a document for each deck created by any user.
 A sub-collection within each deck document, containing the cards for that deck.
 
 *   `decks/{deckId}/cards/{cardId}`
-    *   `title`: (string) The title of the card (the "front").
-    *   `body`: (string) The content of the card (the "back").
-    *   `orderIndex`: (number) A numerical value used for sorting the cards.
+  *   `title`: (string) The title of the card (the "front").
+  *   `body`: (string) The content of the card (the "back").
+  *   `orderIndex`: (number) A numerical value used for sorting the cards.
+  *   `favorite` (boolean, optional): Post-POC enhancement flag for prioritization / filtering.
+  *   `archived` (boolean, optional): Post-POC enhancement flag; archived cards excluded from default list (future UX toggle) but retained for history.
 
 #### 4.1.4 `orderSnapshots` Sub-collection:
 A sub-collection within each deck document for storing named order snapshots.
@@ -214,5 +216,46 @@ To keep the component logic clean and abstract away direct SDK calls, we will cr
 
 *   **5.2.1 Data model for storing an array of card IDs:** As defined in 4.1.4, a snapshot is simply a document containing a name and an array of `cardId` strings. This is a lightweight and efficient way to store an order without duplicating card content.
 *   **5.2.2 Client-side logic for re-sorting:** When a user loads a snapshot, the application will:
-    *   Fetch the `cardOrder` array from the selected snapshot document.
-    *   Use this array to re-sort the existing card data held in the local React state. The client will map over the `cardOrder` array and arrange the corresponding card objects into a new arr...
+  *   Fetch the `cardOrder` array from the selected snapshot document.
+  *   Use this array to re-sort the existing card data held in the local React state. The client will map over the `cardOrder` array and arrange the corresponding card objects into a new array. (Implementation deferred; design retained.)
+
+### 5.3 Post-POC Enhancements (Implemented)
+The following features were added after initial POC completion via strict TDD:
+* **Duplicate Card:** Hook method creates a shallow copy of a card (title/body/favorite state excluding archived) with a new ID and orderIndex (current: appended; improvement: insert directly after original using fractional orderIndex or reindex routine).
+* **Favorite Toggle:** Adds/removes `favorite` flag; tests verify button wiring and state persistence layer integration.
+* **Archive Toggle:** Sets `archived` flag; archived cards remain in collection. Future filtering layer will hide by default.
+
+### 5.4 Hook Architecture Updates
+`useCardOperations` now exposes:
+```
+createCard, updateCard, deleteCard,
+moveCardUp, moveCardDown, reorderCards,
+duplicateCard, toggleFavorite, archiveCard, unarchiveCard
+```
+Design Considerations:
+* Centralized error & loading state per operation for consistent UI feedback.
+* Optional flags preserved on updates; undefined fields not overwritten.
+* Future extension point: optimistic updates with rollback queue for real-time collaboration.
+
+### 5.5 Data Integrity & Ordering Strategy
+Current approach maintains contiguous integer `orderIndex` values. Upcoming improvements may adopt:
+* **Fractional Insertion:** Insert new or duplicated card between existing indices (e.g., 10 and 11 -> 10.5) then periodic normalization.
+* **Gap Strategy:** Allocate indices in increments (e.g., 100, 200, 300) to allow mid-insert without immediate renumber.
+Decision pending based on drag-and-drop implementation ergonomics; tracker will record chosen approach.
+
+### 5.6 Planned Technical Enhancements
+| Area | Planned Improvement | Rationale |
+|------|---------------------|-----------|
+| Filtering | Client-side derived selector + memoization | Performance with 500+ cards |
+| Drag-and-Drop | Migrate to react-beautiful-dnd | Accessible, testable reorder UX |
+| Snapshots | Minimal save/load first | Avoid premature complexity |
+| Duplicate Placement | Fractional or gap indices | Maintain adjacency semantics |
+| Archived Handling | Default hide toggle + count badge | Reduce clutter |
+
+### 5.7 Testing Strategy Addendum
+Each new enhancement introduced: failing test -> minimal implementation -> refactor. Coverage includes:
+* Hook unit tests asserting Firestore interaction calls & state transitions.
+* UI integration tests asserting button presence (`aria-label` patterns like `duplicate <id>`), click behavior, and list updates.
+* Negative path tests (error simulation) for robustness (favorite/archive toggles).
+
+Revision Note (2025-09-01): Added favorite / archived flags, duplicate operation, and ordering improvement plan.

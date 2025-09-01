@@ -49,30 +49,38 @@ const mockCards: Card[] = [
 describe('CardScreen Component', () => {
   const mockDeckId = 'deck-1'
   
+  // Helper to build full operations mock; allows partial overrides
+  const buildOpsMock = (overrides: Partial<Record<string, any>> = {}) => ({
+    createCard: vi.fn().mockResolvedValue(undefined),
+    updateCard: vi.fn().mockResolvedValue(undefined),
+    deleteCard: vi.fn().mockResolvedValue(undefined),
+    moveCardUp: vi.fn().mockResolvedValue(undefined),
+    moveCardDown: vi.fn().mockResolvedValue(undefined),
+    reorderByDrag: vi.fn().mockResolvedValue(undefined),
+    duplicateCard: vi.fn().mockResolvedValue(undefined),
+    toggleFavorite: vi.fn().mockResolvedValue(undefined),
+    archiveCard: vi.fn().mockResolvedValue(undefined),
+    unarchiveCard: vi.fn().mockResolvedValue(undefined),
+    loading: false,
+    error: null,
+    ...overrides
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
-    
-    // Setup default auth mock
+
     mockUseAuth.mockReturnValue({
       user: mockUser,
       loading: false
     })
-    
-    // Setup default mock implementations
+
     mockUseCards.mockReturnValue({
       cards: [],
       loading: false,
       error: null
     })
-    
-    mockUseCardOperations.mockReturnValue({
-      createCard: vi.fn(),
-      updateCard: vi.fn(),
-      deleteCard: vi.fn(),
-      reorderCards: vi.fn(),
-      loading: false,
-      error: null
-    })
+
+    mockUseCardOperations.mockReturnValue(buildOpsMock())
   })
 
   describe('Initial Render', () => {
@@ -169,15 +177,8 @@ describe('CardScreen Component', () => {
     })
 
     it('should create card when form is submitted', async () => {
-      const mockCreateCard = vi.fn()
-      mockUseCardOperations.mockReturnValue({
-        createCard: mockCreateCard,
-        updateCard: vi.fn(),
-        deleteCard: vi.fn(),
-        reorderCards: vi.fn(),
-        loading: false,
-        error: null
-      })
+  const mockCreateCard = vi.fn().mockResolvedValue(undefined)
+  mockUseCardOperations.mockReturnValue(buildOpsMock({ createCard: mockCreateCard }))
       
       render(<CardScreen deckId={mockDeckId} />)
       
@@ -243,47 +244,35 @@ describe('CardScreen Component', () => {
     })
 
     it('should update card when edit form is submitted', async () => {
-      const mockUpdateCard = vi.fn()
-      mockUseCardOperations.mockReturnValue({
-        createCard: vi.fn(),
-        updateCard: mockUpdateCard,
-        deleteCard: vi.fn(),
-        reorderCards: vi.fn(),
-        loading: false,
-        error: null
-      })
-      
+      const mockUpdateCard = vi.fn().mockResolvedValue(undefined)
+      mockUseCardOperations.mockReturnValue(buildOpsMock({ updateCard: mockUpdateCard }))
+
       render(<CardScreen deckId={mockDeckId} />)
-      
-      await waitFor(() => {
-        const editButton = screen.getByLabelText(/edit card-1/i)
-        fireEvent.click(editButton)
-      })
-      
+
+      // Directly find and click edit button (no async state change required)
+      const editButton = screen.getByLabelText(/edit card-1/i)
+      fireEvent.click(editButton)
+
+      // Modal elements should now be present synchronously
       const titleInput = screen.getByDisplayValue('Test Card 1')
       const submitButton = screen.getByRole('button', { name: /save/i })
-      
+
       fireEvent.change(titleInput, { target: { value: 'Updated Card Title' } })
       fireEvent.click(submitButton)
-      
-      await waitFor(() => {
-        expect(mockUpdateCard).toHaveBeenCalledWith('card-1', {
-          title: 'Updated Card Title',
-          body: 'This is the body of test card 1'
-        })
+
+      // Allow any microtasks to resolve
+      await Promise.resolve()
+
+      expect(mockUpdateCard).toHaveBeenCalledTimes(1)
+      expect(mockUpdateCard).toHaveBeenCalledWith('card-1', {
+        title: 'Updated Card Title',
+        body: 'This is the body of test card 1'
       })
     })
 
     it('should delete card with confirmation', async () => {
-      const mockDeleteCard = vi.fn()
-      mockUseCardOperations.mockReturnValue({
-        createCard: vi.fn(),
-        updateCard: vi.fn(),
-        deleteCard: mockDeleteCard,
-        reorderCards: vi.fn(),
-        loading: false,
-        error: null
-      })
+  const mockDeleteCard = vi.fn().mockResolvedValue(undefined)
+  mockUseCardOperations.mockReturnValue(buildOpsMock({ deleteCard: mockDeleteCard }))
       
       render(<CardScreen deckId={mockDeckId} />)
       
@@ -510,15 +499,8 @@ describe('CardScreen Component', () => {
     })
 
     it('should maintain search state when creating new cards', async () => {
-      const mockCreateCard = vi.fn()
-      mockUseCardOperations.mockReturnValue({
-        createCard: mockCreateCard,
-        updateCard: vi.fn(),
-        deleteCard: vi.fn(),
-        reorderCards: vi.fn(),
-        loading: false,
-        error: null
-      })
+  const mockCreateCard = vi.fn().mockResolvedValue(undefined)
+  mockUseCardOperations.mockReturnValue(buildOpsMock({ createCard: mockCreateCard }))
       
       render(<CardScreen deckId={mockDeckId} />)
       
@@ -606,21 +588,29 @@ describe('CardListItem Component', () => {
     updatedAt: new Date()
   }
 
+  const baseItemProps = () => ({
+    onMoveUp: vi.fn(),
+    onMoveDown: vi.fn(),
+    canMoveUp: false,
+    canMoveDown: false,
+    isReordering: false
+  })
+
   it('should render card title', () => {
-    render(<CardListItem card={mockCard} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    render(<CardListItem card={mockCard} onEdit={vi.fn()} onDelete={vi.fn()} {...baseItemProps()} />)
     
     expect(screen.getByText('Test Card')).toBeInTheDocument()
   })
 
   it('should render truncated card body', () => {
-    render(<CardListItem card={mockCard} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    render(<CardListItem card={mockCard} onEdit={vi.fn()} onDelete={vi.fn()} {...baseItemProps()} />)
     
     expect(screen.getByText(/this is a test card body/i)).toBeInTheDocument()
   })
 
   it('should call onEdit when edit button is clicked', () => {
     const mockOnEdit = vi.fn()
-    render(<CardListItem card={mockCard} onEdit={mockOnEdit} onDelete={vi.fn()} />)
+    render(<CardListItem card={mockCard} onEdit={mockOnEdit} onDelete={vi.fn()} {...baseItemProps()} />)
     
     fireEvent.click(screen.getByLabelText(/edit/i))
     
@@ -629,7 +619,7 @@ describe('CardListItem Component', () => {
 
   it('should call onDelete when delete button is clicked', () => {
     const mockOnDelete = vi.fn()
-    render(<CardListItem card={mockCard} onEdit={vi.fn()} onDelete={mockOnDelete} />)
+    render(<CardListItem card={mockCard} onEdit={vi.fn()} onDelete={mockOnDelete} {...baseItemProps()} />)
     
     fireEvent.click(screen.getByLabelText(/delete/i))
     
@@ -637,7 +627,7 @@ describe('CardListItem Component', () => {
   })
 
   it('should expand/collapse body when clicked', () => {
-    render(<CardListItem card={mockCard} onEdit={vi.fn()} onDelete={vi.fn()} />)
+    render(<CardListItem card={mockCard} onEdit={vi.fn()} onDelete={vi.fn()} {...baseItemProps()} />)
     
     const cardElement = screen.getByTestId('card-item-card-1')
     fireEvent.click(cardElement)

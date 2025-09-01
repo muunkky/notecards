@@ -9,7 +9,8 @@
 ### Standard Test Execution
 ```powershell
 # Clean test output to centralized log folder (log/temp)
-$env:NO_COLOR=1; npm run test:log
+# (NO_COLOR is set automatically by the logging script)
+npm run test:log
 
 # View results immediately (interactive output only, no file)
 npm run test
@@ -17,8 +18,8 @@ npm run test
 # Specific test file (ad-hoc logging example)
 $env:NO_COLOR=1; npm run test CardScreen.test.tsx > log/temp/card-screen-test-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
 
-# Using logging script with pattern / named test
-$env:NO_COLOR=1; npm run test:log -- src/test/features/cards/CardScreen.test.tsx -t "reorders cards"
+# Using logging script with pattern / named test (NO_COLOR auto)
+npm run test:log -- src/test/features/cards/CardScreen.test.tsx -t "reorders cards"
 ```
 
 ## 📋 Standard Operating Procedure
@@ -35,13 +36,13 @@ npm run test --version
 ### 2. Test Execution with Logging
 ```powershell
 # Primary command for full test suite (writes timestamped log file in log/temp)
-$env:NO_COLOR=1; npm run test:log
+npm run test:log
 
 # Legacy manual redirection (still valid if script unavailable)
 $env:NO_COLOR=1; npm run test > log/temp/test-results-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
 
 # Select subset (cards feature) with logging script
-$env:NO_COLOR=1; npm run test:log -- cards
+npm run test:log -- cards
 ```
 
 ### 3. Log File Verification

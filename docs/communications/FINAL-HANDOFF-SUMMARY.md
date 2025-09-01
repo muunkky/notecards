@@ -1,4 +1,6 @@
-# 🎉 **FINAL PROJECT HANDOFF SUMMARY**
+# 🎉 **FINAL PROJECT HANDOFF SUMMARY (ARCHIVED)**
+
+> Archived 2025-09-01. See `docs/HISTORY.md` for maintained historical narrative.
 
 **Handoff Date:** August 29, 2025  
 **Project:** Firebase Notecard Application  

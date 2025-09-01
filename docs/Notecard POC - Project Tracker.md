@@ -1,31 +1,27 @@
 # Notecard POC - Project Tracker
 
-## 🎉 **FINAL STATUS UPDATE: PRODUCTION-READY APPLICATION ACHIEVED!**
+## 🎉 **STATUS UPDATE (Consolidated) – POST-POC ENHANCEMENTS WAVE 1 COMPLETE**
 
-**Date:** August 31, 2025  
-**Achievement:** 50-Point Enhancement Plan COMPLETE + 210/211 Tests Passing  
-**Status:** PRODUCTION-READY WITH CRITICAL GIT ISSUE  
-**Excellence Level:** 99.5% Test Success Rate Maintained  
+**Date:** 2025-09-01  
+**Recent Additions:** Duplicate Card, Favorite Toggle, Archive Toggle (All via TDD)  
+**Current Test Suite:** 224 tests (1 skipped) – All passing except intentional skip  
+**Git Status:** Repository integrity restored (see HISTORY + Git Workflow doc)  
+**Next Focus:** Filtering & improved duplicate placement  
 
-### **✅ MAJOR ACHIEVEMENTS COMPLETED:**
-- **50-Point Enhancement Plan:** Manual card reordering system FULLY IMPLEMENTED ✅
-- **Test Excellence:** 210/211 tests passing (99.5% success rate - industry standard) ✅
-- **World-Class Features:** Advanced CardListItem with position management ✅
-- **Firebase Integration:** Complete real-time synchronization and error handling ✅
-- **Production Quality:** Comprehensive error boundaries and user feedback systems ✅
+### **✅ MAJOR ACHIEVEMENTS (UPDATED):**
+| Category | Status | Notes |
+|----------|--------|-------|
+| Core Reordering | Implemented | Baseline reorder logic stable |
+| Duplicate Card | Implemented | Placement refinement backlog |
+| Favorite Toggle | Implemented | Filtering UI pending |
+| Archive Toggle | Implemented | Hidden-by-default UX not yet applied |
+| Test Infrastructure | Enhanced | Deterministic logging added |
+| Git Recovery | Completed | Divergence fully remediated |
 
-### **� CRITICAL HANDOFF ISSUE: Git Repository Synchronization**
-**Problem:** Local working directory contains most recent, complete codebase (210/211 tests passing) but has diverged from remote repository due to MCP operations and merge conflicts.
-
-**Resolution Required:** Systematic conflict resolution keeping local versions (local is superior)
-**Documentation:** Complete analysis in `CRITICAL-GIT-REPOSITORY-SYNCHRONIZATION-ISSUE.md`
-**Estimated Time:** 2-3 hours for complete resolution
-**Tools Required:** GitHub MCP tools only (per user requirements)
-
-### **🎯 IMMEDIATE PRIORITY FOR NEXT TEAM: Resolve Git Issue**
-**Target:** Synchronize remote repository with local superior codebase  
-**Success Criteria:** 210/211 tests still passing after resolution, clean git status  
-**Next Development:** Drag-and-drop enhancement (react-beautiful-dnd already installed)
+### **🔥 PREVIOUS CRITICAL ISSUE (RESOLVED): Git Repository Synchronization**
+Status: Resolved 2025-09-01 (See HISTORY & Git Workflow)  
+Action Items: Add CI + branch protections (still pending)  
+Next Dev after docs: Filtering + duplicate placement refinement  
 
 ---
 
@@ -122,11 +118,11 @@ After your PR has been approved and merged, change the `Status` to `Done`.
 | Dev Task: Add loading states and empty states | GH Copilot | Done | Complete loading and empty state UI | Professional loading states implemented |
 | Dev Task: Implement basic navigation between screens | | Not Started | | React Router or simple state-based routing |
 
-## ☐ Milestone 4: Card Management Core Features
+## ✅ Milestone 4: Card Management Core Features (Reclassified)
 
 | Task | Owner | Status | Files Created/Updated | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| Dev Task: Create CardScreen component and layout | | Not Started | | Header, actions bar, card list |
+| Dev Task: Create CardScreen component and layout | GH Copilot | Done | `src/features/cards/CardScreen.tsx` | Implemented & tested |
 | Dev Task: Implement CardListItem component (collapsed state) | | Not Started | | Title display and drag handle |
 | Dev Task: Add "Create New Card" functionality | | Not Started | | Add card at bottom of list |
 | Dev Task: Implement card expansion/collapse functionality | | Not Started | | In-place editing with sticky headers |
@@ -135,11 +131,11 @@ After your PR has been approved and merged, change the `Status` to `Done`.
 | Dev Task: Add real-time card updates within deck | | Not Started | | Subscribe to deck's cards subcollection |
 | Dev Task: Implement basic card ordering (orderIndex) | | Not Started | | Numeric sorting system |
 
-## ☐ Milestone 5: Advanced Card Features
+## ☐ Milestone 5: Advanced Card Features (In Progress)
 
 | Task | Owner | Status | Files Created/Updated | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| Dev Task: Install and configure react-beautiful-dnd | | Not Started | | Drag-and-drop library setup |
+| Dev Task: Install and configure react-beautiful-dnd | | Not Started | | Library selection pending (baseline reorder exists) |
 | Dev Task: Implement drag-and-drop reordering | | Not Started | | Update orderIndex on drag end |
 | Dev Task: Add batch write operations for order updates | | Not Started | | Atomic Firestore transactions |
 | Dev Task: Implement "Filter Cards" functionality | | Not Started | | Real-time text-based filtering |
@@ -159,7 +155,7 @@ After your PR has been approved and merged, change the `Status` to `Done`.
 | Dev Task: Implement "Collapse All" / "Expand All" actions | | Not Started | Bulk state management |
 | Dev Task: Add card count and deck statistics | | Not Started | Display in header or actions bar |
 
-## ☐ Milestone 6: Order Snapshots Feature
+## ☐ Milestone 6: Order Snapshots Feature (Unstarted)
 
 | Task | Owner | Status | Files Created/Updated | Notes |
 | :--- | :--- | :--- | :--- | :--- |
@@ -216,7 +212,7 @@ After your PR has been approved and merged, change the `Status` to `Done`.
 3. **Firebase Mocking**: Complete vi.hoisted() compatibility
 4. **Import Resolution**: Corrected all test import path issues
 
-## 🚀 NEXT PHASE: Production Excellence & Advanced Features - **PHASE 2 ROADMAP**
+## 🚀 NEXT PHASE: Production Excellence & Advanced Features - **PHASE 2 ROADMAP (Adjusted)**
 
 ### **Excellence Standards for Phase 2**
 Building on our 110/110 test success foundation, Phase 2 maintains zero-tolerance for regression while expanding capabilities. Every new feature must meet our established excellence criteria:
@@ -230,6 +226,9 @@ Building on our 110/110 test success foundation, Phase 2 maintains zero-toleranc
 ---
 
 ### **🎯 PHASE 2A: Advanced Card Management (Est. 20-25 hours)**
+Added Scope Clarification:
+* Filtering now must incorporate `favorite` & `archived` flags.
+* Duplicate placement improvements prioritized before heavy DnD work to avoid rework.
 
 #### **P2A.1: Enhanced CardScreen Architecture**
 | Task | Priority | Est. Hours | Success Criteria | Dependencies |
@@ -257,6 +256,7 @@ Building on our 110/110 test success foundation, Phase 2 maintains zero-toleranc
 ---
 
 ### **🎯 PHASE 2B: Production Deployment & Monitoring (Est. 15-20 hours)**
+Add CI gating tasks before deployment (tests + lint) – depends on setting up GitHub Actions.
 
 #### **P2B.1: CI/CD Pipeline Excellence**
 | Task | Priority | Est. Hours | Success Criteria | Dependencies |
@@ -285,6 +285,7 @@ Building on our 110/110 test success foundation, Phase 2 maintains zero-toleranc
 ---
 
 ### **🎯 PHASE 2C: Advanced Features & Polish (Est. 25-30 hours)**
+Incorporate Archive-aware study mode (exclude archived unless explicitly included) when implementing flashcard study.
 
 #### **P2C.1: Study Modes & Learning Features**
 | Task | Priority | Est. Hours | Success Criteria | Dependencies |
@@ -331,7 +332,7 @@ Building on our 110/110 test success foundation, Phase 2 maintains zero-toleranc
 ### **🎖️ Excellence Achievement Targets - Phase 2**
 
 **Technical Excellence:**
-- **Test Suite**: 200+ tests passing (expand from current 110)
+- **Test Suite**: 240+ tests passing (expand from current 224) (Goal)
 - **Performance**: <100ms average response time for card operations
 - **Reliability**: 99.9% uptime with automated monitoring
 - **Security**: Zero critical vulnerabilities, regular audits

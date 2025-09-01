@@ -55,9 +55,89 @@ graph TD
     *   A `+ New Card` button is anchored at the bottom of the list.
 
 ## 3.0 Product Features - Proof of Concept (POC)
-This section details the specific features required to build the POC.
+This section details the specific features required to build the POC (implemented) plus post-POC incremental enhancements already delivered via strict TDD.
 
 ### 3.1 Deck Screen (Home Screen)
-*   **3.1.1 View All Decks:** The user can see a list of all decks they have created.
-*   **3.1.2 Create New Deck:** The user can create a new, empty deck. The app will prompt for a title and then add it to the deck list.
-*   **3.1.3 Rename Dec...**
+* **3.1.1 View All Decks (Implemented):** The user can see a list of all decks they have created.
+* **3.1.2 Create New Deck (Implemented):** The user can create a new, empty deck. The app prompts for a title then adds it to the list.
+* **3.1.3 Rename Deck (In Progress / Partial):** UI affordance exists; persistent rename still being finalized (Firestore integration refinement pending if not already merged).
+* **3.1.4 Delete Deck (In Progress / Partial):** Confirmation UI present; ensure Firestore delete + optimistic update consistency.
+* **3.1.5 Navigation to Card Screen (Implemented):** Selecting a deck loads its cards.
+
+### 3.2 Card Screen (Core)
+* **3.2.1 View Cards (Implemented):** List all cards in selected deck ordered by `orderIndex`.
+* **3.2.2 Create Card (Implemented):** Adds new card (default at end of list with highest `orderIndex`).
+* **3.2.3 Edit Card (Implemented):** Title/body editing inline (details in Engineering Design Document).
+* **3.2.4 Delete Card (Implemented):** Removes card and re-renders list.
+* **3.2.5 Reorder (Baseline Implemented):** Up/Down + drag style operations (subsequent enhancement roadmap: full drag-and-drop with react-beautiful-dnd + batch persistence).
+* **3.2.6 Duplicate Card (Post-POC Enhancement – Implemented):** Creates a copy with a suffix ("(copy)" or similar) placed adjacent to original (current behavior: appended; improvement backlog item: insert directly after original consistently and maintain relative ordering).
+* **3.2.7 Favorite / Unfavorite (Post-POC Enhancement – Implemented):** Toggle boolean `favorite` flag to allow future filtering and prioritization.
+* **3.2.8 Archive / Unarchive (Post-POC Enhancement – Implemented):** Toggle boolean `archived` flag; archived cards are still stored but can be excluded from default views (future UX: hide by default with toggle; current UI: action button only).
+* **3.2.9 Filter (Planned):** Real‑time text filter across title/body (TDD pending).
+* **3.2.10 Shuffle (Planned):** Randomize order locally (non-persistent) for study mode.
+* **3.2.11 Collapse / Expand All (Planned):** Bulk control of expanded state.
+* **3.2.12 Order Snapshots (Planned):** Save/load named sequences of card IDs for alternative structural views.
+
+### 3.3 Non-Functional Requirements (POC Scope)
+* **Performance:** Basic operations (<200ms perceived) for up to 200 cards per deck on mid‑range hardware.
+* **Reliability:** All CRUD operations retriable; failures surface concise user feedback.
+* **Security:** Firestore rules enforce per-user data isolation.
+* **Accessibility:** Buttons have descriptive `aria-label`s (ensured in current test suite for new actions like duplicate / favorite / archive).
+* **Testability:** Every shipped feature must include failing test first, then passing implementation (documented in TDD process docs).
+
+## 4.0 Data Model (Current & Extended)
+
+| Entity | Field | Type | Status | Notes |
+|--------|-------|------|--------|-------|
+| Deck | id | string | Implemented | Firestore doc id |
+| Deck | title | string | Implemented | Editable |
+| Deck | ownerId | string | Implemented | Auth UID |
+| Card | id | string | Implemented | Firestore doc id |
+| Card | title | string | Implemented | Inline editable |
+| Card | body | string | Implemented | Inline editable |
+| Card | orderIndex | number | Implemented | Dense sequence maintained by reorder logic |
+| Card | favorite | boolean? | Implemented | Optional flag (default false) |
+| Card | archived | boolean? | Implemented | Optional flag (default false) |
+| OrderSnapshot (planned) | name | string | Planned | User label |
+| OrderSnapshot (planned) | cardOrder | string[] | Planned | Array of card ids |
+
+## 5.0 Feature Status Summary
+
+| Feature | Status | Test Coverage | Notes |
+|---------|--------|---------------|-------|
+| Deck CRUD (create/list) | Implemented | Yes | Rename/Delete partially integrated | 
+| Card CRUD | Implemented | Yes | Inline editing working |
+| Reorder (basic) | Implemented | Yes | Drag-and-drop advanced UX planned |
+| Duplicate Card | Implemented | Yes | Placement improvement in backlog |
+| Favorite Toggle | Implemented | Yes | Filtering UI not yet built |
+| Archive Toggle | Implemented | Yes | Hidden-by-default rule pending |
+| Filter / Search | Planned | N/A | High priority next |
+| Shuffle | Planned | N/A | Local-only, non-persistent |
+| Collapse / Expand All | Planned | N/A | Accessibility considerations |
+| Order Snapshots | Planned | N/A | Requires snapshot collection |
+| Study / Flash Mode | Future | N/A | Out of POC scope |
+
+## 6.0 Roadmap (Near-Term Priorities)
+1. Filtering UI integrating `favorite` / `archived` toggles (scoped test-first).
+2. Improve duplicate insertion (place immediately after source using orderIndex fractional or reindex strategy).
+3. Introduce drag-and-drop library with batch persistence and test harness.
+4. Implement archive default hide/show toggle + counts.
+5. Order snapshot minimal version (save + load) before advanced management.
+
+## 7.0 Acceptance Criteria Highlights (Next Increment)
+* Filtering returns results <50ms for 500 cards (local in-memory search, debounced input 150ms).
+* Duplicate places clone after original; both appear consecutively with stable ordering post refresh.
+* Favorite filter button: toggling ON shows only `favorite && !archived` cards (initial simple rule).
+* Archived cards excluded from default view when archived-hide toggle enabled (default ON once implemented).
+
+## 8.0 Out of Scope (Still)
+* Realtime collaboration / multi-user shared decks.
+* Rich media (images, audio) embedding.
+* Offline persistence & conflict resolution.
+* External integrations (export/import) until core card operations stabilized.
+
+## 9.0 Revision Notes
+2025-09-01: Added post-POC enhancements (duplicate, favorite, archive) and clarified planned roadmap. Consolidated status table for quick stakeholder scan.
+
+---
+This PRD is now the authoritative source; legacy handoff summaries have been archived (see `docs/HISTORY.md`).
