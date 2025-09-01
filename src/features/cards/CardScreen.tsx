@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd'
 import { useCards } from '../../hooks/useCards'
 import { useCardOperations } from '../../hooks/useCardOperations'
 import type { Card } from '../../types'
@@ -9,6 +10,7 @@ interface CardListItemProps {
   card: Card
   onEdit: (id: string) => void
   onDelete: (id: string) => void
+  onDuplicate?: (id: string) => void
   onMoveUp: (id: string) => void
   onMoveDown: (id: string) => void
   canMoveUp: boolean
@@ -27,6 +29,7 @@ export const CardListItem: React.FC<CardListItemProps> = ({
   card, 
   onEdit, 
   onDelete, 
+  onDuplicate,
   onMoveUp, 
   onMoveDown, 
   canMoveUp, 
@@ -156,6 +159,20 @@ export const CardListItem: React.FC<CardListItemProps> = ({
           >
             <span className="text-lg">🗑️</span>
           </button>
+          {onDuplicate && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                safeHandleClick(() => onDuplicate(card.id))
+              }}
+              onKeyDown={(e) => handleKeyDown(e, () => onDuplicate(card.id))}
+              className="p-2 rounded-lg transition-colors duration-200 text-gray-400 hover:text-green-600 hover:bg-green-50"
+              aria-label={`duplicate ${card.id}`}
+              title="Duplicate card"
+            >
+              <span className="text-lg">📄</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -165,15 +182,17 @@ export const CardListItem: React.FC<CardListItemProps> = ({
 // TDD: Implement CardScreen component to make tests pass
 export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProps) {
   const { cards, loading, error } = useCards(deckId)
-  const { 
-    createCard, 
-    updateCard, 
-    deleteCard, 
-    moveCardUp, 
-    moveCardDown, 
-    loading: operationLoading, 
-    error: operationError 
-  } = useCardOperations(deckId)
+  const {
+    createCard,
+    updateCard,
+    deleteCard,
+    moveCardUp,
+    moveCardDown,
+    reorderByDrag,
+  duplicateCard,
+    loading: operationLoading,
+    error: operationError
+  } = useCardOperations()
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -218,7 +237,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
   const handleCreateCard = async () => {
     if (newCardTitle.trim()) {
       try {
-        await createCard(newCardTitle.trim(), newCardBody.trim())
+  await createCard(deckId, newCardTitle.trim(), newCardBody.trim())
         console.log('Successfully created card:', newCardTitle)
         setNewCardTitle('')
         setNewCardBody('')
@@ -232,7 +251,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
   const handleEditCard = async () => {
     if (selectedCard && editTitle.trim()) {
       try {
-        await updateCard(selectedCard.id, { 
+  await updateCard(selectedCard.id, {
           title: editTitle.trim(),
           body: editBody.trim()
         })
@@ -250,7 +269,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
   const handleDeleteCard = async () => {
     if (selectedCard) {
       try {
-        await deleteCard(selectedCard.id)
+  await deleteCard(selectedCard.id, deckId)
         console.log('Successfully deleted card:', selectedCard.id)
         setShowDeleteModal(false)
         setSelectedCard(null)
@@ -286,6 +305,17 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
     }
   }
 
+  const handleCardDuplicate = async (cardId: string) => {
+    const card = cards.find(c => c.id === cardId)
+    if (!card) return
+    try {
+      await duplicateCard(deckId, card)
+      console.log('Duplicated card:', cardId)
+    } catch (err) {
+      console.error('Failed to duplicate card:', err)
+    }
+  }
+
   const handleMoveCardUp = async (cardId: string) => {
     try {
       await moveCardUp(cardId, filteredCards)
@@ -301,6 +331,18 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
       console.log('Successfully moved card down:', cardId)
     } catch (error) {
       console.error('Failed to move card down:', error)
+    }
+  }
+
+  // Drag-and-drop handler
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination) return
+    // Disable drag reorder when search filter active (to avoid inconsistent index mapping)
+    if (searchQuery.trim()) return
+    try {
+      await reorderByDrag(result.source.index, result.destination.index, cards)
+    } catch (err) {
+      console.error('Drag reorder failed:', err)
     }
   }
 
@@ -373,7 +415,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
         )}
 
         {/* Enhanced Card List */}
-        <div className="space-y-4">
+  <div className="space-y-4">
           {cards.length === 0 ? (
             <div className="text-center py-16">
               <div className="bg-white/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
@@ -409,26 +451,58 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredCards.map((card, index) => (
-                <div
-                  key={card.id}
-                  className="animate-fadeIn"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <CardListItem
-                    card={card}
-                    onEdit={handleCardEdit}
-                    onDelete={handleCardDelete}
-                    onMoveUp={handleMoveCardUp}
-                    onMoveDown={handleMoveCardDown}
-                    canMoveUp={index > 0}
-                    canMoveDown={index < filteredCards.length - 1}
-                    isReordering={operationLoading}
-                  />
-                </div>
-              ))}
-            </div>
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="card-list">
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className={`space-y-4 ${snapshot.isDraggingOver ? 'bg-white/5 rounded-lg p-2 transition-colors' : ''}`}
+                    data-testid="card-droppable"
+                  >
+                    {filteredCards.map((card, index) => {
+                      // When filtering is active, disable drag interaction to avoid inconsistent reorders vs full list
+                      const dragDisabled = !!searchQuery.trim()
+                      return (
+                        <Draggable key={card.id} draggableId={card.id} index={index} isDragDisabled={dragDisabled}>
+                          {(dragProvided, dragSnapshot) => (
+                            <div
+                              ref={dragProvided.innerRef}
+                              {...dragProvided.draggableProps}
+                              {...dragProvided.dragHandleProps}
+                              className={`animate-fadeIn ${dragSnapshot.isDragging ? 'ring-2 ring-blue-400' : ''}`}
+                              style={{
+                                ...dragProvided.draggableProps.style,
+                                animationDelay: `${index * 50}ms`
+                              }}
+                              data-testid={`draggable-card-${card.id}`}
+                            >
+                              <CardListItem
+                                card={card}
+                                onEdit={handleCardEdit}
+                                onDelete={handleCardDelete}
+                                onDuplicate={handleCardDuplicate}
+                                onMoveUp={handleMoveCardUp}
+                                onMoveDown={handleMoveCardDown}
+                                canMoveUp={index > 0}
+                                canMoveDown={index < filteredCards.length - 1}
+                                isReordering={operationLoading}
+                              />
+                            </div>
+                          )}
+                        </Draggable>
+                      )
+                    })}
+                    {provided.placeholder}
+                    {searchQuery.trim() && (
+                      <div className="text-xs text-blue-300 mt-2" data-testid="drag-disabled-notice">
+                        Drag-and-drop disabled while filtering. Clear search to reorder.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           )}
         </div>
 
