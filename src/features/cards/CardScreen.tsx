@@ -239,19 +239,31 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
   
   // TDD Phase 2A.1: Advanced Card Filtering State
   const [searchQuery, setSearchQuery] = useState('')
+  const [showArchived, setShowArchived] = useState(false) // Hidden by default
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
 
-  // TDD Phase 2A.1: Filter cards based on search query
+  // TDD Phase 2A.1: Filter cards based on favorites / archived / search
   const filteredCards = React.useMemo(() => {
-    if (!searchQuery.trim()) {
-      return cards
+    let working = [...cards]
+
+    if (!showArchived) {
+      working = working.filter(c => !c.archived)
     }
-    
-    const query = searchQuery.toLowerCase().trim()
-    return cards.filter(card => 
-      card.title.toLowerCase().includes(query) ||
-      card.body.toLowerCase().includes(query)
-    )
-  }, [cards, searchQuery])
+
+    if (showFavoritesOnly) {
+      working = working.filter(c => c.favorite)
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim()
+      working = working.filter(card => 
+        card.title.toLowerCase().includes(query) ||
+        card.body.toLowerCase().includes(query)
+      )
+    }
+
+    return working
+  }, [cards, showArchived, showFavoritesOnly, searchQuery])
 
   if (loading) {
     return (
@@ -449,9 +461,27 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
           </button>
         </div>
 
-        {/* TDD Phase 2A.1: Advanced Search/Filter Bar */}
+        {/* TDD Phase 2A.1: Advanced Search/Filter Bar + Filter Toggles */}
         {cards.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-6 space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                aria-label="Toggle favorites filter"
+                onClick={() => setShowFavoritesOnly(v => !v)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border ${showFavoritesOnly ? 'bg-yellow-400 text-slate-900 border-yellow-500' : 'bg-white/10 text-yellow-300 border-yellow-500/30 hover:bg-white/20'}`}
+              >
+                {showFavoritesOnly ? '⭐ Favorites Only' : '☆ All Cards'}
+              </button>
+              <button
+                type="button"
+                aria-label="Toggle archived visibility"
+                onClick={() => setShowArchived(v => !v)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors border ${showArchived ? 'bg-purple-400 text-slate-900 border-purple-500' : 'bg-white/10 text-purple-300 border-purple-500/30 hover:bg-white/20'}`}
+              >
+                {showArchived ? '📦 Showing Archived' : '🗃️ Hide Archived'}
+              </button>
+            </div>
             <div className="relative max-w-md">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <span className="text-gray-400 text-lg">🔍</span>
