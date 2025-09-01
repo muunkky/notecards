@@ -2,17 +2,14 @@
 node_modules/
 /.pnp
 .pnp.js
-.pnpm-store/
 
 # Production builds
 /dist
 /build
-/out
 
 # Development
 .vite/
 .cache/
-.turbo/
 
 # Environment variables
 .env
@@ -20,7 +17,6 @@ node_modules/
 .env.development.local
 .env.test.local
 .env.production.local
-.env.*.local
 
 # Log files
 npm-debug.log*
@@ -29,8 +25,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 *.log
-log/
-logs/
 
 # Runtime data
 pids
@@ -100,9 +94,6 @@ Desktop.ini
 .firebase/
 firebase-debug.log
 firestore-debug.log
-ui-debug.log
-firebase-debug.*.log
-.firebaserc
 
 # Temporary files
 temp/
@@ -112,32 +103,3 @@ tmp/
 # Backup files
 *.bak
 *.backup
-
-# TypeScript
-*.tsbuildinfo
-.tsbuildinfo
-
-# Vitest
-coverage/
-.vitest/
-
-# Tailwind CSS
-.tailwindcss-cache/
-
-# Next.js (if ever used)
-.next/
-out/
-
-# Nuxt.js (if ever used)
-.nuxt/
-.output/
-
-# Storybook (if ever used)
-.out/
-storybook-static/
-
-# Testing
-# Logs from failed tests
-test-results/
-playwright-report/
-playwright/.cache/

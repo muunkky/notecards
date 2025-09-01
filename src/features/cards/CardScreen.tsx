@@ -9,6 +9,11 @@ interface CardListItemProps {
   card: Card
   onEdit: (id: string) => void
   onDelete: (id: string) => void
+  onMoveUp: (id: string) => void
+  onMoveDown: (id: string) => void
+  canMoveUp: boolean
+  canMoveDown: boolean
+  isReordering: boolean
 }
 
 interface CardScreenProps {
@@ -18,12 +23,39 @@ interface CardScreenProps {
 }
 
 // TDD: Implement CardListItem component first
-export const CardListItem: React.FC<CardListItemProps> = ({ card, onEdit, onDelete }) => {
+export const CardListItem: React.FC<CardListItemProps> = ({ 
+  card, 
+  onEdit, 
+  onDelete, 
+  onMoveUp, 
+  onMoveDown, 
+  canMoveUp, 
+  canMoveDown, 
+  isReordering 
+}) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const truncateBody = (body: string, maxLength: number = 120) => {
     if (body.length <= maxLength) return body
     return body.substring(0, maxLength) + '...'
+  }
+
+  // Error handling wrapper for button actions
+  const safeHandleClick = (callback: () => void) => {
+    try {
+      callback()
+    } catch (error) {
+      console.error('Button action failed:', error)
+    }
+  }
+
+  // Keyboard event handler for accessibility
+  const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      e.stopPropagation()
+      safeHandleClick(action)
+    }
   }
 
   return (
@@ -60,13 +92,53 @@ export const CardListItem: React.FC<CardListItemProps> = ({ card, onEdit, onDele
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
+          {/* Reorder Buttons */}
           <button
             onClick={(e) => {
               e.stopPropagation()
-              onEdit(card.id)
+              safeHandleClick(() => onMoveUp(card.id))
             }}
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+            onKeyDown={(e) => handleKeyDown(e, () => onMoveUp(card.id))}
+            disabled={!canMoveUp || isReordering}
+            className={`p-2 rounded-lg transition-colors duration-200 ${
+              canMoveUp && !isReordering
+                ? 'text-gray-400 hover:text-blue-600 hover:bg-blue-100 active:bg-blue-200'
+                : 'text-gray-200 cursor-not-allowed'
+            } ${isReordering ? 'opacity-50' : ''}`}
+            aria-label={`move "${card.title}" up`}
+            aria-disabled={(!canMoveUp || isReordering) ? 'true' : undefined}
+            title="Move card up"
+          >
+            <span className="text-lg">⬆️</span>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              safeHandleClick(() => onMoveDown(card.id))
+            }}
+            onKeyDown={(e) => handleKeyDown(e, () => onMoveDown(card.id))}
+            disabled={!canMoveDown || isReordering}
+            className={`p-2 rounded-lg transition-colors duration-200 ${
+              canMoveDown && !isReordering
+                ? 'text-gray-400 hover:text-blue-600 hover:bg-blue-100 active:bg-blue-200'
+                : 'text-gray-200 cursor-not-allowed'
+            } ${isReordering ? 'opacity-50' : ''}`}
+            aria-label={`move "${card.title}" down`}
+            aria-disabled={(!canMoveDown || isReordering) ? 'true' : undefined}
+            title="Move card down"
+          >
+            <span className="text-lg">⬇️</span>
+          </button>
+          
+          {/* Existing Edit/Delete Buttons - These should NOT be disabled during reordering */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              safeHandleClick(() => onEdit(card.id))
+            }}
+            onKeyDown={(e) => handleKeyDown(e, () => onEdit(card.id))}
+            className="p-2 rounded-lg transition-colors duration-200 text-gray-400 hover:text-blue-600 hover:bg-blue-50"
             aria-label={`edit ${card.id}`}
             title="Edit card"
           >
@@ -75,9 +147,10 @@ export const CardListItem: React.FC<CardListItemProps> = ({ card, onEdit, onDele
           <button
             onClick={(e) => {
               e.stopPropagation()
-              onDelete(card.id)
+              safeHandleClick(() => onDelete(card.id))
             }}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+            onKeyDown={(e) => handleKeyDown(e, () => onDelete(card.id))}
+            className="p-2 rounded-lg transition-colors duration-200 text-gray-400 hover:text-red-600 hover:bg-red-50"
             aria-label={`delete ${card.id}`}
             title="Delete card"
           >
@@ -92,7 +165,15 @@ export const CardListItem: React.FC<CardListItemProps> = ({ card, onEdit, onDele
 // TDD: Implement CardScreen component to make tests pass
 export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProps) {
   const { cards, loading, error } = useCards(deckId)
-  const { createCard, updateCard, deleteCard, loading: operationLoading, error: operationError } = useCardOperations(deckId)
+  const { 
+    createCard, 
+    updateCard, 
+    deleteCard, 
+    moveCardUp, 
+    moveCardDown, 
+    loading: operationLoading, 
+    error: operationError 
+  } = useCardOperations(deckId)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -101,6 +182,22 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
   const [newCardBody, setNewCardBody] = useState('')
   const [editTitle, setEditTitle] = useState('')
   const [editBody, setEditBody] = useState('')
+  
+  // TDD Phase 2A.1: Advanced Card Filtering State
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // TDD Phase 2A.1: Filter cards based on search query
+  const filteredCards = React.useMemo(() => {
+    if (!searchQuery.trim()) {
+      return cards
+    }
+    
+    const query = searchQuery.toLowerCase().trim()
+    return cards.filter(card => 
+      card.title.toLowerCase().includes(query) ||
+      card.body.toLowerCase().includes(query)
+    )
+  }, [cards, searchQuery])
 
   if (loading) {
     return (
@@ -189,6 +286,24 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
     }
   }
 
+  const handleMoveCardUp = async (cardId: string) => {
+    try {
+      await moveCardUp(cardId, filteredCards)
+      console.log('Successfully moved card up:', cardId)
+    } catch (error) {
+      console.error('Failed to move card up:', error)
+    }
+  }
+
+  const handleMoveCardDown = async (cardId: string) => {
+    try {
+      await moveCardDown(cardId, filteredCards)
+      console.log('Successfully moved card down:', cardId)
+    } catch (error) {
+      console.error('Failed to move card down:', error)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -214,7 +329,12 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
               {deckTitle ? `${deckTitle}` : 'Deck Cards'}
             </h1>
             <p className="text-gray-300">
-              {cards.length} {cards.length === 1 ? 'card' : 'cards'}
+              {filteredCards.length} {filteredCards.length === 1 ? 'card' : 'cards'}
+              {searchQuery && (
+                <span className="ml-2 text-blue-300">
+                  {filteredCards.length !== cards.length && `(${cards.length} total)`}
+                </span>
+              )}
             </p>
           </div>
           <button
@@ -224,6 +344,33 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
             Create New Card
           </button>
         </div>
+
+        {/* TDD Phase 2A.1: Advanced Search/Filter Bar */}
+        {cards.length > 0 && (
+          <div className="mb-6">
+            <div className="relative max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span className="text-gray-400 text-lg">🔍</span>
+              </div>
+              <input
+                type="text"
+                placeholder="Search cards..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 placeholder-gray-500"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  <span className="text-lg">✕</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Enhanced Card List */}
         <div className="space-y-4">
@@ -243,9 +390,27 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
                 Create Your First Card
               </button>
             </div>
+          ) : filteredCards.length === 0 ? (
+            // TDD Phase 2A.1: No search results state
+            <div className="text-center py-16">
+              <div className="bg-white/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+                <span className="text-4xl">🔍</span>
+              </div>
+              <div className="text-white text-xl mb-4 font-medium">No cards match your search</div>
+              <div className="text-gray-300 mb-8 max-w-md mx-auto leading-relaxed">
+                Try a different search term or{' '}
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-blue-300 hover:text-blue-100 underline"
+                >
+                  clear your search
+                </button>
+                {' '}to see all cards.
+              </div>
+            </div>
           ) : (
             <div className="space-y-4">
-              {cards.map((card, index) => (
+              {filteredCards.map((card, index) => (
                 <div
                   key={card.id}
                   className="animate-fadeIn"
@@ -255,6 +420,11 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
                     card={card}
                     onEdit={handleCardEdit}
                     onDelete={handleCardDelete}
+                    onMoveUp={handleMoveCardUp}
+                    onMoveDown={handleMoveCardDown}
+                    canMoveUp={index > 0}
+                    canMoveDown={index < filteredCards.length - 1}
+                    isReordering={operationLoading}
                   />
                 </div>
               ))}

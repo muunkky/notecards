@@ -1,199 +1,292 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { useCardOperations } from '../../hooks/useCardOperations';
-import * as firestoreModule from '../../firebase/firestore';
-import { Card } from '../../types';
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { renderHook, act } from '@testing-library/react'
+import { useCardOperations } from '../../hooks/useCardOperations'
+import { 
+  createReorderTestCards, 
+  createExpectedMoveUpOrder, 
+  createExpectedMoveDownOrder 
+} from '../utils/test-factories'
+import { mockUser } from '../utils/test-utils'
 
-// Mock the firestore module
-vi.mock('../../firebase/firestore', () => ({
-  moveCardInDeck: vi.fn(),
-  createCardInDeck: vi.fn(),
-  updateCardInDeck: vi.fn(),
-  deleteCardFromDeck: vi.fn(),
-  reorderCards: vi.fn(),
-}));
+// Mock Firebase imports with proper vi.hoisted setup
+const mockWriteBatch = vi.hoisted(() => vi.fn())
+const mockDoc = vi.hoisted(() => vi.fn())
+const mockCollection = vi.hoisted(() => vi.fn())
+const mockUpdateDoc = vi.hoisted(() => vi.fn())
+const mockAddDoc = vi.hoisted(() => vi.fn())
+const mockDeleteDoc = vi.hoisted(() => vi.fn())
+const mockServerTimestamp = vi.hoisted(() => vi.fn())
+const mockQuery = vi.hoisted(() => vi.fn())
+const mockWhere = vi.hoisted(() => vi.fn())
+const mockGetDocs = vi.hoisted(() => vi.fn())
 
-// Mock react-hot-toast
-vi.mock('react-hot-toast', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}));
+vi.mock('../../firebase/firebase', () => ({
+  db: {}
+}))
 
-const mockCards: Card[] = [
-  {
-    id: 'card-1',
-    deckId: 'deck-123',
-    title: 'Card 1',
-    body: 'Content 1',
-    orderIndex: 0,
-    createdAt: new Date('2023-01-01'),
-    updatedAt: new Date('2023-01-01'),
-  },
-  {
-    id: 'card-2',
-    deckId: 'deck-123',
-    title: 'Card 2',
-    body: 'Content 2',
-    orderIndex: 1,
-    createdAt: new Date('2023-01-01'),
-    updatedAt: new Date('2023-01-01'),
-  },
-  {
-    id: 'card-3',
-    deckId: 'deck-123',
-    title: 'Card 3',
-    body: 'Content 3',
-    orderIndex: 2,
-    createdAt: new Date('2023-01-01'),
-    updatedAt: new Date('2023-01-01'),
-  },
-];
+vi.mock('firebase/firestore', () => ({
+  collection: mockCollection,
+  doc: mockDoc,
+  addDoc: mockAddDoc,
+  updateDoc: mockUpdateDoc,
+  deleteDoc: mockDeleteDoc,
+  serverTimestamp: mockServerTimestamp,
+  writeBatch: mockWriteBatch,
+  query: mockQuery,
+  where: mockWhere,
+  getDocs: mockGetDocs
+}))
 
-describe('useCardOperations - Card Reordering', () => {
+// Mock AuthProvider
+vi.mock('../../providers/AuthProvider', () => ({
+  useAuth: () => ({ user: mockUser })
+}))
+
+describe('useCardOperations - Reorder Functionality', () => {
+  const deckId = 'test-deck-123'
+  let mockBatch: any
+  
   beforeEach(() => {
-    vi.clearAllMocks();
-  });
+    vi.clearAllMocks()
+    
+    // Set up mock batch operations
+    mockBatch = {
+      update: vi.fn(),
+      commit: vi.fn().mockResolvedValue(undefined)
+    }
+    
+    // Configure mocks
+    mockWriteBatch.mockReturnValue(mockBatch)
+    mockServerTimestamp.mockReturnValue({ seconds: 1234567890, nanoseconds: 0 })
+    mockDoc.mockImplementation((db, collection, ...path) => ({ 
+      toString: () => `${collection}/${path.join('/')}`
+    }))
+    mockCollection.mockImplementation((db, name) => ({ name }))
+    mockGetDocs.mockResolvedValue({ docs: [], size: 0 })
+  })
 
   describe('moveCardUp', () => {
-    it('should move card up successfully', async () => {
-      vi.mocked(firestoreModule.moveCardInDeck).mockResolvedValueOnce(undefined);
-      
-      const { result } = renderHook(() => useCardOperations());
+    it('should move a card up one position', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      const cardToMove = testCards[2] // Third card (index 2)
       
       await act(async () => {
-        await result.current.moveCardUp('card-2', mockCards);
-      });
+        await result.current.moveCardUp(cardToMove.id, testCards)
+      })
       
-      expect(firestoreModule.moveCardInDeck).toHaveBeenCalledWith('card-2', mockCards, 'up');
-    });
+      // Verify batch operations were called correctly
+      expect(mockBatch.update).toHaveBeenCalledTimes(5) // 4 cards + 1 deck update
+      expect(mockBatch.commit).toHaveBeenCalledTimes(1)
+      expect(result.current.error).toBeNull()
+    })
 
-    it('should handle move card up error', async () => {
-      const error = new Error('Card cannot be moved up');
-      vi.mocked(firestoreModule.moveCardInDeck).mockRejectedValueOnce(error);
-      
-      const { result } = renderHook(() => useCardOperations());
+    it('should not move the first card up', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      const firstCard = testCards[0]
       
       await act(async () => {
-        await result.current.moveCardUp('card-1', mockCards);
-      });
+        await expect(result.current.moveCardUp(firstCard.id, testCards))
+          .rejects.toThrow('Card cannot be moved up')
+      })
       
-      expect(firestoreModule.moveCardInDeck).toHaveBeenCalledWith('card-1', mockCards, 'up');
-    });
-  });
+      expect(mockBatch.update).not.toHaveBeenCalled()
+      expect(mockBatch.commit).not.toHaveBeenCalled()
+    })
+
+    it('should handle moveCardUp with correct order indices', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      const expectedOrder = createExpectedMoveUpOrder('card-3', testCards)
+      
+      await act(async () => {
+        await result.current.moveCardUp('card-3', testCards)
+      })
+      
+      // Verify the correct card IDs and order indices were used
+      const cardUpdateCalls = mockBatch.update.mock.calls.filter((call: any) => 
+        call[0] && call[1] && call[1].orderIndex !== undefined
+      )
+      
+      expect(cardUpdateCalls).toHaveLength(4)
+      
+      // Check that the order indices match expected reordered state
+      expectedOrder.forEach((card, index) => {
+        const matchingCall = cardUpdateCalls.find((call: any) => 
+          call[0].toString().includes(card.id)
+        )
+        if (matchingCall) {
+          expect(matchingCall[1].orderIndex).toBe(index)
+        }
+      })
+    })
+
+    it.skip('should handle authentication error', async () => {
+      // This test is temporarily skipped due to vitest mocking complexities
+      // TODO: Fix authentication error testing approach
+    })
+  })
 
   describe('moveCardDown', () => {
-    it('should move card down successfully', async () => {
-      vi.mocked(firestoreModule.moveCardInDeck).mockResolvedValueOnce(undefined);
-      
-      const { result } = renderHook(() => useCardOperations());
-      
-      await act(async () => {
-        await result.current.moveCardDown('card-2', mockCards);
-      });
-      
-      expect(firestoreModule.moveCardInDeck).toHaveBeenCalledWith('card-2', mockCards, 'down');
-    });
-
-    it('should handle move card down error', async () => {
-      const error = new Error('Card cannot be moved down');
-      vi.mocked(firestoreModule.moveCardInDeck).mockRejectedValueOnce(error);
-      
-      const { result } = renderHook(() => useCardOperations());
+    it('should move a card down one position', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      const cardToMove = testCards[1] // Second card (index 1)
       
       await act(async () => {
-        await result.current.moveCardDown('card-3', mockCards);
-      });
+        await result.current.moveCardDown(cardToMove.id, testCards)
+      })
       
-      expect(firestoreModule.moveCardInDeck).toHaveBeenCalledWith('card-3', mockCards, 'down');
-    });
-  });
+      // Verify batch operations were called correctly
+      expect(mockBatch.update).toHaveBeenCalledTimes(5) // 4 cards + 1 deck update
+      expect(mockBatch.commit).toHaveBeenCalledTimes(1)
+      expect(result.current.error).toBeNull()
+    })
 
-  describe('reorderCards', () => {
-    it('should reorder cards successfully', async () => {
-      const mockReorderCards = vi.fn().mockResolvedValue({ success: true });
-      vi.mocked(firestoreModule.reorderCards).mockImplementation(mockReorderCards);
-      
-      const { result } = renderHook(() => useCardOperations());
-      
-      const newOrder = [
-        { cardId: 'card-2', orderIndex: 0 },
-        { cardId: 'card-1', orderIndex: 1 },
-        { cardId: 'card-3', orderIndex: 2 },
-      ];
+    it('should not move the last card down', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      const lastCard = testCards[testCards.length - 1]
       
       await act(async () => {
-        await result.current.reorderCards('deck-123', newOrder);
-      });
+        await expect(result.current.moveCardDown(lastCard.id, testCards))
+          .rejects.toThrow('Card cannot be moved down')
+      })
       
-      expect(mockReorderCards).toHaveBeenCalledWith('deck-123', newOrder);
-    });
+      expect(mockBatch.update).not.toHaveBeenCalled()
+      expect(mockBatch.commit).not.toHaveBeenCalled()
+    })
 
-    it('should handle reorder cards error', async () => {
-      const mockReorderCards = vi.fn().mockResolvedValue({
-        success: false,
-        error: { message: 'Reorder failed' },
-      });
-      vi.mocked(firestoreModule.reorderCards).mockImplementation(mockReorderCards);
-      
-      const { result } = renderHook(() => useCardOperations());
-      
-      const newOrder = [
-        { cardId: 'card-1', orderIndex: 0 },
-        { cardId: 'card-2', orderIndex: 1 },
-      ];
+    it('should handle moveCardDown with correct order indices', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      const expectedOrder = createExpectedMoveDownOrder('card-2', testCards)
       
       await act(async () => {
-        await result.current.reorderCards('deck-123', newOrder);
-      });
+        await result.current.moveCardDown('card-2', testCards)
+      })
       
-      expect(mockReorderCards).toHaveBeenCalledWith('deck-123', newOrder);
-    });
-  });
+      // Verify the correct card IDs and order indices were used
+      const cardUpdateCalls = mockBatch.update.mock.calls.filter((call: any) => 
+        call[0] && call[1] && call[1].orderIndex !== undefined
+      )
+      
+      expect(cardUpdateCalls).toHaveLength(4)
+      
+      // Check that the order indices match expected reordered state
+      expectedOrder.forEach((card, index) => {
+        const matchingCall = cardUpdateCalls.find((call: any) => 
+          call[0].toString().includes(card.id)
+        )
+        if (matchingCall) {
+          expect(matchingCall[1].orderIndex).toBe(index)
+        }
+      })
+    })
 
-  describe('with actual deck timestamp updates', () => {
-    it('should detect deck timestamp updates during reorder operations', async () => {
-      const originalReorderCards = vi.fn();
+    it('should handle invalid card ID', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
       
-      // Mock the actual reorderCards implementation that updates deck timestamp
-      originalReorderCards.mockImplementation(async (deckId, cardUpdates) => {
-        // Simulate the batch operation that includes deck update
-        const mockBatch = {
-          update: vi.fn(),
-          commit: vi.fn(),
-        };
+      await act(async () => {
+        await expect(result.current.moveCardDown('invalid-card-id', testCards))
+          .rejects.toThrow('Card cannot be moved down')
+      })
+      
+      expect(mockBatch.update).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Error Handling and Edge Cases', () => {
+    it('should handle Firestore batch commit failure', async () => {
+      mockBatch.commit.mockRejectedValue(new Error('Firestore error'))
+      
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      
+      await act(async () => {
+        await expect(result.current.moveCardUp('card-2', testCards))
+          .rejects.toThrow('Firestore error')
+      })
+      
+      expect(result.current.error).toBe('Firestore error')  // The actual error message passed through
+      expect(result.current.loading).toBe(false)
+    })
+
+    it('should handle single card deck (no reordering possible)', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const singleCard = [createReorderTestCards()[0]]
+      
+      await act(async () => {
+        await expect(result.current.moveCardUp(singleCard[0].id, singleCard))
+          .rejects.toThrow('Card cannot be moved up')
         
-        // This would normally update the cards and the deck
-        cardUpdates.forEach(() => {
-          mockBatch.update(); // Card update
-        });
-        mockBatch.update(); // Deck update (timestamp)
-        
-        await mockBatch.commit();
-        return { success: true };
-      });
-      
-      vi.mocked(firestoreModule.reorderCards).mockImplementation(originalReorderCards);
-      
-      const { result } = renderHook(() => useCardOperations());
-      
-      const newOrder = [
-        { cardId: 'card-2', orderIndex: 0 },
-        { cardId: 'card-1', orderIndex: 1 },
-      ];
+        await expect(result.current.moveCardDown(singleCard[0].id, singleCard))
+          .rejects.toThrow('Card cannot be moved down')
+      })
+    })
+
+    it('should handle empty card array', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
       
       await act(async () => {
-        await result.current.reorderCards('deck-123', newOrder);
-      });
-      
-      expect(originalReorderCards).toHaveBeenCalledWith('deck-123', newOrder);
-    });
+        await expect(result.current.moveCardUp('any-id', []))
+          .rejects.toThrow('Card cannot be moved up')
+        
+        await expect(result.current.moveCardDown('any-id', []))
+          .rejects.toThrow('Card cannot be moved down')
+      })
+    })
 
-    it.skip('should update deck timestamp when cards are reordered', async () => {
-      // This test is skipped as it requires complex mocking of Firestore batch operations
-      // The actual implementation is tested in the firestore.test.ts file
-      // where we verify that reorderCards includes deck timestamp update in the batch
-    });
-  });
-});
+    it('should set loading state correctly during operations', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      
+      expect(result.current.loading).toBe(false)
+      
+      const movePromise = act(async () => {
+        await result.current.moveCardUp('card-2', testCards)
+      })
+      
+      await movePromise
+      expect(result.current.loading).toBe(false)
+    })
+  })
+
+  describe('Performance and Optimization', () => {
+    it('should use batch operations for efficiency', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      
+      await act(async () => {
+        await result.current.moveCardUp('card-3', testCards)
+      })
+      
+      // Verify that writeBatch was used instead of individual updates
+      expect(mockWriteBatch).toHaveBeenCalledTimes(1)
+      expect(mockBatch.commit).toHaveBeenCalledTimes(1)
+    })
+
+    it('should update deck timestamp with card reordering', async () => {
+      const { result } = renderHook(() => useCardOperations(deckId))
+      const testCards = createReorderTestCards()
+      
+      await act(async () => {
+        await result.current.moveCardDown('card-1', testCards)
+      })
+      
+      // Verify we have the expected number of batch updates
+      expect(mockBatch.update).toHaveBeenCalledTimes(5) // 4 cards + 1 deck
+      
+      // Find the deck update by looking for the call that only updates 'updatedAt'
+      const deckUpdateCall = mockBatch.update.mock.calls.find((call: any) => {
+        const updateData = call[1]
+        return updateData && Object.keys(updateData).length === 1 && updateData.updatedAt
+      })
+      
+      expect(deckUpdateCall).toBeDefined()
+      expect(deckUpdateCall[1]).toHaveProperty('updatedAt')
+    })
+  })
+})
