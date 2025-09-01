@@ -8,14 +8,17 @@
 
 ### Standard Test Execution
 ```powershell
-# Clean test output to log file
-$env:NO_COLOR=1; npm run test > test-results-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
+# Clean test output to centralized log folder (log/temp)
+$env:NO_COLOR=1; npm run test:log
 
-# View results immediately
+# View results immediately (interactive output only, no file)
 npm run test
 
-# Specific test file
-$env:NO_COLOR=1; npm run test CardScreen.test.tsx > card-screen-test-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
+# Specific test file (ad-hoc logging example)
+$env:NO_COLOR=1; npm run test CardScreen.test.tsx > log/temp/card-screen-test-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
+
+# Using logging script with pattern / named test
+$env:NO_COLOR=1; npm run test:log -- src/test/features/cards/CardScreen.test.tsx -t "reorders cards"
 ```
 
 ## 📋 Standard Operating Procedure
@@ -31,20 +34,23 @@ npm run test --version
 
 ### 2. Test Execution with Logging
 ```powershell
-# Primary command for full test suite
-$env:NO_COLOR=1; npm run test > test-results-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
+# Primary command for full test suite (writes timestamped log file in log/temp)
+$env:NO_COLOR=1; npm run test:log
 
-# Alternative with manual timestamp
-$env:NO_COLOR=1; npm run test > test-results-2025-09-01-14-30.log 2>&1
+# Legacy manual redirection (still valid if script unavailable)
+$env:NO_COLOR=1; npm run test > log/temp/test-results-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
+
+# Select subset (cards feature) with logging script
+$env:NO_COLOR=1; npm run test:log -- cards
 ```
 
 ### 3. Log File Verification
 ```powershell
-# Check if log file was created
-Get-ChildItem *.log | Sort-Object LastWriteTime -Descending | Select-Object -First 5
+# Check if log file was created (latest 5)
+Get-ChildItem log/temp/test-results-*.log | Sort-Object LastWriteTime -Descending | Select-Object -First 5
 
-# View latest log file
-Get-Content (Get-ChildItem *.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1).Name
+# View latest log file contents
+Get-Content (Get-ChildItem log/temp/test-results-*.log | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
 ```
 
 ## 🔧 Advanced Usage
@@ -75,24 +81,24 @@ $env:NO_COLOR=1; npm run test:watch
 
 ### Coverage Reports
 ```powershell
-# Generate coverage with clean output
-$env:NO_COLOR=1; npm run test:coverage > coverage-report-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
+# Generate coverage with clean output (manual redirect)
+$env:NO_COLOR=1; npm run test:coverage > log/temp/coverage-report-$(Get-Date -Format 'yyyy-MM-dd-HH-mm').log 2>&1
 ```
 
 ## 📁 File Naming Conventions
 
-### Standard Formats
-- **Full Test Suite**: `test-results-YYYY-MM-DD-HH-mm.log`
-- **Feature Specific**: `[feature]-tests-YYYY-MM-DD-HH-mm.log`
-- **Coverage Reports**: `coverage-report-YYYY-MM-DD-HH-mm.log`
-- **Specific Components**: `[component]-test-YYYY-MM-DD-HH-mm.log`
+### Standard Formats (stored in log/temp)
+- **Full Test Suite**: `log/temp/test-results-YYYY-MM-DD-HH-mm.log`
+- **Feature Specific**: `log/temp/[feature]-tests-YYYY-MM-DD-HH-mm.log`
+- **Coverage Reports**: `log/temp/coverage-report-YYYY-MM-DD-HH-mm.log`
+- **Specific Components**: `log/temp/[component]-test-YYYY-MM-DD-HH-mm.log`
 
 ### Examples
 ```
-test-results-2025-09-01-14-30.log
-cards-tests-2025-09-01-14-35.log
-coverage-report-2025-09-01-14-40.log
-card-screen-test-2025-09-01-14-45.log
+log/temp/test-results-2025-09-01-14-30.log
+log/temp/cards-tests-2025-09-01-14-35.log
+log/temp/coverage-report-2025-09-01-14-40.log
+log/temp/card-screen-test-2025-09-01-14-45.log
 ```
 
 ## 🚫 What NOT to Do
@@ -163,15 +169,15 @@ $(Get-Date -Format 'yyyy-MM-dd-HH-mm')
 
 **Issue**: Can't find recent log files
 ```powershell
-# Solution: List recent .log files
-Get-ChildItem *.log | Sort-Object LastWriteTime -Descending
+# Solution: List recent .log files in centralized directory
+Get-ChildItem log/temp/*.log | Sort-Object LastWriteTime -Descending
 ```
 
 ### Verification Steps
 1. **Check NO_COLOR**: `Write-Host "NO_COLOR: $env:NO_COLOR"`
 2. **Test npm command**: `npm run test --help`
-3. **Verify file creation**: `Test-Path test-results*.log`
-4. **Check file contents**: `Get-Content (latest log file)`
+3. **Verify file creation**: `Get-ChildItem log/temp/test-results-*.log | Select -First 1`
+4. **Check file contents**: `Get-Content (Get-ChildItem log/temp/test-results-*.log | Sort LastWriteTime -Descending | Select -First 1).FullName`
 
 ## 📊 Expected Output Format
 
@@ -201,6 +207,7 @@ Tests:       XXX passed, XX failed, XXX total
 ## 🔄 Integration with AI Assistants
 
 ### Why This Format
+- **Centralized**: log/temp keeps repository root clean
 - **Clean Text**: NO_COLOR removes formatting codes
 - **Complete Output**: stderr redirection captures all information
 - **Timestamped**: Unique files prevent overwrites
@@ -214,6 +221,6 @@ Tests:       XXX passed, XX failed, XXX total
 
 ---
 
-**Last Updated**: 2025-09-01  
+**Last Updated**: 2025-09-01 (centralized logging enabled)  
 **Compatible**: PowerShell 5.1+, npm 8+, Vitest 1.0+  
 **Status**: Production Ready

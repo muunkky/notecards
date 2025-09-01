@@ -15,7 +15,8 @@
     "test:ui": "vitest --ui",
     "test:run": "echo \"🧪 Test suite commencing, please wait 10-15 seconds for completion...\" && vitest run",
     "test:coverage": "echo \"🧪 Test coverage analysis commencing, please wait 15-20 seconds...\" && vitest run --coverage",
-    "test:watch": "vitest --watch"
+  "test:watch": "vitest --watch",
+  "test:log": "node scripts/run-tests-log.mjs"
   },
   "keywords": [],
   "author": "",
