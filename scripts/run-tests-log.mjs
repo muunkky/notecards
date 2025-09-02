@@ -8,6 +8,15 @@ process.env.NO_COLOR = NO_COLOR
 // CI disables interactive spinner / dynamic line rewrites in Vitest
 if (!process.env.CI) process.env.CI = '1'
 
+// Terminal display policy (Copilot cannot reliably ingest streaming test output):
+// TEST_TERMINAL_MODE options:
+//  - start   (default): show only START header + final completion marker
+//  - summary : START header + final one-line totals + completion marker
+//  - full    : stream vitest output (manual debugging only)
+const terminalMode = (process.env.TEST_TERMINAL_MODE || 'start').toLowerCase()
+const allowStreaming = terminalMode === 'full'
+const showFinalSummaryLine = terminalMode === 'summary' || terminalMode === 'full'
+
 const logDir = join(process.cwd(), 'log', 'temp')
 if (!existsSync(logDir)) {
   mkdirSync(logDir, { recursive: true })
@@ -15,18 +24,19 @@ if (!existsSync(logDir)) {
 
 const timestamp = new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+/, '')
 const logFile = join(logDir, `test-results-${timestamp}.log`)
-
-console.log(`📝 Writing test output to ${logFile}`)
+const rawLogFile = join(logDir, `test-results-${timestamp}.raw.log`)
 
 const out = createWriteStream(logFile, { flags: 'a' })
+const rawOut = createWriteStream(rawLogFile, { flags: 'a' })
 
 // Allow passing additional vitest args (e.g., file patterns, -t test name)
 // Usage: npm run test:log -- path/to/test -t "name"
 const extraArgs = process.argv.slice(2)
 
-// Monkey-patch stdout/stderr write to tee output into file (simpler than spawning child process)
+// Monkey-patch stdout/stderr write to tee output into files while optionally silencing terminal
 const originalStdoutWrite = process.stdout.write.bind(process.stdout)
 const originalStderrWrite = process.stderr.write.bind(process.stderr)
+let silent = !allowStreaming // will suppress vitest progress output unless full mode requested
 
 // Simple ANSI / control sequence stripper
 const stripAnsi = (input) => {
@@ -39,33 +49,90 @@ const stripAnsi = (input) => {
 }
 
 process.stdout.write = (chunk, encoding, cb) => {
-  try { out.write(stripAnsi(chunk)) } catch { /* ignore */ }
-  return originalStdoutWrite(chunk, encoding, cb)
+  try {
+    rawOut.write(chunk)
+    out.write(stripAnsi(chunk))
+  } catch { /* ignore */ }
+  if (!silent) return originalStdoutWrite(chunk, encoding, cb)
+  return true
 }
 process.stderr.write = (chunk, encoding, cb) => {
-  try { out.write(stripAnsi(chunk)) } catch { /* ignore */ }
-  return originalStderrWrite(chunk, encoding, cb)
+  try {
+    rawOut.write(chunk)
+    out.write(stripAnsi(chunk))
+  } catch { /* ignore */ }
+  if (!silent) return originalStderrWrite(chunk, encoding, cb)
+  return true
 }
 
-console.log(`▶️  Executing vitest programmatic API: run ${extraArgs.join(' ')}`)
+// Provide immediate first-line pointer & explicit Copilot instructions before silencing (except full mode retains streaming after header if requested)
+const prevSilent = silent; silent = false
+const jsonPathPlanned = logFile.replace(/\.log$/, '.json')
+const isFullSuite = extraArgs.length === 0
+const est = isFullSuite ? '≈45–60 seconds' : '≈3–10 seconds'
+console.log('[TEST-RUN-START]')
+console.log(`mode: ${isFullSuite ? 'full-suite' : 'partial'}`)
+console.log(`args: ${extraArgs.join(' ') || '(none)'}`)
+console.log(`sanitizedLog: ${logFile}`)
+console.log(`rawLog: ${rawLogFile}`)
+console.log(`summaryJson (created at end): ${jsonPathPlanned}`)
+console.log('status: RUNNING')
+console.log('copilot: DO NOT wait for live test output in this terminal; tail the sanitizedLog or rawLog file repeatedly until you see [TEST-RUN-COMPLETE] appear here. Absence of that sentinel means tests are still executing.')
+console.log(`estimate: ${est}`)
+console.log('instruction: Continue polling (tail/read) the log file; it is appended incrementally. When finished a JSON summary and a COMPLETE sentinel will be written.')
+console.log('[TEST-RUN-MESSAGE-END]')
+silent = prevSilent
+// Remain silent until finalize unless full mode
 
 // Dynamic import to avoid issues if vitest not installed
 ;(async () => {
   let exitCode = 0
   let summary = null
   try {
-    const { startVitest } = await import('vitest/node')
-    const ctx = await startVitest('run', extraArgs, { watch: false })
+  const { startVitest } = await import('vitest/node')
+  const ctx = await startVitest('run', extraArgs, { watch: false })
     const files = ctx?.state?.getFiles?.() || []
+    const flattenTests = (fileTask) => {
+      if (!fileTask) return []
+      const tests = []
+      const stack = [...(fileTask.tasks || [])] // start from children suites/tests
+      while (stack.length) {
+        const current = stack.pop()
+        if (!current) continue
+        if (current.type === 'test') tests.push(current)
+        if (current.tasks && current.tasks.length) stack.push(...current.tasks)
+      }
+      return tests
+    }
     const fileSummaries = files.map(f => {
-      const allTests = f.result?.tests || f.result?.testResults || []
+      const allTests = flattenTests(f)
+      const detailed = allTests.map(t => {
+        // Collect first meaningful error message if present
+        let errorMessage = undefined
+        if (t.result?.errors && t.result.errors.length) {
+          errorMessage = t.result.errors.map(e => e.message || String(e)).join('\n')
+        } else if (t.result?.error) {
+          errorMessage = t.result.error.message || String(t.result.error)
+        }
+        return {
+          id: t.id,
+          name: t.name,
+            // fullName may exist (Vitest builds hierarchical names) – preserve if available
+          fullName: t.result?.name || (t.suite ? `${t.suite.name} ${t.name}` : t.name),
+          mode: t.mode,
+          state: t.result?.state || t.state,
+          durationMs: t.result?.duration,
+          error: errorMessage
+        }
+      })
       return {
-        file: f.filepath,
+        file: f.filepath || f.id || 'unknown',
         tests: allTests.length,
-        failed: allTests.filter(t => (t.result?.state || t.state) === 'fail').length,
-        skipped: allTests.filter(t => t.mode === 'skip').length,
+        failed: detailed.filter(t => t.state === 'fail').length,
+        skipped: detailed.filter(t => t.mode === 'skip').length,
         durationMs: f.result?.duration || 0,
-        state: f.result?.state
+        state: f.result?.state || (detailed.some(t => t.state === 'fail') ? 'fail' : 'pass'),
+        testsDetailed: detailed
       }
     })
     const totalTests = fileSummaries.reduce((a, f) => a + f.tests, 0)
@@ -93,18 +160,47 @@ console.log(`▶️  Executing vitest programmatic API: run ${extraArgs.join(' '
         // Write JSON summary separately (not via tee to keep structure clean)
         import('node:fs').then(fs => {
           fs.writeFileSync(jsonPath, JSON.stringify(summary, null, 2), 'utf8')
-          console.log(`🧾 JSON summary written: ${jsonPath}`)
+          // Also maintain latest-summary.json pointer + latest-log-path.txt for quick access
+          try {
+            const latestSummaryPath = join(logDir, 'latest-summary.json')
+            const latestLogPathFile = join(logDir, 'latest-log-path.txt')
+            fs.writeFileSync(latestSummaryPath, JSON.stringify({ logFile, summaryPath: jsonPath, summary }, null, 2), 'utf8')
+            fs.writeFileSync(latestLogPathFile, logFile + '\n', 'utf8')
+          } catch {/* ignore */}
+          if (showFinalSummaryLine) console.log(`🧾 JSON summary written: ${jsonPath}`)
         })
       }
     } catch {/* ignore */}
-    out.end(() => {
-      if (exitCode === 0) {
-        console.log(`✅ Tests completed successfully. Log: ${logFile}`)
-        process.exit(0)
-      } else {
-        console.error(`❌ Tests failed. See log: ${logFile}`)
-        process.exit(exitCode)
+    const writeCompleteSentinel = () => {
+      // Write sentinel directly to both file streams (still open)
+      let totals = ''
+      if (summary && summary.totalTests != null) {
+        totals = ` files=${summary.totalFiles} tests=${summary.totalTests} failed=${summary.totalFailed}`
       }
-    })
+      const sentinelLine = `[TEST-RUN-COMPLETE]${totals} exitCode=${exitCode} summaryJson=${jsonPathPlanned}`
+      const guidanceLine = 'copilot: You may stop tailing now; final summary JSON written. Parse summaryJson for structured results.'
+      try { rawOut.write(sentinelLine + '\n') } catch {}
+      try { out.write(sentinelLine + '\n') } catch {}
+      try { rawOut.write(guidanceLine + '\n') } catch {}
+      try { out.write(guidanceLine + '\n') } catch {}
+      return { sentinelLine, guidanceLine }
+    }
+    const finalize = () => {
+      silent = false
+      if (showFinalSummaryLine && summary && summary.totalTests != null) {
+        console.log(`[TEST-RUN-SUMMARY] files=${summary.totalFiles} tests=${summary.totalTests} failed=${summary.totalFailed} exitCode=${exitCode}`)
+      }
+      console.log('[TEST-RUN-COMPLETE-TERMINAL] exitCode=' + exitCode + (terminalMode !== 'full' ? ' (stream suppressed; see log file sentinel)' : ''))
+      process.exit(exitCode)
+    }
+    // Write sentinel BEFORE closing streams so tailing clients can detect completion
+    writeCompleteSentinel()
+    out.end(() => rawOut.end(() => finalize()))
+    // Maintain pointer for raw log too
+    try {
+      import('node:fs').then(fs => {
+        fs.writeFileSync(join(logDir, 'latest-raw-log-path.txt'), rawLogFile + '\n', 'utf8')
+      })
+    } catch { /* ignore */ }
   }
 })()

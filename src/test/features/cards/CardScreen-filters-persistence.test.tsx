@@ -31,9 +31,9 @@ describe('CardScreen Filter Persistence & Accessibility', () => {
     })
   })
 
-  it('restores prior toggle states from localStorage on initial render', () => {
-    localStorage.setItem('cardFilters.showFavoritesOnly', 'true')
-    localStorage.setItem('cardFilters.showArchived', 'true')
+  it('restores prior toggle states from localStorage (deck-scoped) on initial render', () => {
+    localStorage.setItem(`cardFilters.${deckId}.showFavoritesOnly`, 'true')
+    localStorage.setItem(`cardFilters.${deckId}.showArchived`, 'true')
 
     render(<CardScreen deckId={deckId} />)
 
@@ -46,7 +46,7 @@ describe('CardScreen Filter Persistence & Accessibility', () => {
     expect(archivedBtn).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('persists toggle changes to localStorage', () => {
+  it('persists toggle changes to localStorage using deck-scoped keys', () => {
     render(<CardScreen deckId={deckId} />)
     const favoritesBtn = screen.getByRole('button', { name: /toggle favorites filter/i })
     const archivedBtn = screen.getByRole('button', { name: /toggle archived visibility/i })
@@ -54,8 +54,11 @@ describe('CardScreen Filter Persistence & Accessibility', () => {
     fireEvent.click(favoritesBtn)
     fireEvent.click(archivedBtn)
 
-    expect(localStorage.getItem('cardFilters.showFavoritesOnly')).toBe('true')
-    expect(localStorage.getItem('cardFilters.showArchived')).toBe('true')
+  expect(localStorage.getItem(`cardFilters.${deckId}.showFavoritesOnly`)).toBe('true')
+  expect(localStorage.getItem(`cardFilters.${deckId}.showArchived`)).toBe('true')
+  // Old global keys should remain unset
+  expect(localStorage.getItem('cardFilters.showFavoritesOnly')).toBeNull()
+  expect(localStorage.getItem('cardFilters.showArchived')).toBeNull()
   })
 
   it('reflects current toggle state with aria-pressed for accessibility', () => {

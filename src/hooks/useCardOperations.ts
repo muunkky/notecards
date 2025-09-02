@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Card } from '../types'
-import { moveCardInDeck, createCardInDeck, updateCardInDeck, deleteCardFromDeck, reorderCards } from '../firebase/firestore'
+import { moveCardInDeck, createCardInDeck, updateCardInDeck, deleteCardFromDeck, reorderCards, createCardInDeckWithId } from '../firebase/firestore'
 
 export interface UseCardOperationsResult {
   createCard: (deckId: string, title: string, content: string) => Promise<void>
@@ -10,6 +10,7 @@ export interface UseCardOperationsResult {
   moveCardDown: (cardId: string, cards: Card[]) => Promise<void>
   reorderByDrag: (sourceIndex: number, destinationIndex: number, cards: Card[]) => Promise<void>
   duplicateCard: (deckId: string, sourceCard: Card) => Promise<void>
+  duplicateCardAdjacent?: (deckId: string, sourceCard: Card, currentCards: Card[]) => Promise<void>
   toggleFavorite: (card: Card) => Promise<void>
   archiveCard: (card: Card) => Promise<void>
   unarchiveCard: (card: Card) => Promise<void>
@@ -141,6 +142,30 @@ export function useCardOperations(): UseCardOperationsResult {
     }
   }
 
+  // Improved duplication: create copy then reorder so duplicate appears immediately after source
+  const duplicateCardAdjacent = async (deckId: string, sourceCard: Card, currentCards: Card[]): Promise<void> => {
+    setLoading(true)
+    setError(null)
+    try {
+  const newTitle = `${sourceCard.title} (Copy)`
+  const newId = await createCardInDeckWithId(deckId, newTitle, sourceCard.body)
+      const sourceIndex = currentCards.findIndex(c => c.id === sourceCard.id)
+      if (sourceIndex === -1) return // Source disappeared; nothing to reorder
+      const ids = currentCards.map(c => c.id)
+      ids.splice(sourceIndex + 1, 0, newId)
+      const updates = ids.map((id, idx) => ({ cardId: id, orderIndex: idx }))
+      const reorderRes = await reorderCards(deckId, updates)
+      if (!reorderRes.success) throw new Error(reorderRes.error?.message || 'Failed to reorder after duplicate')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to duplicate card adjacently'
+      setError(errorMessage)
+      console.error('Failed to duplicate card adjacently:', err)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const toggleFavorite = async (card: Card): Promise<void> => {
     setLoading(true)
     setError(null)
@@ -194,6 +219,7 @@ export function useCardOperations(): UseCardOperationsResult {
     moveCardDown,
     reorderByDrag,
   duplicateCard,
+  duplicateCardAdjacent,
   toggleFavorite,
   archiveCard,
   unarchiveCard,

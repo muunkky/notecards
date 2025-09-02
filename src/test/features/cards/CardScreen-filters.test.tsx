@@ -62,6 +62,8 @@ describe('CardScreen Filters (Favorites / Archived)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+  // Ensure persistence from prior tests (localStorage) does not leak and affect expectations
+  localStorage.clear()
     mockUseAuth.mockReturnValue({ user: { uid: 'u1' }, loading: false })
     mockUseCardOperations.mockReturnValue({
       createCard: vi.fn(),

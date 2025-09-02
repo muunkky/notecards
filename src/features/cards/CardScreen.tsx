@@ -3,6 +3,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautif
 import { useCards } from '../../hooks/useCards'
 import { useCardOperations } from '../../hooks/useCardOperations'
 import type { Card } from '../../types'
+import { shuffleArray, saveOrderSnapshot, getOrderSnapshots, updateOrderSnapshotName, deleteOrderSnapshot } from '../../firebase/firestore'
 
 // TDD: Connect our CardScreen to real Firestore data via useCards hook
 
@@ -18,6 +19,7 @@ interface CardListItemProps {
   canMoveUp: boolean
   canMoveDown: boolean
   isReordering: boolean
+  expandedOverride?: boolean | null
 }
 
 interface CardScreenProps {
@@ -38,9 +40,16 @@ export const CardListItem: React.FC<CardListItemProps> = ({
   onMoveDown, 
   canMoveUp, 
   canMoveDown, 
-  isReordering 
+  isReordering,
+  expandedOverride = null
 }) => {
   const [isExpanded, setIsExpanded] = useState(false)
+
+  // Respond to bulk expand/collapse overrides
+  React.useEffect(() => {
+    if (expandedOverride === true) setIsExpanded(true)
+    else if (expandedOverride === false) setIsExpanded(false)
+  }, [expandedOverride])
 
   const truncateBody = (body: string, maxLength: number = 120) => {
     if (body.length <= maxLength) return body
@@ -241,28 +250,38 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
   const [searchQuery, setSearchQuery] = useState('')
   const [showArchived, setShowArchived] = useState(false) // Hidden by default
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+  // Local view state (shuffle / snapshot application) separate from canonical cards
+  const [cardsView, setCardsView] = useState<Card[]>([])
+  const [bulkExpandState, setBulkExpandState] = useState<null | boolean>(null)
+  const [snapshots, setSnapshots] = useState<{ id: string, name: string, cardOrder: string[] }[]>([])
+  const [snapshotLoading, setSnapshotLoading] = useState(false)
 
-  // Load persisted filter preferences (one-time)
+  // Sync cards from source when underlying data changes (unless a snapshot or shuffle has different ordering requirement) – for simplicity always resync when length changes
+  useEffect(() => {
+    setCardsView(cards)
+  }, [cards])
+
+  // Deck-scoped persisted filter preferences (one-time load + reactive save)
   useEffect(() => {
     try {
-      const favStored = localStorage.getItem('cardFilters.showFavoritesOnly')
-      const archStored = localStorage.getItem('cardFilters.showArchived')
+      const favStored = localStorage.getItem(`cardFilters.${deckId}.showFavoritesOnly`)
+      const archStored = localStorage.getItem(`cardFilters.${deckId}.showArchived`)
       if (favStored === 'true') setShowFavoritesOnly(true)
       if (archStored === 'true') setShowArchived(true)
-    } catch {/* ignore storage errors */}
-  }, [])
+    } catch { /* ignore storage errors */ }
+  }, [deckId])
 
-  // Persist changes
+  // Persist changes to deck-scoped keys ONLY (leave any legacy global keys untouched to avoid stale overrides)
   useEffect(() => {
-    try { localStorage.setItem('cardFilters.showFavoritesOnly', String(showFavoritesOnly)) } catch {/* ignore */}
-  }, [showFavoritesOnly])
+    try { localStorage.setItem(`cardFilters.${deckId}.showFavoritesOnly`, String(showFavoritesOnly)) } catch { /* ignore */ }
+  }, [showFavoritesOnly, deckId])
   useEffect(() => {
-    try { localStorage.setItem('cardFilters.showArchived', String(showArchived)) } catch {/* ignore */}
-  }, [showArchived])
+    try { localStorage.setItem(`cardFilters.${deckId}.showArchived`, String(showArchived)) } catch { /* ignore */ }
+  }, [showArchived, deckId])
 
   // TDD Phase 2A.1: Filter cards based on favorites / archived / search
   const filteredCards = React.useMemo(() => {
-    let working = [...cards]
+    let working = [...cardsView]
 
     if (!showArchived) {
       working = working.filter(c => !c.archived)
@@ -281,7 +300,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
     }
 
     return working
-  }, [cards, showArchived, showFavoritesOnly, searchQuery])
+  }, [cards, cardsView, showArchived, showFavoritesOnly, searchQuery])
 
   if (loading) {
     return (
@@ -438,6 +457,93 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
     }
   }
 
+  // Shuffle local order (non-persistent)
+  const handleShuffle = () => {
+    setCardsView(cv => shuffleArray(cv))
+  }
+
+  const handleExpandAll = () => setBulkExpandState(true)
+  const handleCollapseAll = () => setBulkExpandState(false)
+
+  // Save snapshot (prompt for name); in tests window.prompt mocked
+  const handleSaveSnapshot = async () => {
+    try {
+      const name = window.prompt('Snapshot name?')
+      if (!name) return
+      const order = cardsView.map(c => c.id)
+      await saveOrderSnapshot(deckId, name, order)
+    } catch (err) {
+      console.error('Snapshot save failed', err)
+    }
+  }
+
+  const handleLoadSnapshot = async () => {
+    try {
+      setSnapshotLoading(true)
+      const res = await getOrderSnapshots(deckId)
+      if (!res.success || !res.data) return
+      setSnapshots(res.data.map(s => ({ id: s.id, name: s.name, cardOrder: s.cardOrder })))
+      const first = res.data[0]
+      if (first) {
+        // Reorder local view according to snapshot
+        const idToCard = new Map(cards.map(c => [c.id, c]))
+        const ordered: Card[] = []
+        first.cardOrder.forEach(id => { const c = idToCard.get(id); if (c) ordered.push(c) })
+        // Append any missing (safety)
+        cards.forEach(c => { if (!first.cardOrder.includes(c.id)) ordered.push(c) })
+        setCardsView(ordered)
+      }
+    } catch (err) {
+      console.error('Snapshot load failed', err)
+    } finally {
+      setSnapshotLoading(false)
+    }
+  }
+
+  // Apply an already-fetched snapshot order (pure client-side reordering)
+  const applySnapshot = (snapshot: { id: string, name: string, cardOrder: string[] }) => {
+    try {
+      const idToCard = new Map(cards.map(c => [c.id, c]))
+      const ordered: Card[] = []
+      snapshot.cardOrder.forEach(id => { const c = idToCard.get(id); if (c) ordered.push(c) })
+      cards.forEach(c => { if (!snapshot.cardOrder.includes(c.id)) ordered.push(c) })
+      setCardsView(ordered)
+    } catch (err) {
+      console.error('Apply snapshot failed', err)
+    }
+  }
+
+  // Rename snapshot (prompt for new name)
+  const handleRenameSnapshot = async (snapshotId: string) => {
+    try {
+      const snap = snapshots.find(s => s.id === snapshotId)
+      if (!snap) return
+      const newName = window.prompt('New snapshot name?', snap.name)
+      if (!newName || newName.trim() === '' || newName.trim() === snap.name) return
+      const res = await updateOrderSnapshotName(deckId, snapshotId, newName.trim())
+      if (res.success) {
+        setSnapshots(prev => prev.map(s => s.id === snapshotId ? { ...s, name: newName.trim() } : s))
+      }
+    } catch (err) {
+      console.error('Rename snapshot failed', err)
+    }
+  }
+
+  // Delete snapshot (confirm)
+  const handleDeleteSnapshot = async (snapshotId: string) => {
+    try {
+      const snap = snapshots.find(s => s.id === snapshotId)
+      if (!snap) return
+      if (!window.confirm(`Delete snapshot "${snap.name}"?`)) return
+      const res = await deleteOrderSnapshot(deckId, snapshotId)
+      if (res.success) {
+        setSnapshots(prev => prev.filter(s => s.id !== snapshotId))
+      }
+    } catch (err) {
+      console.error('Delete snapshot failed', err)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -501,7 +607,81 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
               >
                 {showArchived ? '📦 Showing Archived' : '🗃️ Hide Archived'}
               </button>
+              <button
+                type="button"
+                aria-label="Shuffle cards"
+                onClick={handleShuffle}
+                className="px-3 py-1 rounded-full text-sm font-medium transition-colors border bg-white/10 text-blue-300 border-blue-500/30 hover:bg-white/20"
+              >
+                🔀 Shuffle
+              </button>
+              <button
+                type="button"
+                aria-label="Expand all"
+                onClick={handleExpandAll}
+                className="px-3 py-1 rounded-full text-sm font-medium transition-colors border bg-white/10 text-green-300 border-green-500/30 hover:bg-white/20"
+              >
+                ⬇️ Expand All
+              </button>
+              <button
+                type="button"
+                aria-label="Collapse all"
+                onClick={handleCollapseAll}
+                className="px-3 py-1 rounded-full text-sm font-medium transition-colors border bg-white/10 text-red-300 border-red-500/30 hover:bg-white/20"
+              >
+                ⬆️ Collapse All
+              </button>
+              <button
+                type="button"
+                aria-label="Save order snapshot"
+                onClick={handleSaveSnapshot}
+                className="px-3 py-1 rounded-full text-sm font-medium transition-colors border bg-white/10 text-cyan-300 border-cyan-500/30 hover:bg-white/20"
+              >
+                💾 Save Snapshot
+              </button>
+              <button
+                type="button"
+                aria-label="Load snapshot"
+                disabled={snapshotLoading}
+                onClick={handleLoadSnapshot}
+                className="px-3 py-1 rounded-full text-sm font-medium transition-colors border bg-white/10 text-cyan-300 border-cyan-500/30 hover:bg-white/20 disabled:opacity-40"
+              >
+                📂 Load Snapshot
+              </button>
             </div>
+            {/* Snapshot list (appears after loading) */}
+            {snapshots.length > 0 && (
+              <div className="flex flex-wrap gap-2" data-testid="snapshot-list">
+                {snapshots.map(s => (
+                  <div key={s.id} className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      aria-label={`Apply snapshot ${s.name}`}
+                      onClick={() => applySnapshot(s)}
+                      className="px-2 py-1 rounded-full text-xs font-medium transition-colors border bg-white/10 text-cyan-200 border-cyan-500/30 hover:bg-white/20"
+                    >
+                      Apply Snapshot {s.name}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Rename snapshot ${s.name}`}
+                      onClick={() => handleRenameSnapshot(s.id)}
+                      className="px-2 py-1 rounded-full text-xs font-medium transition-colors border bg-white/10 text-amber-200 border-amber-500/30 hover:bg-white/20"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Delete snapshot ${s.name}`}
+                      onClick={() => handleDeleteSnapshot(s.id)}
+                      className="px-2 py-1 rounded-full text-xs font-medium transition-colors border bg-white/10 text-red-200 border-red-500/30 hover:bg-white/20"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="relative max-w-md">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <span className="text-gray-400 text-lg">🔍</span>

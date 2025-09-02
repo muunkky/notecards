@@ -474,6 +474,27 @@ export const deleteOrderSnapshot = async (
   }
 };
 
+// Update snapshot name
+export const updateOrderSnapshotName = async (
+  deckId: string,
+  snapshotId: string,
+  newName: string
+): Promise<ApiResponse<void>> => {
+  try {
+    const snapshotRef = doc(
+      db,
+      DECKS_COLLECTION,
+      deckId,
+      ORDER_SNAPSHOTS_COLLECTION,
+      snapshotId
+    )
+    await updateDoc(snapshotRef, { name: newName.trim() })
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: handleFirestoreError(error) }
+  }
+}
+
 // Utility function to shuffle array (for shuffle cards feature)
 export const shuffleArray = <T>(array: T[]): T[] => {
   const shuffled = [...array];
@@ -495,6 +516,19 @@ export const createCardInDeck = async (
     throw new Error(response.error?.message || 'Failed to create card');
   }
 };
+
+// Wrapper that returns the new card ID (used for adjacency duplication logic)
+export const createCardInDeckWithId = async (
+  deckId: string,
+  title: string,
+  content: string = ''
+): Promise<string> => {
+  const response = await createCard(deckId, title, content)
+  if (!response.success || !response.data) {
+    throw new Error(response.error?.message || 'Failed to create card')
+  }
+  return response.data
+}
 
 export const updateCardInDeck = async (
   cardId: string,

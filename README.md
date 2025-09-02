@@ -1,14 +1,13 @@
 # 🎯 Notecards - World-Class Manual Card Reordering Implementation
 
-![Tests](https://img.shields.io/badge/tests-210%2F211%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-99.53%25-brightgreen)
-![Status](https://img.shields.io/badge/status-complete-success)
+![Tests](https://img.shields.io/badge/tests-238%2F238%20passing-brightgreen)
+![Status](https://img.shields.io/badge/status-green-success)
 
 ## 🏆 **50-Point Enhancement Plan: COMPLETE!**
 
 This repository showcases the **complete implementation** of a 50-point enhancement plan for world-class manual card reordering functionality in a React/TypeScript notecard application.
 
-### ✅ **Final Achievement: 210/211 Tests Passing (99.53% Success Rate)**
+### ✅ **Current Achievement: 238/238 Tests Passing (100% Success Rate)**
 
 ## 🎯 **Feature Highlights**
 
@@ -63,12 +62,12 @@ This repository showcases the **complete implementation** of a 50-point enhancem
 - Edge case handling
 - Production-ready polish
 
-## 🧪 **Test Coverage**
+## 🧪 **Test Coverage & Status**
 
 ```bash
-✅ 210/211 tests passing (99.53% success rate)
-✅ 14/14 test files passing (100% file success rate)
-✅ Only 1 test skipped (intentional auth error test)
+✅ 238/238 tests passing (100% success rate)
+✅ 26/26 test files passing
+✅ 0 tests skipped
 ```
 
 ### **Test Categories:**
@@ -93,6 +92,70 @@ npm test
 # Build for production
 npm run build
 ```
+
+## 📜 Structured Test Logging & Sentinels
+
+We provide a machine-friendly, silent test runner that emits deterministic artifacts plus start/complete sentinel lines.
+
+### Command
+```
+npm run test:log [<vitest-args>]
+npm run test:coverage:log   # same but with coverage instrumentation & silent logging
+```
+
+### Immediate Terminal Output (only header + terminal completion line)
+```
+[TEST-RUN-START]
+...metadata (paths, status RUNNING, instructions)...
+[TEST-RUN-MESSAGE-END]
+```
+
+All subsequent vitest progress is suppressed from the terminal (for cleaner automation) but is appended to the log files.
+
+### Artifacts
+- Sanitized log (no ANSI): `log/temp/test-results-<timestamp>.log`
+- Raw log (ANSI intact): `log/temp/test-results-<timestamp>.raw.log`
+- JSON summary: `log/temp/test-results-<timestamp>.json`
+- Pointers:
+  - `log/temp/latest-log-path.txt` (sanitized log path)
+  - `log/temp/latest-raw-log-path.txt` (raw log path)
+  - `log/temp/latest-summary.json` (wrapper containing summary & paths)
+
+### Completion Sentinel
+The sanitized and raw log files end with:
+```
+[TEST-RUN-COMPLETE] files=<n> tests=<n> failed=<n> exitCode=<code> summaryJson=<path>
+copilot: You may stop tailing now; final summary JSON written. Parse summaryJson for structured results.
+```
+
+Automation should poll (tail/read) the sanitized log until `[TEST-RUN-COMPLETE]` appears. The terminal separately prints `[TEST-RUN-COMPLETE-TERMINAL]` after streams close, but relying on the file sentinel is preferred.
+
+### Helper: Wait for Completion
+```
+npm run test:log               # start (in one process)
+npm run test:wait              # in another shell, waits for completion
+```
+You can also pass an explicit log path:
+```
+node scripts/wait-for-test-complete.mjs log/temp/test-results-YYYY-MM-DD-HH-MM-SS.log
+```
+Environment overrides:
+- `INTERVAL_MS` (default 500)
+- `TIMEOUT_MS` (default 300000)
+
+### Parsing Results
+Read the JSON summary for structured totals and per-file test metadata. Example fields:
+```json
+{
+  "totalFiles": 26,
+  "totalTests": 238,
+  "totalFailed": 0,
+  "files": [ { "file": "...", "tests": 34, "testsDetailed": [ { "name": "..." } ] } ]
+}
+```
+
+### Rationale
+This design avoids brittle scraping of live terminal output, enabling deterministic CI agents or local scripts to determine test completion and gather rich structured results.
 
 ## 🏗️ **Architecture**
 
