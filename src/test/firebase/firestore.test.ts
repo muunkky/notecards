@@ -237,6 +237,7 @@ describe('Firestore Service Layer', () => {
     describe('deleteDeck', () => {
       it('should delete deck and its subcollections successfully', async () => {
         const mockBatch = {
+          update: vi.fn(), // ensure shape matches reorderCards expectations elsewhere
           delete: vi.fn(),
           commit: vi.fn().mockResolvedValue(undefined)
         }
@@ -398,6 +399,7 @@ describe('Firestore Service Layer', () => {
       it('should batch update card order indices', async () => {
         const mockBatch = {
           update: vi.fn(),
+          delete: vi.fn(), // align with type requiring delete
           commit: vi.fn().mockResolvedValue(undefined)
         }
         mockWriteBatch.mockReturnValue(mockBatch)

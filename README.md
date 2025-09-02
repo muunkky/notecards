@@ -3,6 +3,12 @@
 ![Tests](https://img.shields.io/badge/tests-238%2F238%20passing-brightgreen)
 ![Status](https://img.shields.io/badge/status-green-success)
 
+## 🚀 Live Demo
+
+Production Deployment: https://notecards-1b054.web.app
+
+The site is deployed via Firebase Hosting using the captured deploy script (`npm run deploy:capture`).
+
 ## 🏆 **50-Point Enhancement Plan: COMPLETE!**
 
 This repository showcases the **complete implementation** of a 50-point enhancement plan for world-class manual card reordering functionality in a React/TypeScript notecard application.

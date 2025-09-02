@@ -15,6 +15,7 @@
   "deploy:rules": "firebase deploy --only firestore:rules",
   "deploy:indexes": "firebase deploy --only firestore:indexes",
   "deploy:all": "npm run build && firebase deploy",
+  "deploy:capture": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy-capture.ps1",
   "test": "node scripts/run-tests-log.mjs",
   "test:run": "node scripts/run-tests-log.mjs",
   "test:coverage": "node scripts/run-tests-log.mjs -- --coverage",
