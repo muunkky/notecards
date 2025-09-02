@@ -15,6 +15,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { setDoc } from 'firebase/firestore';
 import type {
   Deck,
   Card,
@@ -74,10 +75,10 @@ export const createUserDocument = async (
 ): Promise<ApiResponse<void>> => {
   try {
     const userRef = doc(db, USERS_COLLECTION, userId);
-    await updateDoc(userRef, {
+    await setDoc(userRef, {
       ...userData,
       createdAt: serverTimestamp(),
-    });
+    }, { merge: true });
     return { success: true };
   } catch (error) {
     return { success: false, error: handleFirestoreError(error) };

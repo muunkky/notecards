@@ -31,15 +31,16 @@ service cloud.firestore {
 
     // Decks collection
     match /decks/{deckId} {
-      // Create: ownerId must match caller
+      // Create: ownerId must match caller; allow serverTimestamp() sentinels (treated as null/timestamp in rules)
       allow create: if isSignedIn()
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.title is string
-        && request.resource.data.createdAt != null
-        && request.resource.data.updatedAt != null;
+        && ('createdAt' in request.resource.data)
+        && ('updatedAt' in request.resource.data);
 
       // Read deck only if you own it
-      allow read: if resource.data.ownerId == request.auth.uid;
+  // Read: legacy deck docs without ownerId will be denied (explicit for safety)
+  allow read: if resource.data.ownerId == request.auth.uid;
 
       // Update: owner cannot change; basic field type constraints
       allow update: if resource.data.ownerId == request.auth.uid
