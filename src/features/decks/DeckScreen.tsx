@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useDecks } from '../../hooks/useDecks'
 import { useDeckOperations } from '../../hooks/useDeckOperations'
 import { useAuth } from '../../providers/AuthProvider'
@@ -66,22 +66,19 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null)
   const [newDeckTitle, setNewDeckTitle] = useState('')
   const [renameTitle, setRenameTitle] = useState('')
+  const userMenuRef = useRef<HTMLDivElement | null>(null)
 
   // Click outside to close user menu
   useEffect(() => {
+    if(!showUserMenu) return
     const handleClickOutside = (event: MouseEvent) => {
-      if (showUserMenu) {
-        setShowUserMenu(false)
-      }
+      if(!userMenuRef.current) return
+      const target = event.target as Node
+      if(userMenuRef.current.contains(target)) return // Clicked inside menu area
+      setShowUserMenu(false)
     }
-
-    if (showUserMenu) {
-      document.addEventListener('click', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
   }, [showUserMenu])
 
   if (loading) {
@@ -193,9 +190,9 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
               + Create New Deck
             </button>
             {/* User Menu */}
-            <div className="relative">
+      <div className="relative" ref={userMenuRef}>
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
+        onClick={(e) => { e.stopPropagation(); setShowUserMenu(v => !v) }}
                 className="flex items-center space-x-2 text-white hover:text-blue-300 transition-colors p-2 rounded-lg hover:bg-white/10"
                 aria-label="User menu"
               >
