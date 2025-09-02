@@ -4,24 +4,28 @@
 
 **Date:** 2025-09-01  
 **Recent Additions:** Duplicate Card, Favorite Toggle, Archive Toggle (All via TDD)  
-**Current Test Suite:** 224 tests (1 skipped) – All passing except intentional skip  
+**Current Test Suite:** 238 tests (0 skipped) – All passing  
 **Git Status:** Repository integrity restored (see HISTORY + Git Workflow doc)  
-**Next Focus:** Filtering & improved duplicate placement  
+**Next Focus:** Duplicate placement refinement → gap indexing → drag-and-drop → archived default hide toggle  
 
 ### **✅ MAJOR ACHIEVEMENTS (UPDATED):**
 | Category | Status | Notes |
 |----------|--------|-------|
 | Core Reordering | Implemented | Baseline reorder logic stable |
-| Duplicate Card | Implemented | Placement refinement backlog |
-| Favorite Toggle | Implemented | Filtering UI pending |
-| Archive Toggle | Implemented | Hidden-by-default UX not yet applied |
-| Test Infrastructure | Enhanced | Deterministic logging added |
+| Duplicate Card | Implemented | Needs adjacency placement refinement |
+| Favorite Toggle | Implemented | Integrated with filtering tests |
+| Archive Toggle | Implemented | Default hide toggle pending |
+| Filtering (text/favorite/archive) | Implemented | Real-time + persistence tests passing |
+| Shuffle | Implemented | Local non-persistent shuffle covered by tests |
+| Collapse / Expand All | Implemented | Global expand/collapse tests passing |
+| Order Snapshots (save/apply/rename/delete) | Implemented | Snapshot management tests passing |
+| Test Infrastructure | Enhanced | Silent structured logging + sentinels |
 | Git Recovery | Completed | Divergence fully remediated |
 
 ### **🔥 PREVIOUS CRITICAL ISSUE (RESOLVED): Git Repository Synchronization**
 Status: Resolved 2025-09-01 (See HISTORY & Git Workflow)  
 Action Items: Add CI + branch protections (still pending)  
-Next Dev after docs: Filtering + duplicate placement refinement  
+Next Dev after docs: Duplicate placement refinement (adjacency) + gap indexing  
 
 ---
 
@@ -123,47 +127,37 @@ After your PR has been approved and merged, change the `Status` to `Done`.
 | Task | Owner | Status | Files Created/Updated | Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | Dev Task: Create CardScreen component and layout | GH Copilot | Done | `src/features/cards/CardScreen.tsx` | Implemented & tested |
-| Dev Task: Implement CardListItem component (collapsed state) | | Not Started | | Title display and drag handle |
-| Dev Task: Add "Create New Card" functionality | | Not Started | | Add card at bottom of list |
-| Dev Task: Implement card expansion/collapse functionality | | Not Started | | In-place editing with sticky headers |
-| Dev Task: Add in-place editing for card title and body | | Not Started | | Click-to-edit with auto-save |
-| Dev Task: Implement "Delete Card" feature | | Not Started | | Swipe-to-delete or context menu |
-| Dev Task: Add real-time card updates within deck | | Not Started | | Subscribe to deck's cards subcollection |
-| Dev Task: Implement basic card ordering (orderIndex) | | Not Started | | Numeric sorting system |
+| Dev Task: Implement CardListItem component (collapsed state) | GH Copilot | Done | Title display and drag handle | Covered by CardScreen tests |
+| Dev Task: Add "Create New Card" functionality | GH Copilot | Done | Add card at bottom of list | CRUD tests passing |
+| Dev Task: Implement card expansion/collapse functionality | GH Copilot | Done | In-place editing with sticky headers | Expansion tests |
+| Dev Task: Add in-place editing for card title and body | GH Copilot | Done | Click-to-edit with auto-save | Edit modal tests |
+| Dev Task: Implement "Delete Card" feature | GH Copilot | Done | Swipe-to-delete or context menu | Delete tests |
+| Dev Task: Add real-time card updates within deck | GH Copilot | Done | Subscribe to deck's cards subcollection | useCards hook |
+| Dev Task: Implement basic card ordering (orderIndex) | GH Copilot | Done | Numeric sorting system | Reorder tests |
 
-## ☐ Milestone 5: Advanced Card Features (In Progress)
-
-| Task | Owner | Status | Files Created/Updated | Notes |
-| :--- | :--- | :--- | :--- | :--- |
-| Dev Task: Install and configure react-beautiful-dnd | | Not Started | | Library selection pending (baseline reorder exists) |
-| Dev Task: Implement drag-and-drop reordering | | Not Started | | Update orderIndex on drag end |
-| Dev Task: Add batch write operations for order updates | | Not Started | | Atomic Firestore transactions |
-| Dev Task: Implement "Filter Cards" functionality | | Not Started | | Real-time text-based filtering |
-| Dev Task: Add "Shuffle Cards" feature | | Not Started | | Randomize card order |
-| Dev Task: Implement "Collapse All" / "Expand All" actions | | Not Started | | Bulk state management |
-| Dev Task: Add card count and deck statistics | | Not Started | | Display in header or actions bar |
-
-## ☐ Milestone 5: Advanced Card Features
-
-| Task | Owner | Status | Notes |
-| :--- | :--- | :--- | :--- |
-| Dev Task: Install and configure react-beautiful-dnd | | Not Started | Drag-and-drop library setup |
-| Dev Task: Implement drag-and-drop reordering | | Not Started | Update orderIndex on drag end |
-| Dev Task: Add batch write operations for order updates | | Not Started | Atomic Firestore transactions |
-| Dev Task: Implement "Filter Cards" functionality | | Not Started | Real-time text-based filtering |
-| Dev Task: Add "Shuffle Cards" feature | | Not Started | Randomize card order |
-| Dev Task: Implement "Collapse All" / "Expand All" actions | | Not Started | Bulk state management |
-| Dev Task: Add card count and deck statistics | | Not Started | Display in header or actions bar |
-
-## ☐ Milestone 6: Order Snapshots Feature (Unstarted)
+## ✅ Milestone 5: Advanced Card Features (Wave 1 Complete)
 
 | Task | Owner | Status | Files Created/Updated | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| Dev Task: Create OrderSnapshot data model and service functions | | Not Started | | Save/load card order arrays |
-| Dev Task: Implement "Save Order As..." functionality | | Not Started | | Create named snapshots |
-| Dev Task: Add "Load Order" dropdown and selection | | Not Started | | Apply saved order to current deck |
-| Dev Task: Implement snapshot management (rename/delete) | | Not Started | | CRUD operations for snapshots |
-| Dev Task: Add snapshot indicators and metadata | | Not Started | | Show when current order matches snapshot |
+| Dev Task: Implement "Filter Cards" functionality | GH Copilot | Done | Real-time text-based filtering | Text + favorite + archived |
+| Dev Task: Add "Shuffle Cards" feature | GH Copilot | Done | Randomize card order | Local-only shuffle |
+| Dev Task: Implement "Collapse All" / "Expand All" actions | GH Copilot | Done | Bulk state management | Global expand/collapse |
+| Dev Task: Add card count and deck statistics | GH Copilot | Done | Display in header or actions bar | Counts visible |
+| Dev Task: Install and configure react-beautiful-dnd | Pending | Not Started | | Upcoming DnD enhancement |
+| Dev Task: Implement drag-and-drop reordering | Pending | Not Started | | After gap indexing |
+| Dev Task: Add batch write operations for order updates | Pending | Not Started | | Combine with DnD |
+
+<!-- Duplicate Milestone 5 section removed as superseded by consolidated table above -->
+
+## ✅ Milestone 6: Order Snapshots Feature (Implemented)
+
+| Task | Owner | Status | Files Created/Updated | Notes |
+| :--- | :--- | :--- | :--- | :--- |
+| Dev Task: Create OrderSnapshot data model and service functions | GH Copilot | Done | firestore.ts | save/get/delete/update name |
+| Dev Task: Implement "Save Order As..." functionality | GH Copilot | Done | CardScreen + tests | Create named snapshot |
+| Dev Task: Add "Load Order" selection | GH Copilot | Done | CardScreen + tests | Apply snapshot order |
+| Dev Task: Implement snapshot management (rename/delete) | GH Copilot | Done | CardScreen + tests | Rename & delete |
+| Dev Task: Add snapshot indicators and metadata | Pending | Not Started | | Optional pre-collab polish |
 
 ## ☐ Milestone 7: UI Polish & Mobile Optimization
 
@@ -199,7 +193,7 @@ After your PR has been approved and merged, change the `Status` to `Done`.
 | Dev Task: Run security audit and dependency updates | | **Not Started** | | **NEXT PHASE PRIORITY** - Security hardening |
 
 ### **🎯 EXCELLENCE MILESTONE ACHIEVED - August 31, 2025**
-**Achievement Summary:**
+**Achievement Summary:** (Historical baseline; superseded by 238 current tests)
 - **Test Suite**: 110/110 tests passing (100% success rate)
 - **Coverage**: All core components, services, hooks, and types tested
 - **Quality**: Production-ready error handling and edge case coverage
@@ -213,6 +207,16 @@ After your PR has been approved and merged, change the `Status` to `Done`.
 4. **Import Resolution**: Corrected all test import path issues
 
 ## 🚀 NEXT PHASE: Production Excellence & Advanced Features - **PHASE 2 ROADMAP (Adjusted)**
+
+## 🔑 Collaboration Readiness Prerequisites (Pre-Collab Checklist)
+| Item | Status | Notes |
+|------|--------|-------|
+| Duplicate adjacency placement | Pending | Next immediate TDD task |
+| Gap / fractional order indexing strategy | Pending | Enables efficient inserts & DnD |
+| Drag-and-drop reordering with batch persistence | Pending | After indexing change |
+| Archived default hide toggle | Pending | Consistent cross-user baseline |
+| Snapshot current-order indicator | Optional | Nice-to-have, not blocker |
+| CI basic (tests + lint) | Pending | Stability for shared development |
 
 ### **Excellence Standards for Phase 2**
 Building on our 110/110 test success foundation, Phase 2 maintains zero-tolerance for regression while expanding capabilities. Every new feature must meet our established excellence criteria:
