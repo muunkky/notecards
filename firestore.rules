@@ -1,18 +1,84 @@
-rules_version='2'
+rules_version = '2';
 
+/**
+ * Secure Firestore Rules
+ *
+ * Data Model (from code inspection):
+ *  - users/{userId} (email, displayName, createdAt)
+ *  - decks/{deckId} (title, ownerId, createdAt, updatedAt)
+ *      - cards/{cardId} (title, body, orderIndex, createdAt, updatedAt)
+ *      - orderSnapshots/{snapshotId} (name, cardOrder[list<cardId>], createdAt)
+ *
+ * Access Policy:
+ *  - A signed-in user may only read/write their own user document.
+ *  - A deck is owned by its ownerId; only the owner may read/write/delete it.
+ *  - Cards & orderSnapshots are readable/writable only by the owning deck's owner.
+ *  - Prevent changing ownership after creation.
+ *  - Constrain writes to expected field types; allow server timestamps.
+ */
 service cloud.firestore {
+  function isSignedIn() { return request.auth != null; }
+  function isUser(userId) { return isSignedIn() && request.auth.uid == userId; }
+  function getDeck(deckId) { return get(/databases/$(database)/documents/decks/$(deckId)); }
+  function isDeckOwner(deckId) { return isSignedIn() && getDeck(deckId).data.ownerId == request.auth.uid; }
+
   match /databases/{database}/documents {
-    match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2025, 9, 28);
+    // User Profile Docs
+    match /users/{userId} {
+      allow create: if isUser(userId); // client sets its own profile
+      allow read, update, delete: if isUser(userId);
+    }
+
+    // Decks collection
+    match /decks/{deckId} {
+      // Create: ownerId must match caller
+      allow create: if isSignedIn()
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.createdAt != null
+        && request.resource.data.updatedAt != null;
+
+      // Read deck only if you own it
+      allow read: if resource.data.ownerId == request.auth.uid;
+
+      // Update: owner cannot change; basic field type constraints
+      allow update: if resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerId == resource.data.ownerId
+        && (!('title' in request.resource.data) || request.resource.data.title is string);
+
+      // Delete: only owner
+      allow delete: if resource.data.ownerId == request.auth.uid;
+
+      // Cards subcollection
+      match /cards/{cardId} {
+        allow read: if isDeckOwner(deckId);
+        allow create: if isDeckOwner(deckId)
+          && request.resource.data.title is string
+          && request.resource.data.orderIndex is number;
+        allow update: if isDeckOwner(deckId)
+          && (!('title' in request.resource.data) || request.resource.data.title is string)
+          && (!('body' in request.resource.data) || request.resource.data.body is string)
+          && (!('orderIndex' in request.resource.data) || request.resource.data.orderIndex is number)
+          // createdAt immutable
+          && request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if isDeckOwner(deckId);
+      }
+
+      // Order snapshots subcollection
+      match /orderSnapshots/{snapshotId} {
+        allow read: if isDeckOwner(deckId);
+        allow create: if isDeckOwner(deckId)
+          && request.resource.data.name is string
+          && request.resource.data.cardOrder is list;
+        // Permit renaming snapshot name; keep cardOrder immutable via UI logic
+        allow update: if isDeckOwner(deckId)
+          && request.resource.data.cardOrder == resource.data.cardOrder
+          && (!('name' in request.resource.data) || request.resource.data.name is string);
+        allow delete: if isDeckOwner(deckId);
+      }
     }
   }
 }
+
+// NOTE: Remove the previous temporary open rules. These rules lock data to authenticated owners.
+// If you introduce sharing/collaboration later, extend predicates accordingly.

@@ -91,6 +91,12 @@ npm test
 
 # Build for production
 npm run build
+
+# Deploy (after authenticating with Firebase CLI)
+npm run deploy:hosting          # hosting only
+npm run deploy:rules            # security rules
+npm run deploy:indexes          # composite indexes
+npm run deploy:all              # build + all targets (hosting, rules, indexes)
 ```
 
 ## 📜 Structured Test Logging & Sentinels
@@ -241,7 +247,7 @@ const moveCardUp = async (cardId: string, cards: Card[]) => {
 ## 🔒 **Security**
 
 - **Firebase Auth**: Secure user authentication
-- **Firestore Rules**: Server-side data protection
+- **Firestore Rules**: Locked down to authenticated owners (users can only access their own decks, cards, and snapshots)
 - **Input Validation**: XSS and injection prevention
 - **HTTPS Only**: Secure data transmission
 - **Environment Variables**: Secure configuration management
