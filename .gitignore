@@ -103,3 +103,13 @@ tmp/
 # Backup files
 *.bak
 *.backup
+
+# Browser automation artifacts
+screenshots/
+chrome-session-data/
+browser-session-*.json
+session-*.json
+
+# Test artifacts and temporary files
+test-*.png
+*.png
