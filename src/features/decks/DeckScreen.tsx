@@ -19,21 +19,30 @@ interface DeckScreenProps {
 // TDD: Implement DeckListItem component first
 export const DeckListItem: React.FC<DeckListItemProps> = ({ deck, onSelect, onMenu }) => {
   return (
-    <div 
+    <article 
       data-testid="deck-item"
       className="group flex items-center justify-between p-6 bg-white/90 backdrop-blur-sm border border-white/20 rounded-xl hover:bg-white/95 hover:shadow-lg hover:scale-[1.02] cursor-pointer transition-all duration-200"
       onClick={() => onSelect(deck.id)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(deck.id);
+        }
+      }}
+      aria-label={`Open deck ${deck.title} with ${deck.cardCount} cards`}
     >
       <div className="flex items-center space-x-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md" aria-hidden="true">
           {deck.title.charAt(0).toUpperCase()}
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
             {deck.title}
-          </h3>
-          <p className="text-sm text-gray-500 flex items-center space-x-1">
-            <span>📝</span>
+          </h2>
+          <p className="text-sm text-gray-500 flex items-center space-x-1" aria-label={`${deck.cardCount} cards in this deck`}>
+            <span aria-hidden="true">📝</span>
             <span>{deck.cardCount} {deck.cardCount === 1 ? 'card' : 'cards'}</span>
           </p>
         </div>
@@ -44,13 +53,13 @@ export const DeckListItem: React.FC<DeckListItemProps> = ({ deck, onSelect, onMe
           onMenu(deck.id)
         }}
         className="p-3 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
-        aria-label="menu"
+        aria-label={`Open menu for ${deck.title}`}
       >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
           <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
         </svg>
       </button>
-    </div>
+    </article>
   )
 }
 
@@ -177,15 +186,16 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
         {/* Enhanced Header with mobile layout */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 space-y-4 sm:space-y-0">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 space-y-4 sm:space-y-0">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">My Decks</h1>
-            <p className="text-gray-300 text-sm sm:text-base">Organize your study materials into focused collections</p>
+            <h2 className="text-gray-300 text-sm sm:text-base">Organize your study materials into focused collections</h2>
           </div>
-          <div className="flex items-center space-x-4">
+          <nav role="navigation" aria-label="Deck actions" className="flex items-center space-x-4">
             <button
               onClick={() => setShowCreateModal(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+              aria-label="Create new deck"
             >
               + Create New Deck
             </button>
@@ -219,11 +229,12 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </nav>
+        </header>
 
         {/* Enhanced Deck List */}
-        <div className="space-y-4">
+        <section role="main" aria-label="Deck list">
+          <div className="space-y-4">
           {decks.length === 0 ? (
             <div className="text-center py-16 animate-fadeIn">
               <div className="bg-white/10 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
@@ -258,6 +269,7 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
             </div>
           )}
         </div>
+        </section>
 
         {/* Create Modal */}
         {showCreateModal && (

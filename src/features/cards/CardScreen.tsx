@@ -548,22 +548,23 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Enhanced Breadcrumb Navigation */}
-        <div className="flex items-center text-white mb-6">
+        <nav aria-label="Breadcrumb" className="flex items-center text-white mb-6">
           <button
             onClick={onBack}
             className="flex items-center text-blue-300 hover:text-blue-100 transition-colors duration-200"
+            aria-label="Back to all decks"
           >
-            <span className="mr-2 text-lg">←</span>
+            <span className="mr-2 text-lg" aria-hidden="true">←</span>
             <span className="hover:underline">All Decks</span>
           </button>
-          <span className="mx-3 text-gray-400 text-lg">/</span>
+          <span className="mx-3 text-gray-400 text-lg" aria-hidden="true">/</span>
           <span className="text-gray-300 font-medium">
             {deckTitle || 'Cards'}
           </span>
-        </div>
+        </nav>
 
         {/* Enhanced Header */}
-        <div className="flex items-center justify-between mb-6">
+        <header className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">
               {deckTitle ? `${deckTitle}` : 'Deck Cards'}
@@ -580,12 +581,14 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
           <button
             onClick={() => setShowCreateModal(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+            aria-label="Create new card"
           >
             Create New Card
           </button>
-        </div>
+        </header>
 
         {/* TDD Phase 2A.1: Advanced Search/Filter Bar + Filter Toggles */}
+        <section aria-label="Card filters and search">
         {cards.length > 0 && (
           <div className="mb-6 space-y-3">
             <div className="flex flex-wrap gap-2">
@@ -705,8 +708,10 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
             </div>
           </div>
         )}
+        </section>
 
         {/* Enhanced Card List */}
+        <section aria-label="Card list" role="main">
   <div className="space-y-4">
           {cards.length === 0 ? (
             <div className="text-center py-16">
@@ -799,6 +804,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
             </DragDropContext>
           )}
         </div>
+        </section>
 
         {/* Create Modal */}
         {showCreateModal && (

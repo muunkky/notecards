@@ -38,7 +38,16 @@ function App() {
   }
 
   if (!user) {
-    return <LoginScreen />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+        <header role="banner" className="sr-only">
+          <h1>Notecards Study App</h1>
+        </header>
+        <main role="main">
+          <LoginScreen />
+        </main>
+      </div>
+    );
   }
 
   // Enhanced navigation with smooth transitions
@@ -74,25 +83,50 @@ function App() {
   }
 
   // Render appropriate screen based on state with transitions
-  switch (appState.currentScreen) {
-    case 'cards':
-      return (
-        <div className="animate-slideInFromRight">
+  const currentContent = () => {
+    switch (appState.currentScreen) {
+      case 'cards':
+        return (
           <CardScreen 
             deckId={appState.selectedDeckId!}
             deckTitle={appState.selectedDeckTitle}
             onBack={navigateToDecks}
           />
-        </div>
-      );
-    case 'decks':
-    default:
-      return (
-        <div className="animate-slideInFromLeft">
+        );
+      case 'decks':
+      default:
+        return (
           <DeckScreen onSelectDeck={navigateToCards} />
-        </div>
-      );
-  }
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+      {/* Skip Links for Accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-3 z-50 rounded-br"
+      >
+        Skip to main content
+      </a>
+      
+      <header role="banner" className="sr-only">
+        <h1>Notecards Study App</h1>
+        <nav role="navigation" aria-label="Main navigation">
+          {/* Navigation will be handled by individual screens */}
+        </nav>
+      </header>
+      
+      <main role="main" id="main-content" className={appState.isTransitioning ? "opacity-50 transition-opacity" : "transition-opacity"}>
+        {currentContent()}
+      </main>
+      
+      <footer role="contentinfo" className="sr-only">
+        <p>Notecards Study App - Organize your learning materials</p>
+      </footer>
+    </div>
+  );
 }
 
 export default App;
