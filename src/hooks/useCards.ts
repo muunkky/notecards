@@ -31,11 +31,10 @@ export const useCards = (deckId: string): UseCardsResult => {
     setLoading(true)
 
     try {
-      // Set up Firestore query for deck's cards
-      const cardsRef = collection(db, 'cards')
+      // Set up Firestore query for deck's cards (subcollection)
+      const cardsRef = collection(db, 'decks', deckId, 'cards')
       const q = query(
         cardsRef,
-        where('deckId', '==', deckId),
         orderBy('orderIndex', 'asc')
       )
 
