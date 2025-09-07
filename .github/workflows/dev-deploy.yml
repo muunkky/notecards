@@ -1,0 +1,49 @@
+name: Dev Deploy
+
+on:
+	push:
+		branches: [ main ]
+	pull_request:
+		branches: [ main ]
+
+jobs:
+	build-test-deploy:
+		runs-on: ubuntu-latest
+		timeout-minutes: 15
+		steps:
+			- name: Checkout
+				uses: actions/checkout@v4
+
+			- name: Setup Node
+				uses: actions/setup-node@v4
+				with:
+					node-version: 20
+					cache: 'npm'
+
+			- name: Install deps
+				run: npm ci
+
+			- name: Type Check
+				run: npx tsc --noEmit
+
+			- name: Run Tests
+				run: npm run test:run
+
+			- name: Build
+				run: npm run build
+
+			- name: Firebase Auth
+				uses: w9jds/firebase-action@v13.29.0
+				with:
+					args: hosting:channel:deploy dev --expires 30d
+				env:
+					GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NOTECARDS_1B054 }}
+					PROJECT_ID: notecards-1b054
+
+			- name: Output URL
+				if: always()
+				run: |
+					echo "Preview URL(s):" >> $GITHUB_STEP_SUMMARY
+					firebase hosting:channel:list --project notecards-1b054 --limit 5 | sed -n '1,10p' >> $GITHUB_STEP_SUMMARY
+				env:
+					FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

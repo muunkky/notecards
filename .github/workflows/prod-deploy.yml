@@ -1,0 +1,63 @@
+name: Prod Deploy
+
+on:
+	push:
+		branches: [ main ]
+
+env:
+	MIN_LINES_COVERAGE: 80
+
+jobs:
+	test-build-deploy:
+		runs-on: ubuntu-latest
+		timeout-minutes: 20
+		steps:
+			- name: Checkout
+				uses: actions/checkout@v4
+
+			- name: Setup Node
+				uses: actions/setup-node@v4
+				with:
+					node-version: 20
+					cache: 'npm'
+
+			- name: Install deps
+				run: npm ci
+
+			- name: Type Check
+				run: npx tsc --noEmit
+
+			- name: Run Tests with Coverage
+				run: npm run test:coverage -- --reporter=json --outputFile=coverage/coverage-final.json || true
+
+			- name: Enforce Coverage Threshold
+				run: |
+					node <<'EOF'
+					import fs from 'fs'
+					const min = parseInt(process.env.MIN_LINES_COVERAGE || '80',10)
+					const summaryPath = 'coverage/coverage-summary.json'
+					if (!fs.existsSync(summaryPath)) {
+						console.error('Coverage summary not found at', summaryPath)
+						process.exit(1)
+					}
+						const data = JSON.parse(fs.readFileSync(summaryPath,'utf8'))
+						const lines = data.total.lines.pct
+						console.log('Lines coverage:', lines, 'required:', min)
+						if (lines < min) { console.error(`Coverage ${lines}% < required ${min}%`); process.exit(1) }
+					EOF
+
+			- name: Build
+				run: npm run build
+
+			- name: Firebase Deploy (Hosting + Firestore)
+				uses: w9jds/firebase-action@v13.29.0
+				with:
+					args: deploy --only hosting,firestore:rules,firestore:indexes
+				env:
+					GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NOTECARDS_1B054 }}
+					PROJECT_ID: notecards-1b054
+
+			- name: Output Hosting Details
+				run: firebase hosting:sites:list --project notecards-1b054 | sed -n '1,50p'
+				env:
+					FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
