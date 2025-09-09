@@ -1,6 +1,6 @@
 import { mkdirSync, existsSync, createWriteStream } from 'fs';
 import { join } from 'path';
-import browserService from './browser-service.mjs';
+import browserService from '../services/browser-service.mjs';
 
 /**
  * Puppeteer Test Framework integrated with existing test logging
@@ -128,6 +128,12 @@ class PuppeteerTestFramework {
     this.log(`✅ Assertion passed: ${message}`);
   }
 
+  // Helper method to properly skip a test
+  skip(reason) {
+    this.log(`⏭️ SKIP: ${reason}`);
+    return 'SKIP';
+  }
+
   async runTests() {
     this.log('🚀 Starting Puppeteer test execution...');
     this.results.total = this.tests.length;
@@ -186,13 +192,25 @@ class PuppeteerTestFramework {
     const startTime = Date.now();
     this.log(`\n🧪 Test ${index}/${this.tests.length}: ${test.name}`);
     
+    // Clear recent logs for this test
+    this.recentLogs = [];
+    
     try {
-      // Run test with browser session context
-      await test.fn.call(this, this.page, this.browser);
+      // Run test with browser session context and capture skip signals
+      const result = await test.fn.call(this, this.page, this.browser);
       
       const duration = Date.now() - startTime;
-      this.results.passed++;
-      this.log(`✅ PASS (${duration}ms): ${test.name}`);
+      
+      // Check if test was skipped (look for skip signals in logs or return value)
+      const wasSkipped = result === 'SKIP' || this.lastLogContainsSkip();
+      
+      if (wasSkipped) {
+        this.results.skipped++;
+        this.log(`⏭️ SKIP (${duration}ms): ${test.name}`);
+      } else {
+        this.results.passed++;
+        this.log(`✅ PASS (${duration}ms): ${test.name}`);
+      }
       
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -208,6 +226,31 @@ class PuppeteerTestFramework {
       } catch (screenshotError) {
         this.log(`   Screenshot failed: ${screenshotError.message}`);
       }
+    }
+  }
+
+  lastLogContainsSkip() {
+    // Check if any recent log messages contained skip indicators
+    return this.recentLogs && this.recentLogs.some(log => 
+      log.includes('⏭️ SKIP') || 
+      log.includes('SKIP:') ||
+      log.includes('return framework.skip')
+    );
+  }
+
+  log(message) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] ${message}`;
+    console.log(logMessage);
+    
+    // Track recent logs for skip detection
+    if (!this.recentLogs) this.recentLogs = [];
+    this.recentLogs.push(message);
+    if (this.recentLogs.length > 5) this.recentLogs.shift();
+    
+    // Only write to stream if it's still open
+    if (this.logStream && !this.logStream.destroyed) {
+      this.logStream.write(logMessage + '\n');
     }
   }
 

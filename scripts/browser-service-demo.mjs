@@ -7,7 +7,7 @@
  * to get a shared browser instance with session persistence.
  */
 
-import browserService from './browser-service.mjs';
+import browserService from '../services/browser-service.mjs';
 
 async function main() {
   console.log('🔧 Browser Service Demo');
@@ -42,12 +42,18 @@ async function main() {
     console.log('Health status:', health);
 
     // Handle authentication if needed
-    console.log('\n4. Checking authentication...');
+    console.log('\n4. Enhanced authentication with Google bypass...');
     console.log('🔍 Current authentication state:', connection.isAuthenticated);
     if (!connection.isAuthenticated) {
-      console.log('🔍 About to call browserService.handleAuthentication()');
-      await browserService.handleAuthentication();
-      console.log('🔍 browserService.handleAuthentication() completed');
+      console.log('🔍 About to call browserService.authenticateWithBypass()');
+      try {
+        const authResult = await browserService.authenticateWithBypass();
+        console.log('🔍 browserService.authenticateWithBypass() completed:', authResult);
+      } catch (error) {
+        console.error('❌ DEMO FAILED: Authentication error:', error.message);
+        console.error('❌ This is expected behavior - authentication is REQUIRED');
+        throw error;
+      }
     } else {
       console.log('✅ Already authenticated, skipping auth flow');
     }

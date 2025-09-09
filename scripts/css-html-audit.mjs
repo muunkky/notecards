@@ -10,7 +10,7 @@
  * - Semantic HTML
  * - CSS best practices
  */
-import browserService from './browser-service.mjs';
+import browserService from '../services/browser-service.mjs';
 
 class CSSHTMLAuditor {
   constructor() {

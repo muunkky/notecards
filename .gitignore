@@ -109,6 +109,8 @@ screenshots/
 chrome-session-data/
 browser-session-*.json
 session-*.json
+.browser-session/
+chrome-user-data/
 
 # Test artifacts and temporary files
 test-*.png

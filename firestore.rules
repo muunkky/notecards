@@ -52,17 +52,17 @@ service cloud.firestore {
 
       // Cards subcollection
       match /cards/{cardId} {
-        allow read: if isDeckOwner(deckId);
-        allow create: if isDeckOwner(deckId)
+        allow read: if isSignedIn() && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerId == request.auth.uid;
+        allow create: if isSignedIn() && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerId == request.auth.uid
           && request.resource.data.title is string
           && request.resource.data.orderIndex is number;
-        allow update: if isDeckOwner(deckId)
+        allow update: if isSignedIn() && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerId == request.auth.uid
           && (!('title' in request.resource.data) || request.resource.data.title is string)
           && (!('body' in request.resource.data) || request.resource.data.body is string)
           && (!('orderIndex' in request.resource.data) || request.resource.data.orderIndex is number)
           // createdAt immutable
           && request.resource.data.createdAt == resource.data.createdAt;
-        allow delete: if isDeckOwner(deckId);
+        allow delete: if isSignedIn() && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerId == request.auth.uid;
       }
 
       // Order snapshots subcollection

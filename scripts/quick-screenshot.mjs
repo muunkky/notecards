@@ -7,7 +7,7 @@
  * to perform simple tasks like taking screenshots.
  */
 
-import browserService from './browser-service.mjs';
+import browserService from '../services/browser-service.mjs';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 

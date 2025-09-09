@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore'
+import { collection, query, where, orderBy, onSnapshot, doc, getDoc } from 'firebase/firestore'
 import { db } from '../firebase/firebase'
 import { useAuth } from '../providers/AuthProvider'
 import type { Card } from '../types'
@@ -19,8 +19,11 @@ export const useCards = (deckId: string): UseCardsResult => {
   const { user } = useAuth()
 
   useEffect(() => {
+    console.log('useCards: Effect triggered', { user: !!user, deckId, userId: user?.uid })
+    
     // If no user or deckId, return empty state
     if (!user || !deckId) {
+      console.log('useCards: Missing user or deckId', { user: !!user, deckId })
       setLoading(false)
       setCards([])
       setError(null)
@@ -28,66 +31,104 @@ export const useCards = (deckId: string): UseCardsResult => {
     }
 
     // User exists and deckId provided, start loading
+    console.log('useCards: Starting to load cards', { deckId, userId: user.uid })
     setLoading(true)
 
-    try {
-      // Set up Firestore query for deck's cards (subcollection)
-      const cardsRef = collection(db, 'decks', deckId, 'cards')
-      const q = query(
-        cardsRef,
-        orderBy('orderIndex', 'asc')
-      )
-
-      // Subscribe to real-time updates
-      const unsubscribe = onSnapshot(
-        q,
-        (snapshot) => {
-          try {
-            const cardData: Card[] = []
-            
-            snapshot.docs.forEach((doc) => {
-              const data = doc.data()
-              
-              // Validate required fields to handle malformed data
-              if (data.title && data.deckId && data.createdAt && data.updatedAt && typeof data.orderIndex === 'number') {
-                cardData.push({
-                  id: doc.id,
-                  deckId: data.deckId,
-                  title: data.title,
-                  body: data.body || '',
-                  orderIndex: data.orderIndex,
-                  createdAt: data.createdAt.toDate ? data.createdAt.toDate() : data.createdAt,
-                  updatedAt: data.updatedAt.toDate ? data.updatedAt.toDate() : data.updatedAt
-                })
-              }
-            })
-
-            setCards(cardData)
-            setLoading(false)
-            setError(null)
-          } catch (err) {
-            console.error('Error processing card data:', err)
-            setError('Error processing card data')
-            setLoading(false)
-          }
-        },
-        (err) => {
-          console.error('Firestore subscription error:', err)
-          setError(err.message || 'Firestore connection failed')
+    const checkDeckAndSetupSubscription = async () => {
+      try {
+        // First, verify deck ownership
+        console.log('useCards: Checking deck ownership for deck:', deckId)
+        const deckRef = doc(db, 'decks', deckId)
+        const deckDoc = await getDoc(deckRef)
+        
+        if (!deckDoc.exists()) {
+          console.error('useCards: Deck does not exist:', deckId)
+          setError('Deck not found')
           setLoading(false)
-          setCards([])
+          return
         }
-      )
+        
+        const deckData = deckDoc.data()
+        console.log('useCards: Deck data:', { ownerId: deckData.ownerId, currentUser: user.uid })
+        
+        if (deckData.ownerId !== user.uid) {
+          console.error('useCards: User does not own this deck', { ownerId: deckData.ownerId, userId: user.uid })
+          setError('You do not have permission to access this deck')
+          setLoading(false)
+          return
+        }
+        
+        console.log('useCards: Deck ownership verified, proceeding to load cards')
 
-      // Cleanup subscription on unmount
-      return () => {
-        unsubscribe()
+        // Set up Firestore query for deck's cards (subcollection)
+        console.log('useCards: Setting up Firestore query for path:', `decks/${deckId}/cards`)
+        const cardsRef = collection(db, 'decks', deckId, 'cards')
+        const q = query(
+          cardsRef,
+          orderBy('orderIndex', 'asc')
+        )
+
+        // Subscribe to real-time updates
+        const unsubscribe = onSnapshot(
+          q,
+          (snapshot) => {
+            try {
+              const cardData: Card[] = []
+              
+              snapshot.docs.forEach((doc) => {
+                const data = doc.data()
+                
+                // Validate required fields to handle malformed data
+                if (data.title && data.deckId && data.createdAt && data.updatedAt && typeof data.orderIndex === 'number') {
+                  cardData.push({
+                    id: doc.id,
+                    deckId: data.deckId,
+                    title: data.title,
+                    body: data.body || '',
+                    orderIndex: data.orderIndex,
+                    createdAt: data.createdAt.toDate ? data.createdAt.toDate() : data.createdAt,
+                    updatedAt: data.updatedAt.toDate ? data.updatedAt.toDate() : data.updatedAt
+                  })
+                }
+              })
+
+              setCards(cardData)
+              setLoading(false)
+              setError(null)
+            } catch (err) {
+              console.error('Error processing card data:', err)
+              setError('Error processing card data')
+              setLoading(false)
+            }
+          },
+          (err) => {
+            console.error('Firestore subscription error:', err)
+            console.error('Error details:', { code: err.code, message: err.message, stack: err.stack })
+            setError(err.message || 'Firestore connection failed')
+            setLoading(false)
+            setCards([])
+          }
+        )
+
+        // Return cleanup function
+        return unsubscribe
+      } catch (err: any) {
+        console.error('Error setting up Firestore subscription:', err)
+        setError(err.message || 'Failed to set up real-time updates')
+        setLoading(false)
       }
-    } catch (err: any) {
-      console.error('Error setting up Firestore subscription:', err)
-      setError(err.message || 'Failed to set up real-time updates')
-      setLoading(false)
     }
+
+    checkDeckAndSetupSubscription().then((unsubscribe) => {
+      // Store cleanup function for useEffect cleanup
+      if (unsubscribe) {
+        return () => unsubscribe()
+      }
+    }).catch((err) => {
+      console.error('Error in checkDeckAndSetupSubscription:', err)
+      setError('Failed to load cards')
+      setLoading(false)
+    })
   }, [user, deckId])
 
   return { cards, loading, error }
