@@ -1,3 +1,27 @@
+/**
+ * @fileoverview Universal Browser Service - Professional browser automation service
+ * @description Provides a singleton browser service for testing, automation, and development
+ * with environment-aware configuration, session management, and authentication handling.
+ * 
+ * @version 2.0.0
+ * @author Cameron
+ * @since 2025-09-08
+ * 
+ * @example
+ * ```javascript
+ * import browserService from './services/browser-service.mjs';
+ * 
+ * // Quick authentication
+ * const authenticated = await browserService.quickAuth();
+ * 
+ * // Verify current auth status  
+ * const isAuthenticated = await browserService.verifyAuthentication();
+ * 
+ * // Get browser connection for custom automation
+ * const { browser, page } = await browserService.startup();
+ * ```
+ */
+
 import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import { promises as fs } from 'fs';
@@ -12,20 +36,50 @@ const __dirname = dirname(__filename);
 /**
  * Universal Browser Service
  * 
- * A professional singleton service that manages browser instances
- * for testing, automation, and development tasks with proper
- * environment configuration and lifecycle management.
+ * @class BrowserService
+ * @description A professional singleton service that manages browser instances
+ * for testing, automation, and development tasks with proper environment 
+ * configuration and lifecycle management.
  * 
- * Features:
- * - Environment-aware configuration
- * - Professional session management
- * - Graceful authentication handling
- * - Proper lifecycle management
+ * @features
+ * - Environment-aware configuration (development/test/staging/production)
+ * - Professional session management with persistent storage
+ * - Graceful authentication handling with multiple verification methods
+ * - Proper lifecycle management and resource cleanup
  * - Cross-environment compatibility
- * - Stealth configuration
- * - Health monitoring and recovery
+ * - Stealth configuration for OAuth bypass
+ * - Health monitoring and automatic recovery
+ * - Simple API for common operations
+ * 
+ * @architecture
+ * - Singleton pattern for resource efficiency
+ * - Configuration-driven behavior
+ * - Professional error handling and logging
+ * - Clean separation of concerns
+ * 
+ * @example
+ * ```javascript
+ * // Simple authentication
+ * const result = await browserService.quickAuth();
+ * 
+ * // Custom automation
+ * const { browser, page } = await browserService.startup();
+ * await page.goto('https://example.com');
+ * await browserService.shutdown();
+ * ```
  */
 class BrowserService {
+  /**
+   * Creates a new BrowserService instance
+   * 
+   * @param {string|null} environment - Target environment (development/test/staging/production)
+   * @param {string} serviceType - Service type from SERVICE_TYPE enum
+   * 
+   * @example
+   * ```javascript
+   * const service = new BrowserService('development', SERVICE_TYPE.BROWSER);
+   * ```
+   */
   constructor(environment = null, serviceType = SERVICE_TYPE.BROWSER) {
     this.browser = null;
     this.page = null;
@@ -541,6 +595,27 @@ class BrowserService {
   /**
    * Simple verification - just returns true/false
    */
+  /**
+   * Verifies current authentication status
+   * 
+   * @async
+   * @method verifyAuthentication
+   * @returns {Promise<boolean>} True if authenticated, false otherwise
+   * 
+   * @description
+   * Initializes browser if needed, navigates to app, checks authentication
+   * using multiple verification methods, then closes browser to free resources.
+   * Perfect for CI/CD pipelines and status checks.
+   * 
+   * @example
+   * ```javascript
+   * const isAuthenticated = await browserService.verifyAuthentication();
+   * console.log(isAuthenticated ? 'Logged in' : 'Not authenticated');
+   * ```
+   * 
+   * @throws {Error} When browser operations fail
+   * @since 2.0.0
+   */
   async verifyAuthentication() {
     try {
       if (!this.isInitialized) {
@@ -569,7 +644,36 @@ class BrowserService {
   }
 
   /**
-   * Simple startup - initializes everything and returns ready state
+   * Starts up the browser service and returns connection details
+   * 
+   * @async
+   * @method startup
+   * @param {Object} options - Startup configuration options
+   * @param {boolean} options.checkAuth - Whether to check authentication status
+   * @param {string} options.url - Optional target URL
+   * @returns {Promise<Object>} Startup result with ready state and authentication info
+   * 
+   * @description
+   * Professional startup method that initializes the browser, optionally navigates
+   * to the app, and returns detailed status information. Use this for custom
+   * automation workflows where you need browser access.
+   * 
+   * @example
+   * ```javascript
+   * // Basic startup
+   * const result = await browserService.startup();
+   * if (result.ready) {
+   *   const { browser, page } = browserService.getBrowser();
+   * }
+   * 
+   * // Startup with authentication check
+   * const result = await browserService.startup({ checkAuth: true });
+   * console.log('Authenticated:', result.authenticated);
+   * ```
+   * 
+   * @returns {Promise<{ready: boolean, authenticated: boolean, browser: Browser, page: Page}>}
+   * @throws {Error} When browser initialization fails
+   * @since 2.0.0
    */
   async startup(options = {}) {
     try {
@@ -590,7 +694,25 @@ class BrowserService {
   }
 
   /**
-   * Simple shutdown - cleans up everything
+   * Cleanly shuts down the browser service
+   * 
+   * @async
+   * @method shutdown
+   * @returns {Promise<boolean>} True if shutdown successful
+   * 
+   * @description
+   * Professional shutdown method that saves session data and cleanly closes
+   * the browser. Always call this to ensure proper resource cleanup.
+   * 
+   * @example
+   * ```javascript
+   * // Standard shutdown
+   * const success = await browserService.shutdown();
+   * console.log('Shutdown successful:', success);
+   * ```
+   * 
+   * @throws {Error} When browser close operations fail
+   * @since 2.0.0
    */
   async shutdown() {
     try {
@@ -604,6 +726,30 @@ class BrowserService {
 
   /**
    * One-liner authentication flow
+   */
+  /**
+   * Performs quick authentication setup
+   * 
+   * @async
+   * @method quickAuth
+   * @param {string|null} url - Optional target URL (defaults to configured app URL)
+   * @returns {Promise<boolean>} True if authentication successful, false otherwise
+   * 
+   * @description
+   * Initializes the browser service, checks existing authentication, and
+   * handles authentication flow if needed. Designed for simple one-liner usage.
+   * 
+   * @example
+   * ```javascript
+   * // Quick auth with default URL
+   * const authenticated = await browserService.quickAuth();
+   * 
+   * // Quick auth with custom URL
+   * const authenticated = await browserService.quickAuth('http://localhost:3000');
+   * ```
+   * 
+   * @throws {Error} When browser initialization fails
+   * @since 2.0.0
    */
   async quickAuth(url = null) {
     const started = await this.startup();

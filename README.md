@@ -2,6 +2,7 @@
 
 ![Tests](https://img.shields.io/badge/tests-238%2F238%20passing-brightgreen)
 ![Status](https://img.shields.io/badge/status-green-success)
+![Services](https://img.shields.io/badge/services-professional-blue)
 
 ## 🚀 Live Demo
 
@@ -14,6 +15,48 @@ The site is deployed via Firebase Hosting using the captured deploy script (`npm
 This repository showcases the **complete implementation** of a 50-point enhancement plan for world-class manual card reordering functionality in a React/TypeScript notecard application.
 
 ### ✅ **Current Achievement: 238/238 Tests Passing (100% Success Rate)**
+
+## 🛠️ **Professional Services Layer**
+
+The project includes a comprehensive services layer for automation, testing, and development workflows.
+
+### **Quick Commands**
+```bash
+# Browser automation services
+npm run auth:quick     # Quick authentication setup
+npm run auth:verify    # Verify current authentication status
+
+# Testing services  
+npm test              # Run full test suite
+npm run test:log      # Run tests with structured logging
+```
+
+### **🌐 Browser Service**
+Professional browser automation with session management and authentication:
+
+```javascript
+import browserService from './services/browser-service.mjs';
+
+// Simple authentication
+const authenticated = await browserService.quickAuth();
+
+// Custom automation
+const { browser, page } = await browserService.startup();
+await browserService.shutdown();
+```
+
+**Key Features:**
+- Environment-aware configuration (dev/test/staging/production)
+- Professional session management with persistent storage
+- Multiple authentication verification methods
+- Graceful error handling and automatic recovery
+- Stealth configuration for OAuth bypass
+- Resource cleanup and lifecycle management
+
+### **📚 Documentation**
+- **[Services Overview](./services/README.md)** - Services directory and standards
+- **[Services Architecture](./docs/SERVICES-ARCHITECTURE.md)** - Technical architecture
+- **[Browser Service API](./docs/api/browser-service.md)** - Complete API reference
 
 ## 🎯 **Feature Highlights**
 
@@ -190,10 +233,20 @@ src/
 ├── firebase/
 │   ├── firestore.ts             # Database operations
 │   └── firebase.ts              # Firebase configuration
+├── config/
+│   └── service-config.mjs       # Professional service configuration
 └── test/
     ├── features/cards/          # Component tests
     ├── hooks/                   # Hook tests  
     └── utils/                   # Test utilities
+
+services/
+└── browser-service.mjs          # Professional browser automation service
+
+docs/
+├── api/                         # API documentation
+├── services/                    # Services documentation
+└── SERVICES-ARCHITECTURE.md    # Technical architecture
 ```
 
 ## 💡 **Key Implementation Details**
