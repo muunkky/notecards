@@ -1,8 +1,9 @@
 # 🎯 Notecards - World-Class Manual Card Reordering Implementation
 
-![Tests](https://img.shields.io/badge/tests-238%2F238%20passing-brightgreen)
-![Status](https://img.shields.io/badge/status-green-success)
-![Services](https://img.shields.io/badge/services-professional-blue)
+![Tests](https://img.shields.io/badge/tests-241%2F241%20passing-brightgreen)
+![Version](https://img.shields.io/badge/version-0.0.1-red)
+![Status](https://img.shields.io/badge/status-non--functional-critical)
+![Services](https://img.shields.io/badge/services-infrastructure--only-blue)
 
 ## 🚀 Live Demo
 
@@ -12,9 +13,15 @@ The site is deployed via Firebase Hosting using the captured deploy script (`npm
 
 ## 🏆 **50-Point Enhancement Plan: COMPLETE!**
 
+> **⚠️ CURRENT STATUS: CORE FUNCTIONALITY BROKEN**  
+> While the infrastructure and tests are complete, the core application features (deck/card creation and management) are currently non-functional. This version (0.0.1) represents infrastructure-only completion.
+
 This repository showcases the **complete implementation** of a 50-point enhancement plan for world-class manual card reordering functionality in a React/TypeScript notecard application.
 
-### ✅ **Current Achievement: 238/238 Tests Passing (100% Success Rate)**
+### ✅ **Current Achievement: 241/241 Tests Passing (100% Success Rate)**
+### ❌ **Known Issues: Core app functionality broken - cannot create/save decks or cards**
+
+📖 **[Version History & Release Guide](./VERSION.md)** | **[Changelog](./CHANGELOG.md)**
 
 ## 🛠️ **Professional Services Layer**
 
