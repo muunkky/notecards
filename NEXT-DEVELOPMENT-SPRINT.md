@@ -1,3 +1,4 @@
+> NOTE (2025-09-10): This sprint outline is historical and contains stale information. For the active documentation-as-code plan, see docs/roadmap/2025-09-core-functionality-recovery.md.
 # 🎯 **NEXT DEVELOPMENT SPRINT - AUGUST 2025 HANDOFF STATUS**
 
 ## **🎉 MAJOR STATUS UPDATE: 50-Point Enhancement Plan COMPLETE!**
@@ -218,3 +219,4 @@ After completing all 4 priorities:
 7. Update project tracker as features are completed
 
 **You're inheriting a world-class product foundation! 🚀**
+
