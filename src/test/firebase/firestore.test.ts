@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi, Mock } from 'vitest'
 // Mock Firebase Firestore functions using vi.hoisted() to ensure proper hoisting
 const {
   mockAddDoc,
+  mockSetDoc,
   mockUpdateDoc,
   mockDeleteDoc,
   mockGetDocs,
@@ -26,6 +27,7 @@ const {
   
   return {
     mockAddDoc: vi.fn(),
+    mockSetDoc: vi.fn(),
     mockUpdateDoc: vi.fn(),
     mockDeleteDoc: vi.fn(),
     mockGetDocs,
@@ -50,6 +52,7 @@ vi.mock('firebase/firestore', () => ({
   collection: mockCollection,
   doc: mockDoc,
   addDoc: mockAddDoc,
+  setDoc: mockSetDoc,
   updateDoc: mockUpdateDoc,
   deleteDoc: mockDeleteDoc,
   getDocs: mockGetDocs,
@@ -108,24 +111,25 @@ describe('Firestore Service Layer', () => {
     describe('createUserDocument', () => {
       it('should create user document successfully', async () => {
         const userData = createMockUserData()
-        mockUpdateDoc.mockResolvedValue(undefined)
+        mockSetDoc.mockResolvedValue(undefined)
 
         const result = await createUserDocument('user-123', userData)
 
         expect(result.success).toBe(true)
-        expect(mockUpdateDoc).toHaveBeenCalledWith(
+        expect(mockSetDoc).toHaveBeenCalledWith(
           expect.anything(),
           expect.objectContaining({
             ...userData,
             createdAt: expect.any(Date)
-          })
+          }),
+          { merge: true }
         )
       })
 
       it('should handle errors when creating user document', async () => {
         const userData = createMockUserData()
         const error = new Error('Firestore error')
-        mockUpdateDoc.mockRejectedValue(error)
+        mockSetDoc.mockRejectedValue(error)
 
         const result = await createUserDocument('user-123', userData)
 
@@ -330,6 +334,22 @@ describe('Firestore Service Layer', () => {
             title: 'Test Card',
             body: '',
             orderIndex: 0
+          })
+        )
+      })
+
+      it('should include deckId when creating a card', async () => {
+        mockAddDoc.mockResolvedValue({ id: 'card-123' })
+        mockGetDocs.mockResolvedValue({ size: 0 })
+        mockUpdateDoc.mockResolvedValue(undefined)
+
+        await createCard('deck-123', 'Decked Card', 'Body content')
+
+        expect(mockAddDoc).toHaveBeenCalledWith(
+          expect.anything(),
+          expect.objectContaining({
+            deckId: 'deck-123',
+            title: 'Decked Card'
           })
         )
       })

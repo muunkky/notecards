@@ -23,6 +23,7 @@ export interface Card {
   deckId: string;
   title: string;
   body: string;
+  deckId: string;
   orderIndex: number;
   createdAt: Date;
   updatedAt: Date;

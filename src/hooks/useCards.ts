@@ -79,10 +79,12 @@ export const useCards = (deckId: string): UseCardsResult => {
                 const data = doc.data()
                 
                 // Validate required fields to handle malformed data
-                if (data.title && data.deckId && data.createdAt && data.updatedAt && typeof data.orderIndex === 'number') {
+                const snapshotDeckId = typeof data.deckId === 'string' && data.deckId.trim() ? data.deckId : deckId
+
+                if (data.title && snapshotDeckId && data.createdAt && data.updatedAt && typeof data.orderIndex === 'number') {
                   cardData.push({
                     id: doc.id,
-                    deckId: data.deckId,
+                    deckId: snapshotDeckId,
                     title: data.title,
                     body: data.body || '',
                     orderIndex: data.orderIndex,

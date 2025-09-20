@@ -26,6 +26,8 @@ export const createMockCard = (overrides: Partial<Card> = {}): Card => ({
   deckId: 'deck-123',
   title: 'Test Card',
   body: 'This is a test card body',
+  deckId: 'deck-123',
+  deckId: 'deck-123',
   orderIndex: 0,
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   updatedAt: new Date('2024-01-01T00:00:00.000Z'),
@@ -146,6 +148,7 @@ export const createMockDeckData = (overrides: Partial<DeckData> = {}): DeckData 
 export const createMockCardData = (overrides: Partial<CardData> = {}): CardData => ({
   title: 'Test Card',
   body: 'This is a test card body',
+  deckId: 'deck-123',
   orderIndex: 0,
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   updatedAt: new Date('2024-01-01T00:00:00.000Z'),
