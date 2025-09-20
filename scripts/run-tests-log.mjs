@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, existsSync, createWriteStream, readdirSync, statSync, unlinkSync } from 'node:fs'
+import { mkdirSync, existsSync, createWriteStream, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 // Force plain, non-interactive output for clean log files
@@ -235,9 +235,7 @@ silent = prevSilent
     out.end(() => rawOut.end(() => finalize()))
     // Maintain pointer for raw log too
     try {
-      import('node:fs').then(fs => {
-        fs.writeFileSync(join(logDir, 'latest-raw-log-path.txt'), rawLogFile + '\n', 'utf8')
-      })
+      writeFileSync(join(logDir, 'latest-raw-log-path.txt'), rawLogFile + '\n', 'utf8')
     } catch { /* ignore */ }
   }
 })()

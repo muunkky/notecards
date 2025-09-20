@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, existsSync, createWriteStream, readdirSync, statSync, unlinkSync } from 'node:fs'
+import { mkdirSync, existsSync, createWriteStream, readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { spawn } from 'node:child_process'
 
@@ -218,9 +218,7 @@ vitestProcess.on('close', (exitCode) => {
   
   // Write JSON summary
   try {
-    import('fs/promises').then(fs => {
-      fs.writeFile(jsonFile, JSON.stringify(summary, null, 2))
-    })
+    writeFileSync(jsonFile, JSON.stringify(summary, null, 2), 'utf8')
   } catch (error) {
     console.error('Failed to write JSON summary:', error)
   }
