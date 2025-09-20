@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdirSync, existsSync, createWriteStream } from 'node:fs'
+import { mkdirSync, existsSync, createWriteStream, readdirSync, statSync, unlinkSync } from 'node:fs'
 import { join } from 'node:path'
 
 // Force plain, non-interactive output for clean log files
@@ -17,14 +17,51 @@ const terminalMode = (process.env.TEST_TERMINAL_MODE || 'start').toLowerCase()
 const allowStreaming = terminalMode === 'full'
 const showFinalSummaryLine = terminalMode === 'summary' || terminalMode === 'full'
 
-const logDir = join(process.cwd(), 'log', 'temp')
+const logDir = join(process.cwd(), 'test-results', 'unit')
 if (!existsSync(logDir)) {
   mkdirSync(logDir, { recursive: true })
 }
+const parseIntSafe = (value, fallback) => {
+  const parsed = parseInt(value, 10)
+  return Number.isNaN(parsed) ? fallback : parsed
+}
+
+const pruneOldLogs = () => {
+  const maxHistory = parseIntSafe(process.env.TEST_LOG_MAX_HISTORY || '10', 10)
+  try {
+    const entries = readdirSync(logDir)
+    const groups = new Map()
+    for (const name of entries) {
+      const match = name.match(/^(unit-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2})/)
+      if (!match) continue
+      const key = match[1]
+      if (!groups.has(key)) groups.set(key, [])
+      groups.get(key).push(name)
+    }
+    const items = Array.from(groups.entries()).map(([key, files]) => {
+    const candidate = files.find(f => f.endsWith('.log')) || files[0]
+      let mtime = 0
+      try {
+        mtime = statSync(join(logDir, candidate)).mtime.getTime()
+      } catch { /* ignore */ }
+      return { key, files, mtime }
+    }).sort((a, b) => b.mtime - a.mtime)
+    const toRemove = items.slice(maxHistory)
+    for (const { files } of toRemove) {
+      for (const name of files) {
+        try { unlinkSync(join(logDir, name)) } catch { /* ignore */ }
+      }
+    }
+  } catch { /* ignore */ }
+}
+
+pruneOldLogs()
+
 
 const timestamp = new Date().toISOString().replace(/[:T]/g, '-').replace(/\..+/, '')
-const logFile = join(logDir, `test-results-${timestamp}.log`)
-const rawLogFile = join(logDir, `test-results-${timestamp}.raw.log`)
+const baseName = `unit-${timestamp}`
+const logFile = join(logDir, `${baseName}.log`)
+const rawLogFile = join(logDir, `${baseName}.raw.log`)
 
 const out = createWriteStream(logFile, { flags: 'a' })
 const rawOut = createWriteStream(rawLogFile, { flags: 'a' })
