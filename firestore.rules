@@ -1,99 +1,80 @@
 rules_version = '2';
-
-/**
- * Secure Firestore Rules
- *
- * Data Model (from code inspection):
- *  - users/{userId} (email, displayName, createdAt)
- *  - decks/{deckId} (title, ownerId, createdAt, updatedAt)
- *      - cards/{cardId} (title, body, orderIndex, createdAt, updatedAt)
- *      - orderSnapshots/{snapshotId} (name, cardOrder[list<cardId>], createdAt)
- *
- * Access Policy:
- *  - A signed-in user may only read/write their own user document.
- *  - A deck is owned by its ownerId; only the owner may read/write/delete it.
- *  - Cards & orderSnapshots are readable/writable only by the owning deck's owner.
- *  - Prevent changing ownership after creation.
- *  - Constrain writes to expected field types; allow server timestamps.
- */
 service cloud.firestore {
   function isSignedIn() { return request.auth != null; }
-  function isUser(userId) { return isSignedIn() && request.auth.uid == userId; }
-  function getDeck(deckId) { return get(/databases/$(database)/documents/decks/$(deckId)); }
-  function isDeckOwner(deckId) { return isSignedIn() && getDeck(deckId).data.ownerId == request.auth.uid; }
-  // --- Sharing Draft (Phase 1 – COMMENTED until enabled) ---
-  // function deckRoles(deckId) { return getDeck(deckId).data.roles; }
-  // function hasRole(deckId, role) {
-  //   return isSignedIn() && (deckRoles(deckId)[request.auth.uid] == role);
-  // }
-  // function isCollaborator(deckId) {
-  //   return isSignedIn() && (request.auth.uid in deckRoles(deckId));
-  // }
-  // Future adjusted predicates (when feature flag active):
-  //   allow read: if isDeckOwner(deckId) || isCollaborator(deckId);
-  //   allow update: if isDeckOwner(deckId) || hasRole(deckId, 'editor');
-  //   Cards & snapshots: read if collaborator; write if owner or editor.
 
   match /databases/{database}/documents {
-    // User Profile Docs
+    // User profiles (self only)
     match /users/{userId} {
-      allow create: if isUser(userId); // client sets its own profile
-      allow read, update, delete: if isUser(userId);
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow read, update, delete: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // Decks collection
+    // Decks
     match /decks/{deckId} {
-      // Create: ownerId must match caller; allow serverTimestamp() sentinels (treated as null/timestamp in rules)
+      // Create (no helper functions touching parent doc to avoid null issues)
       allow create: if isSignedIn()
+        && ('ownerId' in request.resource.data)
         && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.title is string
-        && ('createdAt' in request.resource.data)
-        && ('updatedAt' in request.resource.data);
+        && ('title' in request.resource.data) && request.resource.data.title is string
+        && (!('roles' in request.resource.data) || request.resource.data.roles is map)
+        && (!('collaboratorIds' in request.resource.data) || request.resource.data.collaboratorIds is list);
 
-      // Read deck only if you own it
-  // Read: legacy deck docs without ownerId will be denied (explicit for safety)
-  allow read: if resource.data.ownerId == request.auth.uid;
+      // Helpers (safe: resource exists for read/update/delete)
+      function isOwner() { return isSignedIn() && resource.data.ownerId == request.auth.uid; }
+      function role(uid) { return (resource.data.roles is map && uid in resource.data.roles) ? resource.data.roles[uid] : null; }
+      function isCollab() { return isSignedIn() && (resource.data.roles is map) && (request.auth.uid in resource.data.roles); }
 
-      // Update: owner cannot change; basic field type constraints
-      allow update: if resource.data.ownerId == request.auth.uid
-        && request.resource.data.ownerId == resource.data.ownerId
-        && (!('title' in request.resource.data) || request.resource.data.title is string);
+      // Read: owner or any collaborator (viewer/editor)
+      allow read: if isOwner() || isCollab();
 
-      // Delete: only owner
-      allow delete: if resource.data.ownerId == request.auth.uid;
+      // Update logic:
+      //  - Owner: may change title, roles, collaboratorIds, updatedAt (cannot change ownerId)
+      //  - Editor: may change title (and optionally updatedAt) but not roles/collaboratorIds/ownerId
+      allow update: if (
+        (
+          isOwner() && request.resource.data.ownerId == resource.data.ownerId
+        ) || (
+          role(request.auth.uid) == 'editor' &&
+          request.resource.data.ownerId == resource.data.ownerId &&
+          // Editor may NOT alter roles or collaboratorIds
+          request.resource.data.roles == resource.data.roles &&
+          request.resource.data.collaboratorIds == resource.data.collaboratorIds
+        )
+      )
+        && (!('title' in request.resource.data) || request.resource.data.title is string)
+        && (!('roles' in request.resource.data) || request.resource.data.roles is map)
+        && (!('collaboratorIds' in request.resource.data) || request.resource.data.collaboratorIds is list);
+
+      // Delete: owner only
+      allow delete: if isOwner();
 
       // Cards subcollection
       match /cards/{cardId} {
-        allow read: if isSignedIn() && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerId == request.auth.uid;
-        allow create: if isSignedIn() && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerId == request.auth.uid
-          && request.resource.data.title is string
-          && request.resource.data.orderIndex is number;
-        allow update: if isSignedIn() && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerId == request.auth.uid
-          && (!('title' in request.resource.data) || request.resource.data.title is string)
-          && (!('body' in request.resource.data) || request.resource.data.body is string)
-          && (!('orderIndex' in request.resource.data) || request.resource.data.orderIndex is number)
-          // createdAt immutable
-          && request.resource.data.createdAt == resource.data.createdAt;
-        allow delete: if isSignedIn() && get(/databases/$(database)/documents/decks/$(deckId)).data.ownerId == request.auth.uid;
+        function deckDoc() { return get(/databases/$(database)/documents/decks/$(deckId)); }
+        function deckExists() { return exists(/databases/$(database)/documents/decks/$(deckId)); }
+        function deckOwner() { return deckExists() && deckDoc().data.ownerId == request.auth.uid; }
+        function deckRole(uid) { return (deckExists() && deckDoc().data.roles is map && uid in deckDoc().data.roles) ? deckDoc().data.roles[uid] : null; }
+        function deckIsCollab() { return deckExists() && deckDoc().data.roles is map && (request.auth.uid in deckDoc().data.roles); }
+
+        allow read: if deckOwner() || deckIsCollab();
+        allow create: if deckOwner() || deckRole(request.auth.uid) == 'editor';
+        allow update: if deckOwner() || deckRole(request.auth.uid) == 'editor';
+        allow delete: if deckOwner() || deckRole(request.auth.uid) == 'editor';
       }
 
       // Order snapshots subcollection
       match /orderSnapshots/{snapshotId} {
-        allow read: if isDeckOwner(deckId);
-        allow create: if isDeckOwner(deckId)
-          && request.resource.data.name is string
-          && request.resource.data.cardOrder is list;
-        // Permit renaming snapshot name; keep cardOrder immutable via UI logic
-        allow update: if isDeckOwner(deckId)
-          && request.resource.data.cardOrder == resource.data.cardOrder
-          && (!('name' in request.resource.data) || request.resource.data.name is string);
-        allow delete: if isDeckOwner(deckId);
+        function deckDoc() { return get(/databases/$(database)/documents/decks/$(deckId)); }
+        function deckExists() { return exists(/databases/$(database)/documents/decks/$(deckId)); }
+        function deckOwner() { return deckExists() && deckDoc().data.ownerId == request.auth.uid; }
+        function deckRole(uid) { return (deckExists() && deckDoc().data.roles is map && uid in deckDoc().data.roles) ? deckDoc().data.roles[uid] : null; }
+        function deckIsCollab() { return deckExists() && deckDoc().data.roles is map && (request.auth.uid in deckDoc().data.roles); }
+
+        allow read: if deckOwner() || deckIsCollab();
+        allow create: if deckOwner() || deckRole(request.auth.uid) == 'editor';
+        allow update: if deckOwner() || deckRole(request.auth.uid) == 'editor';
+        allow delete: if deckOwner() || deckRole(request.auth.uid) == 'editor';
       }
     }
   }
 }
-
-// NOTE: Remove the previous temporary open rules. These rules lock data to authenticated owners.
-// If you introduce sharing/collaboration later, extend predicates accordingly.
-// Sharing extension plan inserted 2025-09-21 (see commented helper functions above). Activation requires
-// migrating existing deck docs to include roles map and applying feature flag in client before uncommenting.
