@@ -15,6 +15,11 @@ export interface Deck {
   createdAt: Date;
   updatedAt: Date;
   cardCount?: number; // Calculated field, not stored in Firestore
+  // --- Sharing (feature-flagged) ---
+  // List of user UIDs (excluding owner) who have any role on this deck
+  collaboratorIds?: string[];
+  // Role map keyed by user UID; owner implicitly has 'owner' role (may be duplicated here for simplicity)
+  roles?: Record<string, DeckRole>;
 }
 
 // Card model - represents individual notecards within a deck
@@ -66,6 +71,9 @@ export interface DeckData {
   ownerId: string;
   createdAt: Date;
   updatedAt: Date;
+  // Sharing fields are optional at rest until feature flag is active
+  collaboratorIds?: string[];
+  roles?: Record<string, DeckRole>;
 }
 
 export interface CardData {
@@ -197,3 +205,14 @@ export enum DeckSortBy {
   UPDATED_AT = 'updatedAt',
   CARD_COUNT = 'cardCount'
 }
+
+// -------------------------
+// Deck Sharing Types/Flags
+// -------------------------
+
+// Roles supported for deck collaboration (owner is deck.ownerId)
+export type DeckRole = 'owner' | 'editor' | 'viewer';
+
+// Feature flag environment toggle (can later be sourced from runtime config)
+export const FEATURE_DECK_SHARING = true; // Set to false to disable sharing-related UI/logic
+
