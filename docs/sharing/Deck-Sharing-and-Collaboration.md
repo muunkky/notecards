@@ -1,8 +1,8 @@
 # Deck Sharing & Collaboration Design
 
-_Last updated: 2025-09-21_
+_Last updated: 2025-09-21 (later increment)_
 
-Status: Phase 0 (Design Approved / Implementation Not Started)
+Status: Phase 1 In Progress (model + helpers + subscription implemented; rules + UI pending)
 Owner: (assign engineer)  
 Related Docs: `Notecard App - Product Requirements Document.md`, `Deployment-Improvements.md`
 
@@ -71,7 +71,13 @@ Validation (Phase 1):
 - Only owner can introduce `roles` field.
 
 ## 5. Service Layer Additions
-New functions (in `firestore.ts` or separate `sharing.ts`):
+Implemented primitives:
+- Added sharing fields (`collaboratorIds`, `roles`) to deck creation (initialized with owner role).
+- Pure helpers: `addCollaborator`, `removeCollaborator`, `listCollaborators` (immutability, unit tested).
+- Merge utility: `mergeAccessibleDecks` (union + dedupe).
+- Accessible subscription: `subscribeToAccessibleDecks` (dual-stream pattern with test hook injection, collaborator stream placeholder until rules active).
+
+Planned Firestore-integrated functions (next increments):
 - `addCollaborator(deckId: string, email: string): Promise<void>`
   - Look up user UID by email in `users` collection (must exist).
   - Partial update: `roles.uid = 'e'`, `arrayUnion(collaboratorIds, uid)`, set `sharedAt` if absent.
@@ -112,12 +118,12 @@ E2E (later):
 - Two test users (service account minting custom token for second user scenario) – ensure collaborator sees deck.
 
 ## 8. Incremental Implementation Order
-1. Data model + service helpers (behind feature flag `FEATURE_DECK_SHARING` in code).
-2. Security rule draft + emulator tests.
-3. Dual-query deck retrieval + fallback to old function name (deprecation notice).
-4. Share dialog UI (disabled if flag off).
-5. Replace placeholder permission tests with real ones.
-6. E2E scenario (optional early or later).
+1. Data model + service helpers (DONE)
+2. Security rule draft (commented) + emulator tests (PENDING tests; draft inserted)
+3. Dual-query deck retrieval (subscription scaffold DONE, Firestore collaborator query PENDING until rules enabled)
+4. Share dialog UI (PENDING)
+5. Permission tests (PENDING)
+6. E2E scenario (PENDING)
 
 ## 9. Feature Flag
 Simple config export:
@@ -159,3 +165,4 @@ This document is the canonical source for deck sharing design. Update change log
 | Date | Change |
 |------|--------|
 | 2025-09-21 | Initial draft created (Phase 1 scope defined). |
+| 2025-09-21 | Added implemented primitives section; updated status & incremental progress checklist. |
