@@ -17,6 +17,8 @@ export const createMockDeck = (overrides: Partial<Deck> = {}): Deck => ({
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   updatedAt: new Date('2024-01-01T00:00:00.000Z'),
   cardCount: 0,
+  collaboratorIds: [],
+  roles: { 'user-123': 'owner' as any },
   ...overrides,
 })
 
@@ -140,6 +142,8 @@ export const createMockDeckData = (overrides: Partial<DeckData> = {}): DeckData 
   ownerId: 'user-123',
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+  collaboratorIds: [],
+  roles: { 'user-123': 'owner' as any },
   ...overrides,
 })
 

@@ -119,6 +119,9 @@ export const createDeck = async (
       ownerId: userId,
       createdAt: serverTimestamp() as any,
       updatedAt: serverTimestamp() as any,
+      // Sharing initial state (feature flag safe: harmless if unused)
+      collaboratorIds: [],
+      roles: { [userId]: 'owner' as any },
     };
     
     const docRef = await addDoc(collection(db, DECKS_COLLECTION), deckData);
