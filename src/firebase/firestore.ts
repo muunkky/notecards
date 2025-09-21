@@ -255,7 +255,6 @@ export const createCard = async (
     const cardData: CardData = {
       title: title.trim(),
       body: body.trim(),
-      deckId,
       orderIndex,
       createdAt: serverTimestamp() as any,
       updatedAt: serverTimestamp() as any,

@@ -28,6 +28,7 @@ import { promises as fs } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { createBrowserConfig, createTestingConfig, SERVICE_TYPE, AUTH_STRATEGY, logServiceConfig } from '../src/config/service-config.mjs';
+import { prepareServiceAccountAuth, signInWithCustomToken } from './service-account-auth.mjs';
 
 // Get absolute path to project root
 const __filename = fileURLToPath(import.meta.url);
@@ -754,13 +755,72 @@ class BrowserService {
   async quickAuth(url = null) {
     const started = await this.startup();
     if (!started.ready) return false;
-    
+
     if (started.authenticated) {
-      console.log('✅ Already authenticated');
+      console.log('[Auth] Already authenticated');
       return true;
     }
-    
+
     return await this.setupAuthentication(url);
+  }
+
+  async quickServiceAuth(options = {}) {
+    const {
+      url = null,
+      userEmail = process.env.E2E_TEST_USER_EMAIL,
+      headless = true,
+      keepBrowserOpen = false,
+      timeoutMs = 60000,
+      claims = {}
+    } = options;
+
+    const resolvedUrl =
+      url ||
+      (this.environmentConfig && typeof this.environmentConfig.getBaseUrl === 'function'
+        ? this.environmentConfig.getBaseUrl()
+        : this.config.getAppUrl());
+
+    let shouldClose = !keepBrowserOpen;
+
+    try {
+      const tokenInfo = await prepareServiceAccountAuth({ userEmail, claims });
+
+      const startupResult = await this.startup({ headless });
+      if (!startupResult.ready) {
+        console.error('[service-account] Browser service failed to start');
+        return false;
+      }
+
+      await this.navigateToApp({ appUrl: resolvedUrl });
+
+      const authDetails = await signInWithCustomToken(this.page, tokenInfo.token, { timeoutMs });
+
+      console.log(
+        `[service-account] Signed in as ${authDetails?.email || tokenInfo.userEmail || 'service account user'}`
+      );
+
+      this.isAuthenticated = true;
+      await this.saveSession();
+
+      if (shouldClose) {
+        await this.close();
+        shouldClose = false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('[service-account] Authentication failed:', error.message);
+      this.isAuthenticated = false;
+      return false;
+    } finally {
+      if (shouldClose) {
+        try {
+          await this.close();
+        } catch (closeError) {
+          // ignore close failures
+        }
+      }
+    }
   }
 
   /**

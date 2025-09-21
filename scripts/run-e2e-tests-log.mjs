@@ -100,15 +100,13 @@ const writeHeader = () => {
 
 // Show guidance for Copilot
 const showGuidance = () => {
-  console.log('🧪 E2E Test Runner - Log-based execution')
-  console.log('════════════════════════════════════════')
-  console.log(`📁 Log file: ${logFile}`)
-  console.log(`📁 Raw log:  ${rawLogFile}`)
-  console.log(`📄 JSON:     ${jsonFile}`)
+  console.log('[E2E] Test Runner - log-based execution')
+  console.log(`[E2E] Log file: ${logFile}`)
+  console.log(`[E2E] Raw log:  ${rawLogFile}`)
+  console.log(`[E2E] JSON summary: ${jsonFile}`)
   console.log('')
-  console.log('copilot: DO NOT wait for live test output in this terminal; tail the logFile repeatedly until you see [E2E-TEST-COMPLETE] appear. Absence of that sentinel means tests are still executing.')
-  console.log('')
-  console.log('instruction: Continue polling (tail/read) the log file; it is appended incrementally. When finished a JSON summary and a COMPLETE sentinel will be written.')
+  console.log('copilot: tail the log file until [E2E-TEST-COMPLETE] appears; absence means tests are still running.')
+  console.log('instruction: keep reading the log file; completion sentinels and JSON summaries are written at the end.')
   console.log('')
 }
 
@@ -137,9 +135,9 @@ const baseArgs = [
   ...process.argv.slice(2) // Pass through any additional args (like test name)
 ]
 
-console.log(`🚀 Running E2E tests: npm ${baseArgs.join(' ')}`)
+console.log(`[E2E] Running E2E tests: npm ${baseArgs.join(' ')}`)
 if (!allowStreaming) {
-  console.log('📺 Live output suppressed - monitor log file instead')
+  console.log('[E2E] Live output suppressed - monitor the log file instead')
 }
 
 const startTime = Date.now()
@@ -177,9 +175,9 @@ if (!allowStreaming) {
     // Parse test results from output
     const lines = text.split('\n')
     lines.forEach(line => {
-      if (line.includes('✓') || line.includes('PASS')) testResults.passed++
-      if (line.includes('×') || line.includes('FAIL')) testResults.failed++
-      if (line.includes('⏭') || line.includes('SKIP')) testResults.skipped++
+      if (line.includes('PASS')) testResults.passed++
+      if (line.includes('FAIL')) testResults.failed++
+      if (line.includes('SKIP')) testResults.skipped++
     })
   })
   
@@ -228,11 +226,11 @@ vitestProcess.on('close', (exitCode) => {
   
   // Terminal output
   if (showFinalSummaryLine) {
-    console.log(`\n📊 E2E Test Results: ${totals}`)
+    console.log(`\n[E2E] Test Results: ${totals}`)
   }
   
   console.log(`[E2E-TEST-COMPLETE-TERMINAL] exitCode=${exitCode} (stream ${allowStreaming ? 'shown' : 'suppressed'}; see log file sentinel)`)
-  console.log(`📄 Full results: ${jsonFile}`)
+  console.log(`[E2E] Full results: ${jsonFile}`)
   
   // Close streams
   try { out.end() } catch {}
@@ -243,11 +241,11 @@ vitestProcess.on('close', (exitCode) => {
 
 // Handle process termination
 process.on('SIGINT', () => {
-  console.log('\n⚠️ E2E tests interrupted')
+  console.log('\n[E2E] E2E tests interrupted')
   vitestProcess.kill('SIGINT')
 })
 
 process.on('SIGTERM', () => {
-  console.log('\n⚠️ E2E tests terminated')
+  console.log('\n[E2E] E2E tests terminated')
   vitestProcess.kill('SIGTERM')
 })

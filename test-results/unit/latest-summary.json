@@ -1,0 +1,1909 @@
+{
+  "logFile": "C:\\Users\\Cameron\\Projects\\note_apps\\notecards\\test-results\\unit\\unit-2025-09-21-18-41-57.log",
+  "summaryPath": "C:\\Users\\Cameron\\Projects\\note_apps\\notecards\\test-results\\unit\\unit-2025-09-21-18-41-57.json",
+  "summary": {
+    "startedAt": "2025-09-21T18:43:45.489Z",
+    "totalFiles": 38,
+    "totalTests": 253,
+    "totalFailed": 0,
+    "totalSkipped": 3,
+    "passed": true,
+    "files": [
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/e2e/service-account-data-roundtrip.test.ts",
+        "tests": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 100.51829999999973,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "714519358_0_0",
+            "name": "Should complete full data round-trip: create → verify → delete",
+            "fullName": "Service Account Data Round-Trip Should complete full data round-trip: create → verify → delete",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/e2e/user-journeys.test.ts",
+        "tests": 0,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 0,
+        "state": "fail",
+        "testsDetailed": []
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/e2e/complete-service-integration.test.ts",
+        "tests": 3,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 113.66679999999906,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-1414456418_0_2",
+            "name": "provides setup guidance even when skipped",
+            "fullName": "Complete Service Account Integration provides setup guidance even when skipped",
+            "mode": "run"
+          },
+          {
+            "id": "-1414456418_0_1",
+            "name": "gracefully handles authentication errors",
+            "fullName": "Complete Service Account Integration gracefully handles authentication errors",
+            "mode": "run"
+          },
+          {
+            "id": "-1414456418_0_0",
+            "name": "authenticates with service account and captures a screenshot",
+            "fullName": "Complete Service Account Integration authenticates with service account and captures a screenshot",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/e2e/authenticated-ui.test.ts",
+        "tests": 0,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 0,
+        "state": "fail",
+        "testsDetailed": []
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/e2e/real-browser-ui.test.ts",
+        "tests": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 4.609699999999066,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-819866708_0_0",
+            "name": "loads application shell without crashing",
+            "fullName": "Real browser UI smoke test loads application shell without crashing",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/e2e/service-integration-simple.test.ts",
+        "tests": 0,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 0,
+        "state": "fail",
+        "testsDetailed": []
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/service-account/setup-service-account.test.ts",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 4.7453999999997905,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-389764602_0_1",
+            "name": "reports ready when the key exists",
+            "fullName": "service-account setup script reports ready when the key exists",
+            "mode": "run"
+          },
+          {
+            "id": "-389764602_0_0",
+            "name": "fails with guidance when the key is missing",
+            "fullName": "service-account setup script fails with guidance when the key is missing",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/decks/DeckScreen-permission.test.tsx",
+        "tests": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 4.9879000000000815,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-127513559_0_0",
+            "name": "placeholder: restricts non-owner action (to be implemented)",
+            "fullName": "DeckScreen (permission) placeholder: restricts non-owner action (to be implemented)",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-shuffle-collapse-snapshots.test.tsx",
+        "tests": 3,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 128.71229999999923,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-1134976989_0_2",
+            "name": "saves order snapshot and loads snapshot applying new order",
+            "fullName": "CardScreen - Shuffle / Collapse-Expand / Order Snapshots (TDD New Features) saves order snapshot and loads snapshot applying new order",
+            "mode": "run"
+          },
+          {
+            "id": "-1134976989_0_1",
+            "name": "expands and collapses all cards via global controls",
+            "fullName": "CardScreen - Shuffle / Collapse-Expand / Order Snapshots (TDD New Features) expands and collapses all cards via global controls",
+            "mode": "run"
+          },
+          {
+            "id": "-1134976989_0_0",
+            "name": "shuffles cards locally without calling reorder persistence",
+            "fullName": "CardScreen - Shuffle / Collapse-Expand / Order Snapshots (TDD New Features) shuffles cards locally without calling reorder persistence",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-snapshots-selection.test.tsx",
+        "tests": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 7.366300000001502,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-258005022_0_0",
+            "name": "lists snapshots after load and applies chosen snapshot order when a snapshot button is clicked",
+            "fullName": "CardScreen - Snapshot selection UI lists snapshots after load and applies chosen snapshot order when a snapshot button is clicked",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/decks/DeckScreen-user-menu.test.tsx",
+        "tests": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.565899999999601,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "1878342045_0_0",
+            "name": "placeholder: opens user menu (to be implemented)",
+            "fullName": "DeckScreen (user menu) placeholder: opens user menu (to be implemented)",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/firebase/firestore.test.ts",
+        "tests": 28,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 4.95699999999988,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-1626977214_0_4_0_2",
+            "name": "should handle single element array",
+            "fullName": "shuffleArray should handle single element array",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_4_0_1",
+            "name": "should handle empty array",
+            "fullName": "shuffleArray should handle empty array",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_4_0_0",
+            "name": "should shuffle array without modifying original",
+            "fullName": "shuffleArray should shuffle array without modifying original",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_3_2_0",
+            "name": "should delete order snapshot successfully",
+            "fullName": "deleteOrderSnapshot should delete order snapshot successfully",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_3_1_0",
+            "name": "should get order snapshots successfully",
+            "fullName": "getOrderSnapshots should get order snapshots successfully",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_3_0_1",
+            "name": "should trim snapshot name",
+            "fullName": "saveOrderSnapshot should trim snapshot name",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_3_0_0",
+            "name": "should save order snapshot successfully",
+            "fullName": "saveOrderSnapshot should save order snapshot successfully",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_2_4_0",
+            "name": "should batch update card order indices",
+            "fullName": "reorderCards should batch update card order indices",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_2_3_0",
+            "name": "should get deck cards in order",
+            "fullName": "getDeckCards should get deck cards in order",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_2_2_0",
+            "name": "should delete card and update deck timestamp",
+            "fullName": "deleteCard should delete card and update deck timestamp",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_2_1_0",
+            "name": "should update card and deck timestamp",
+            "fullName": "updateCard should update card and deck timestamp",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_2_0_3",
+            "name": "should trim card title and body",
+            "fullName": "createCard should trim card title and body",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_2_0_2",
+            "name": "should include deckId when creating a card",
+            "fullName": "createCard should include deckId when creating a card",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_2_0_1",
+            "name": "should create card with empty body by default",
+            "fullName": "createCard should create card with empty body by default",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_2_0_0",
+            "name": "should create card with correct order index",
+            "fullName": "createCard should create card with correct order index",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_3_1",
+            "name": "should handle errors when getting user decks",
+            "fullName": "getUserDecks should handle errors when getting user decks",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_3_0",
+            "name": "should get user decks successfully",
+            "fullName": "getUserDecks should get user decks successfully",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_2_1",
+            "name": "should handle errors when deleting deck",
+            "fullName": "deleteDeck should handle errors when deleting deck",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_2_0",
+            "name": "should delete deck and its subcollections successfully",
+            "fullName": "deleteDeck should delete deck and its subcollections successfully",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_1_1",
+            "name": "should handle errors when updating deck",
+            "fullName": "updateDeck should handle errors when updating deck",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_1_0",
+            "name": "should update deck successfully",
+            "fullName": "updateDeck should update deck successfully",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_0_2",
+            "name": "should handle errors when creating deck",
+            "fullName": "createDeck should handle errors when creating deck",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_0_1",
+            "name": "should trim deck title when creating",
+            "fullName": "createDeck should trim deck title when creating",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_1_0_0",
+            "name": "should create deck successfully",
+            "fullName": "createDeck should create deck successfully",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_0_1_1",
+            "name": "should handle user not found",
+            "fullName": "getUserDocument should handle user not found",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_0_1_0",
+            "name": "should get user document successfully",
+            "fullName": "getUserDocument should get user document successfully",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_0_0_1",
+            "name": "should handle errors when creating user document",
+            "fullName": "createUserDocument should handle errors when creating user document",
+            "mode": "run"
+          },
+          {
+            "id": "-1626977214_0_0_0_0",
+            "name": "should create user document successfully",
+            "fullName": "createUserDocument should create user document successfully",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardListItem-reorder.test.tsx",
+        "tests": 24,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 7.162699999999859,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "312847024_0_5_2",
+            "name": "should truncate long card bodies appropriately",
+            "fullName": "Content Display should truncate long card bodies appropriately",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_5_1",
+            "name": "should handle card expansion/collapse",
+            "fullName": "Content Display should handle card expansion/collapse",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_5_0",
+            "name": "should display card title and body correctly",
+            "fullName": "Content Display should display card title and body correctly",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_4_3",
+            "name": "should handle callback errors gracefully",
+            "fullName": "Performance and Edge Cases should handle callback errors gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_4_2",
+            "name": "should maintain component state during prop changes",
+            "fullName": "Performance and Edge Cases should maintain component state during prop changes",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_4_1",
+            "name": "should handle missing card data gracefully",
+            "fullName": "Performance and Edge Cases should handle missing card data gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_4_0",
+            "name": "should handle rapid button clicks gracefully",
+            "fullName": "Performance and Edge Cases should handle rapid button clicks gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_3_3",
+            "name": "should have proper disabled states with aria attributes",
+            "fullName": "Accessibility should have proper disabled states with aria attributes",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_3_2",
+            "name": "should support space key activation",
+            "fullName": "Accessibility should support space key activation",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_3_1",
+            "name": "should be keyboard navigable",
+            "fullName": "Accessibility should be keyboard navigable",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_3_0",
+            "name": "should have proper ARIA labels for reorder buttons",
+            "fullName": "Accessibility should have proper ARIA labels for reorder buttons",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_2_3",
+            "name": "should show proper styling during reorder state",
+            "fullName": "Visual Feedback should show proper styling during reorder state",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_2_2",
+            "name": "should have transition classes for smooth animations",
+            "fullName": "Visual Feedback should have transition classes for smooth animations",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_2_1",
+            "name": "should apply active state styling during button press",
+            "fullName": "Visual Feedback should apply active state styling during button press",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_2_0",
+            "name": "should show hover effects on reorder buttons",
+            "fullName": "Visual Feedback should show hover effects on reorder buttons",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_1_3",
+            "name": "should call onDelete when delete button is clicked",
+            "fullName": "Button Actions should call onDelete when delete button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_1_2",
+            "name": "should call onEdit when edit button is clicked",
+            "fullName": "Button Actions should call onEdit when edit button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_1_1",
+            "name": "should call onMoveDown when move down button is clicked",
+            "fullName": "Button Actions should call onMoveDown when move down button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_1_0",
+            "name": "should call onMoveUp when move up button is clicked",
+            "fullName": "Button Actions should call onMoveUp when move up button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_0_4",
+            "name": "should not disable edit/delete buttons when isReordering is true",
+            "fullName": "Reorder Button States should not disable edit/delete buttons when isReordering is true",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_0_3",
+            "name": "should disable all reorder buttons when isReordering is true",
+            "fullName": "Reorder Button States should disable all reorder buttons when isReordering is true",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_0_2",
+            "name": "should enable both buttons when both canMoveUp and canMoveDown are true",
+            "fullName": "Reorder Button States should enable both buttons when both canMoveUp and canMoveDown are true",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_0_1",
+            "name": "should disable move down button when canMoveDown is false",
+            "fullName": "Reorder Button States should disable move down button when canMoveDown is false",
+            "mode": "run"
+          },
+          {
+            "id": "312847024_0_0_0",
+            "name": "should disable move up button when canMoveUp is false",
+            "fullName": "Reorder Button States should disable move up button when canMoveUp is false",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-filters.test.tsx",
+        "tests": 4,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 12.76339999999982,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-1167758731_0_3",
+            "name": "combines favorites + show archived to display archived favorites",
+            "fullName": "CardScreen Filters (Favorites / Archived) combines favorites + show archived to display archived favorites",
+            "mode": "run"
+          },
+          {
+            "id": "-1167758731_0_2",
+            "name": "filters to favorites only when favorites toggle enabled",
+            "fullName": "CardScreen Filters (Favorites / Archived) filters to favorites only when favorites toggle enabled",
+            "mode": "run"
+          },
+          {
+            "id": "-1167758731_0_1",
+            "name": "shows archived cards after toggling archived visibility",
+            "fullName": "CardScreen Filters (Favorites / Archived) shows archived cards after toggling archived visibility",
+            "mode": "run"
+          },
+          {
+            "id": "-1167758731_0_0",
+            "name": "hides archived cards by default",
+            "fullName": "CardScreen Filters (Favorites / Archived) hides archived cards by default",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/providers/AuthProvider.test.tsx",
+        "tests": 10,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 20.09270000000015,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "817953555_0_7_2",
+            "name": "should maintain user object reference equality for same user",
+            "fullName": "Edge Cases should maintain user object reference equality for same user",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_7_1",
+            "name": "should handle rapid auth state changes",
+            "fullName": "Edge Cases should handle rapid auth state changes",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_7_0",
+            "name": "should handle auth state change errors gracefully",
+            "fullName": "Edge Cases should handle auth state change errors gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_6_0",
+            "name": "should throw error when used outside AuthProvider",
+            "fullName": "useAuth hook should throw error when used outside AuthProvider",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_5",
+            "name": "should provide context value with correct types",
+            "fullName": "AuthProvider should provide context value with correct types",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_4",
+            "name": "should cleanup auth listener on unmount",
+            "fullName": "AuthProvider should cleanup auth listener on unmount",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_3",
+            "name": "should handle user state changes",
+            "fullName": "AuthProvider should handle user state changes",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_2",
+            "name": "should provide null user when not authenticated",
+            "fullName": "AuthProvider should provide null user when not authenticated",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_1",
+            "name": "should provide authenticated user when user is signed in",
+            "fullName": "AuthProvider should provide authenticated user when user is signed in",
+            "mode": "run"
+          },
+          {
+            "id": "817953555_0_0",
+            "name": "should provide loading state initially",
+            "fullName": "AuthProvider should provide loading state initially",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen.test.tsx",
+        "tests": 34,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.887700000000223,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-283806237_1_4",
+            "name": "should expand/collapse body when clicked",
+            "fullName": "CardListItem Component should expand/collapse body when clicked",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_1_3",
+            "name": "should call onDelete when delete button is clicked",
+            "fullName": "CardListItem Component should call onDelete when delete button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_1_2",
+            "name": "should call onEdit when edit button is clicked",
+            "fullName": "CardListItem Component should call onEdit when edit button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_1_1",
+            "name": "should render truncated card body",
+            "fullName": "CardListItem Component should render truncated card body",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_1_0",
+            "name": "should render card title",
+            "fullName": "CardListItem Component should render card title",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_12",
+            "name": "should maintain filter when editing cards",
+            "fullName": "Advanced Card Filtering should maintain filter when editing cards",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_11",
+            "name": "should handle search performance for large card sets",
+            "fullName": "Advanced Card Filtering should handle search performance for large card sets",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_10",
+            "name": "should maintain search state when creating new cards",
+            "fullName": "Advanced Card Filtering should maintain search state when creating new cards",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_9",
+            "name": "should filter on partial word matches",
+            "fullName": "Advanced Card Filtering should filter on partial word matches",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_8",
+            "name": "should clear search when clear button is clicked",
+            "fullName": "Advanced Card Filtering should clear search when clear button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_7",
+            "name": "should show clear search button when search is active",
+            "fullName": "Advanced Card Filtering should show clear search button when search is active",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_6",
+            "name": "should update card count display when filtering",
+            "fullName": "Advanced Card Filtering should update card count display when filtering",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_5",
+            "name": "should clear filter when search is emptied",
+            "fullName": "Advanced Card Filtering should clear filter when search is emptied",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_4",
+            "name": "should show \"no results\" message when no cards match filter",
+            "fullName": "Advanced Card Filtering should show \"no results\" message when no cards match filter",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_3",
+            "name": "should perform case-insensitive search",
+            "fullName": "Advanced Card Filtering should perform case-insensitive search",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_2",
+            "name": "should filter cards by body content",
+            "fullName": "Advanced Card Filtering should filter cards by body content",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_1",
+            "name": "should filter cards by title in real-time",
+            "fullName": "Advanced Card Filtering should filter cards by title in real-time",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_6_0",
+            "name": "should render search input field",
+            "fullName": "Advanced Card Filtering should render search input field",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_5_0",
+            "name": "should display error when loading fails",
+            "fullName": "Error Handling should display error when loading fails",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_4_3",
+            "name": "should delete card with confirmation",
+            "fullName": "Card Actions should delete card with confirmation",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_4_2",
+            "name": "should update card when edit form is submitted",
+            "fullName": "Card Actions should update card when edit form is submitted",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_4_1",
+            "name": "should show edit modal when edit button is clicked",
+            "fullName": "Card Actions should show edit modal when edit button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_4_0",
+            "name": "should expand card when clicked",
+            "fullName": "Card Actions should expand card when clicked",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_3_2",
+            "name": "should not allow creating card with empty title",
+            "fullName": "Create New Card should not allow creating card with empty title",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_3_1",
+            "name": "should create card when form is submitted",
+            "fullName": "Create New Card should create card when form is submitted",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_3_0",
+            "name": "should open create card modal when create button is clicked",
+            "fullName": "Create New Card should open create card modal when create button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_2_1",
+            "name": "should display card title and body preview",
+            "fullName": "Card List should display card title and body preview",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_2_0",
+            "name": "should render card items when cards exist",
+            "fullName": "Card List should render card items when cards exist",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_1_1",
+            "name": "should show create card CTA in empty state",
+            "fullName": "Empty State should show create card CTA in empty state",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_1_0",
+            "name": "should show empty state when no cards exist",
+            "fullName": "Empty State should show empty state when no cards exist",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_0_3",
+            "name": "should render back to decks button",
+            "fullName": "Initial Render should render back to decks button",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_0_2",
+            "name": "should show loading state initially",
+            "fullName": "Initial Render should show loading state initially",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_0_1",
+            "name": "should render a \"Create New Card\" button",
+            "fullName": "Initial Render should render a \"Create New Card\" button",
+            "mode": "run"
+          },
+          {
+            "id": "-283806237_0_0_0",
+            "name": "should render the card screen header",
+            "fullName": "Initial Render should render the card screen header",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/hooks/useDecks.test.ts",
+        "tests": 11,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.721700000000055,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-89739519_0_5_1",
+            "name": "should handle user without authentication",
+            "fullName": "Edge Cases should handle user without authentication",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_5_0",
+            "name": "should handle malformed Firestore data",
+            "fullName": "Edge Cases should handle malformed Firestore data",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_4_1",
+            "name": "should update when decks are modified in real-time",
+            "fullName": "Real-time Updates should update when decks are modified in real-time",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_4_0",
+            "name": "should update when decks are added in real-time",
+            "fullName": "Real-time Updates should update when decks are added in real-time",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_3_0",
+            "name": "should unsubscribe from Firestore when unmounted",
+            "fullName": "Cleanup should unsubscribe from Firestore when unmounted",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_2_1",
+            "name": "should handle permission errors",
+            "fullName": "Error Handling should handle permission errors",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_2_0",
+            "name": "should handle Firestore errors gracefully",
+            "fullName": "Error Handling should handle Firestore errors gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_1_1",
+            "name": "should handle empty deck list",
+            "fullName": "Data Loading should handle empty deck list",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_1_0",
+            "name": "should update decks when Firestore data changes",
+            "fullName": "Data Loading should update decks when Firestore data changes",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_0_1",
+            "name": "should set up Firestore subscription with correct query",
+            "fullName": "Initial State should set up Firestore subscription with correct query",
+            "mode": "run"
+          },
+          {
+            "id": "-89739519_0_0_0",
+            "name": "should return loading state initially",
+            "fullName": "Initial State should return loading state initially",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-reorder-integration.test.tsx",
+        "tests": 13,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 6.313799999999901,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-440242482_0_3_2",
+            "name": "should persist order across component re-renders",
+            "fullName": "Edge Cases and Error Scenarios should persist order across component re-renders",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_3_1",
+            "name": "should handle basic component lifecycle",
+            "fullName": "Edge Cases and Error Scenarios should handle basic component lifecycle",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_3_0",
+            "name": "should handle reorder operations on single card gracefully",
+            "fullName": "Edge Cases and Error Scenarios should handle reorder operations on single card gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_2_2",
+            "name": "should pass correct filtered array to reorder functions",
+            "fullName": "Filtered List Reordering should pass correct filtered array to reorder functions",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_2_1",
+            "name": "should maintain filter state during reorder operations",
+            "fullName": "Filtered List Reordering should maintain filter state during reorder operations",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_2_0",
+            "name": "should work correctly with filtered card lists",
+            "fullName": "Filtered List Reordering should work correctly with filtered card lists",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_1_2",
+            "name": "should call move operations with correct parameters",
+            "fullName": "Operation Feedback should call move operations with correct parameters",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_1_1",
+            "name": "should display success feedback for successful reorder operations",
+            "fullName": "Operation Feedback should display success feedback for successful reorder operations",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_1_0",
+            "name": "should show visual feedback during reorder operations",
+            "fullName": "Operation Feedback should show visual feedback during reorder operations",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_0_3",
+            "name": "should re-enable buttons after failed operation",
+            "fullName": "Optimistic UI Updates should re-enable buttons after failed operation",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_0_2",
+            "name": "should re-enable buttons after successful operation",
+            "fullName": "Optimistic UI Updates should re-enable buttons after successful operation",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_0_1",
+            "name": "should disable all reorder buttons during loading state",
+            "fullName": "Optimistic UI Updates should disable all reorder buttons during loading state",
+            "mode": "run"
+          },
+          {
+            "id": "-440242482_0_0_0",
+            "name": "should show buttons enabled when not loading",
+            "fullName": "Optimistic UI Updates should show buttons enabled when not loading",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardListItem-advanced.test.tsx",
+        "tests": 24,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.539899999999761,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "1560355369_0_5_2",
+            "name": "should truncate long card bodies appropriately",
+            "fullName": "Content Display should truncate long card bodies appropriately",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_5_1",
+            "name": "should handle card expansion/collapse",
+            "fullName": "Content Display should handle card expansion/collapse",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_5_0",
+            "name": "should display card title and body correctly",
+            "fullName": "Content Display should display card title and body correctly",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_4_3",
+            "name": "should handle callback errors gracefully",
+            "fullName": "Performance and Edge Cases should handle callback errors gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_4_2",
+            "name": "should maintain component state during prop changes",
+            "fullName": "Performance and Edge Cases should maintain component state during prop changes",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_4_1",
+            "name": "should handle missing card data gracefully",
+            "fullName": "Performance and Edge Cases should handle missing card data gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_4_0",
+            "name": "should handle rapid button clicks gracefully",
+            "fullName": "Performance and Edge Cases should handle rapid button clicks gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_3_3",
+            "name": "should have proper disabled states with aria attributes",
+            "fullName": "Accessibility should have proper disabled states with aria attributes",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_3_2",
+            "name": "should support space key activation",
+            "fullName": "Accessibility should support space key activation",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_3_1",
+            "name": "should be keyboard navigable",
+            "fullName": "Accessibility should be keyboard navigable",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_3_0",
+            "name": "should have proper ARIA labels for reorder buttons",
+            "fullName": "Accessibility should have proper ARIA labels for reorder buttons",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_2_3",
+            "name": "should show proper styling during reorder state",
+            "fullName": "Visual Feedback should show proper styling during reorder state",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_2_2",
+            "name": "should have transition classes for smooth animations",
+            "fullName": "Visual Feedback should have transition classes for smooth animations",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_2_1",
+            "name": "should apply active state styling during button press",
+            "fullName": "Visual Feedback should apply active state styling during button press",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_2_0",
+            "name": "should show hover effects on reorder buttons",
+            "fullName": "Visual Feedback should show hover effects on reorder buttons",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_1_3",
+            "name": "should call onDelete when delete button is clicked",
+            "fullName": "Button Actions should call onDelete when delete button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_1_2",
+            "name": "should call onEdit when edit button is clicked",
+            "fullName": "Button Actions should call onEdit when edit button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_1_1",
+            "name": "should call onMoveDown when move down button is clicked",
+            "fullName": "Button Actions should call onMoveDown when move down button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_1_0",
+            "name": "should call onMoveUp when move up button is clicked",
+            "fullName": "Button Actions should call onMoveUp when move up button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_0_4",
+            "name": "should not disable edit/delete buttons when isReordering is true",
+            "fullName": "Reorder Button States should not disable edit/delete buttons when isReordering is true",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_0_3",
+            "name": "should disable all reorder buttons when isReordering is true",
+            "fullName": "Reorder Button States should disable all reorder buttons when isReordering is true",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_0_2",
+            "name": "should enable both buttons when both canMoveUp and canMoveDown are true",
+            "fullName": "Reorder Button States should enable both buttons when both canMoveUp and canMoveDown are true",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_0_1",
+            "name": "should disable move down button when canMoveDown is false",
+            "fullName": "Reorder Button States should disable move down button when canMoveDown is false",
+            "mode": "run"
+          },
+          {
+            "id": "1560355369_0_0_0",
+            "name": "should disable move up button when canMoveUp is false",
+            "fullName": "Reorder Button States should disable move up button when canMoveUp is false",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-reorder-integration-fixed.test.tsx",
+        "tests": 13,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.160000000000764,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "1080422663_0_3_2",
+            "name": "should persist order across component re-renders",
+            "fullName": "Edge Cases and Error Scenarios should persist order across component re-renders",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_3_1",
+            "name": "should handle basic component lifecycle",
+            "fullName": "Edge Cases and Error Scenarios should handle basic component lifecycle",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_3_0",
+            "name": "should handle reorder operations on single card gracefully",
+            "fullName": "Edge Cases and Error Scenarios should handle reorder operations on single card gracefully",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_2_2",
+            "name": "should pass correct filtered array to reorder functions",
+            "fullName": "Filtered List Reordering should pass correct filtered array to reorder functions",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_2_1",
+            "name": "should maintain filter state during reorder operations",
+            "fullName": "Filtered List Reordering should maintain filter state during reorder operations",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_2_0",
+            "name": "should work correctly with filtered card lists",
+            "fullName": "Filtered List Reordering should work correctly with filtered card lists",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_1_2",
+            "name": "should call move operations with correct parameters",
+            "fullName": "Operation Feedback should call move operations with correct parameters",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_1_1",
+            "name": "should display success feedback for successful reorder operations",
+            "fullName": "Operation Feedback should display success feedback for successful reorder operations",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_1_0",
+            "name": "should show visual feedback during reorder operations",
+            "fullName": "Operation Feedback should show visual feedback during reorder operations",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_0_3",
+            "name": "should re-enable buttons after failed operation",
+            "fullName": "Optimistic UI Updates should re-enable buttons after failed operation",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_0_2",
+            "name": "should re-enable buttons after successful operation",
+            "fullName": "Optimistic UI Updates should re-enable buttons after successful operation",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_0_1",
+            "name": "should disable all reorder buttons during loading state",
+            "fullName": "Optimistic UI Updates should disable all reorder buttons during loading state",
+            "mode": "run"
+          },
+          {
+            "id": "1080422663_0_0_0",
+            "name": "should show buttons enabled when not loading",
+            "fullName": "Optimistic UI Updates should show buttons enabled when not loading",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-archive.test.tsx",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.278400000000147,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "1923587470_0_1",
+            "name": "calls archiveCard when archive clicked",
+            "fullName": "CardScreen Archive UI calls archiveCard when archive clicked",
+            "mode": "run"
+          },
+          {
+            "id": "1923587470_0_0",
+            "name": "renders archive button for active card",
+            "fullName": "CardScreen Archive UI renders archive button for active card",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/decks/DeckScreen.test.tsx",
+        "tests": 17,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 9.290599999999358,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "151459633_1_3",
+            "name": "should call onMenu when menu button is clicked",
+            "fullName": "DeckListItem Component should call onMenu when menu button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_1_2",
+            "name": "should call onSelect when clicked",
+            "fullName": "DeckListItem Component should call onSelect when clicked",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_1_1",
+            "name": "should render card count",
+            "fullName": "DeckListItem Component should render card count",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_1_0",
+            "name": "should render deck title",
+            "fullName": "DeckListItem Component should render deck title",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_5_0",
+            "name": "should display error when loading fails",
+            "fullName": "Error Handling should display error when loading fails",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_4_1",
+            "name": "should rename deck when rename is submitted",
+            "fullName": "Deck Actions should rename deck when rename is submitted",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_4_0",
+            "name": "should show rename modal when deck menu is clicked",
+            "fullName": "Deck Actions should show rename modal when deck menu is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_3_2",
+            "name": "should not allow creating deck with empty title",
+            "fullName": "Create New Deck should not allow creating deck with empty title",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_3_1",
+            "name": "should create deck when form is submitted",
+            "fullName": "Create New Deck should create deck when form is submitted",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_3_0",
+            "name": "should open create deck modal when create button is clicked",
+            "fullName": "Create New Deck should open create deck modal when create button is clicked",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_2_1",
+            "name": "should display deck title and card count",
+            "fullName": "Deck List should display deck title and card count",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_2_0",
+            "name": "should render deck items when decks exist",
+            "fullName": "Deck List should render deck items when decks exist",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_1_1",
+            "name": "should show create deck CTA in empty state",
+            "fullName": "Empty State should show create deck CTA in empty state",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_1_0",
+            "name": "should show empty state when no decks exist",
+            "fullName": "Empty State should show empty state when no decks exist",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_0_2",
+            "name": "should show loading state initially",
+            "fullName": "Initial Render should show loading state initially",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_0_1",
+            "name": "should render a \"Create New Deck\" button",
+            "fullName": "Initial Render should render a \"Create New Deck\" button",
+            "mode": "run"
+          },
+          {
+            "id": "151459633_0_0_0",
+            "name": "should render the deck screen header",
+            "fullName": "Initial Render should render the deck screen header",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/types/index.test.ts",
+        "tests": 17,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.247299999999996,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-1967595017_0_7_2",
+            "name": "should define DeckSortBy enum correctly",
+            "fullName": "Enum Types should define DeckSortBy enum correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_7_1",
+            "name": "should define CardSortBy enum correctly",
+            "fullName": "Enum Types should define CardSortBy enum correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_7_0",
+            "name": "should define OrderDirection enum correctly",
+            "fullName": "Enum Types should define OrderDirection enum correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_6_1",
+            "name": "should define FormState correctly",
+            "fullName": "Form and Validation Types should define FormState correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_6_0",
+            "name": "should define ValidationError correctly",
+            "fullName": "Form and Validation Types should define ValidationError correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_5_1",
+            "name": "should define error ApiResponse correctly",
+            "fullName": "API Response Types should define error ApiResponse correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_5_0",
+            "name": "should define successful ApiResponse correctly",
+            "fullName": "API Response Types should define successful ApiResponse correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_4_3",
+            "name": "should define UserData correctly",
+            "fullName": "Data Types (Firestore) should define UserData correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_4_2",
+            "name": "should define OrderSnapshotData without id and deckId fields",
+            "fullName": "Data Types (Firestore) should define OrderSnapshotData without id and deckId fields",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_4_1",
+            "name": "should define CardData without id and deckId fields",
+            "fullName": "Data Types (Firestore) should define CardData without id and deckId fields",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_4_0",
+            "name": "should define DeckData without id field",
+            "fullName": "Data Types (Firestore) should define DeckData without id field",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_3_0",
+            "name": "should define OrderSnapshot interface correctly",
+            "fullName": "OrderSnapshot Interface should define OrderSnapshot interface correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_2_0",
+            "name": "should define Card interface correctly",
+            "fullName": "Card Interface should define Card interface correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_1_1",
+            "name": "should allow optional cardCount field",
+            "fullName": "Deck Interface should allow optional cardCount field",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_1_0",
+            "name": "should define Deck interface correctly",
+            "fullName": "Deck Interface should define Deck interface correctly",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_0_1",
+            "name": "should allow null values for optional User fields",
+            "fullName": "User Interface should allow null values for optional User fields",
+            "mode": "run"
+          },
+          {
+            "id": "-1967595017_0_0_0",
+            "name": "should define User interface correctly",
+            "fullName": "User Interface should define User interface correctly",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/hooks/useCardOperations-duplicate.test.ts",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 4.533799999999246,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "1215996957_0_1",
+            "name": "should surface errors from createCardInDeck",
+            "fullName": "useCardOperations - duplicateCard should surface errors from createCardInDeck",
+            "mode": "run"
+          },
+          {
+            "id": "1215996957_0_0",
+            "name": "should create a duplicate card with (Copy) suffix and same body",
+            "fullName": "useCardOperations - duplicateCard should create a duplicate card with (Copy) suffix and same body",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/hooks/useCardOperations-duplicate-placement.test.ts",
+        "tests": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 47.14980000000014,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "185083253_0_0",
+            "name": "creates duplicate then reorders so duplicate appears immediately after source",
+            "fullName": "useCardOperations - duplicate adjacency creates duplicate then reorders so duplicate appears immediately after source",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/tdd-mock-verification.test.ts",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.455600000000231,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "513029024_0_1",
+            "name": "should verify addDoc works with collection reference",
+            "fullName": "TDD: Mock Verification should verify addDoc works with collection reference",
+            "mode": "run"
+          },
+          {
+            "id": "513029024_0_0",
+            "name": "should verify collection reference works correctly",
+            "fullName": "TDD: Mock Verification should verify collection reference works correctly",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/auth/LoginScreen.test.tsx",
+        "tests": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.635000000000218,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "410004317_0_0",
+            "name": "placeholder: renders login form (to be implemented)",
+            "fullName": "LoginScreen placeholder: renders login form (to be implemented)",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/hooks/useCards-firestore.test.ts",
+        "tests": 1,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.728799999999865,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-1490198248_0_0",
+            "name": "falls back to current deck id when Firestore card is missing deckId",
+            "fullName": "useCards Firestore integration falls back to current deck id when Firestore card is missing deckId",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-duplicate.test.tsx",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 6.4935999999997875,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-3559899_0_1",
+            "name": "calls duplicateCard with deckId and source card when duplicate button clicked",
+            "fullName": "CardScreen Duplicate Card UI calls duplicateCard with deckId and source card when duplicate button clicked",
+            "mode": "run"
+          },
+          {
+            "id": "-3559899_0_0",
+            "name": "renders a duplicate button for each card",
+            "fullName": "CardScreen Duplicate Card UI renders a duplicate button for each card",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/hooks/useCardOperations-reorder.test.ts",
+        "tests": 14,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.04740000000038,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-286413491_0_3_1",
+            "name": "should update deck timestamp with card reordering",
+            "fullName": "Performance and Optimization should update deck timestamp with card reordering",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_3_0",
+            "name": "should use batch operations for efficiency",
+            "fullName": "Performance and Optimization should use batch operations for efficiency",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_2_3",
+            "name": "should set loading state correctly during operations",
+            "fullName": "Error Handling and Edge Cases should set loading state correctly during operations",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_2_2",
+            "name": "should handle empty card array",
+            "fullName": "Error Handling and Edge Cases should handle empty card array",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_2_1",
+            "name": "should handle single card deck (no reordering possible)",
+            "fullName": "Error Handling and Edge Cases should handle single card deck (no reordering possible)",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_2_0",
+            "name": "should handle Firestore batch commit failure",
+            "fullName": "Error Handling and Edge Cases should handle Firestore batch commit failure",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_1_3",
+            "name": "should handle invalid card ID",
+            "fullName": "moveCardDown should handle invalid card ID",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_1_2",
+            "name": "should handle moveCardDown with correct order indices",
+            "fullName": "moveCardDown should handle moveCardDown with correct order indices",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_1_1",
+            "name": "should not move the last card down",
+            "fullName": "moveCardDown should not move the last card down",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_1_0",
+            "name": "should move a card down one position",
+            "fullName": "moveCardDown should move a card down one position",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_0_3",
+            "name": "should surface underlying moveCardUp error (e.g., authentication)",
+            "fullName": "moveCardUp should surface underlying moveCardUp error (e.g., authentication)",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_0_2",
+            "name": "should handle moveCardUp with correct order indices",
+            "fullName": "moveCardUp should handle moveCardUp with correct order indices",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_0_1",
+            "name": "should not move the first card up",
+            "fullName": "moveCardUp should not move the first card up",
+            "mode": "run"
+          },
+          {
+            "id": "-286413491_0_0_0",
+            "name": "should move a card up one position",
+            "fullName": "moveCardUp should move a card up one position",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-filters-persistence.test.tsx",
+        "tests": 3,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 4.829299999999421,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "1101230947_0_2",
+            "name": "reflects current toggle state with aria-pressed for accessibility",
+            "fullName": "CardScreen Filter Persistence & Accessibility reflects current toggle state with aria-pressed for accessibility",
+            "mode": "run"
+          },
+          {
+            "id": "1101230947_0_1",
+            "name": "persists toggle changes to localStorage using deck-scoped keys",
+            "fullName": "CardScreen Filter Persistence & Accessibility persists toggle changes to localStorage using deck-scoped keys",
+            "mode": "run"
+          },
+          {
+            "id": "1101230947_0_0",
+            "name": "restores prior toggle states from localStorage (deck-scoped) on initial render",
+            "fullName": "CardScreen Filter Persistence & Accessibility restores prior toggle states from localStorage (deck-scoped) on initial render",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/hooks/useCardOperations-archive.test.ts",
+        "tests": 3,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.839200000000346,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-1905756652_0_2",
+            "name": "propagates errors",
+            "fullName": "useCardOperations - archive/unarchive propagates errors",
+            "mode": "run"
+          },
+          {
+            "id": "-1905756652_0_1",
+            "name": "unarchives an archived card",
+            "fullName": "useCardOperations - archive/unarchive unarchives an archived card",
+            "mode": "run"
+          },
+          {
+            "id": "-1905756652_0_0",
+            "name": "archives an active card",
+            "fullName": "useCardOperations - archive/unarchive archives an active card",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-snapshots-manage.test.tsx",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 60.56810000000041,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-2042292093_0_1",
+            "name": "deletes a snapshot and removes it from UI list",
+            "fullName": "CardScreen - Snapshot management (rename/delete) deletes a snapshot and removes it from UI list",
+            "mode": "run"
+          },
+          {
+            "id": "-2042292093_0_0",
+            "name": "renames a snapshot and updates UI list",
+            "fullName": "CardScreen - Snapshot management (rename/delete) renames a snapshot and updates UI list",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/tdd-verification.test.ts",
+        "tests": 3,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 4.951799999999821,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "1744124083_0_2",
+            "name": "should handle arrays correctly",
+            "fullName": "TDD Verification should handle arrays correctly",
+            "mode": "run"
+          },
+          {
+            "id": "1744124083_0_1",
+            "name": "should perform basic math operations",
+            "fullName": "TDD Verification should perform basic math operations",
+            "mode": "run"
+          },
+          {
+            "id": "1744124083_0_0",
+            "name": "should verify that our test infrastructure works",
+            "fullName": "TDD Verification should verify that our test infrastructure works",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/features/cards/CardScreen-favorite.test.tsx",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 4.802499999999782,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "804552650_0_1",
+            "name": "calls toggleFavorite when favorite button clicked",
+            "fullName": "CardScreen Favorite UI calls toggleFavorite when favorite button clicked",
+            "mode": "run"
+          },
+          {
+            "id": "804552650_0_0",
+            "name": "renders favorite toggle button for each card",
+            "fullName": "CardScreen Favorite UI renders favorite toggle button for each card",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/hooks/useCardOperations-favorite.test.ts",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.490600000000086,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "1924398532_0_1",
+            "name": "propagates errors from updateCardInDeck",
+            "fullName": "useCardOperations - toggleFavorite propagates errors from updateCardInDeck",
+            "mode": "run"
+          },
+          {
+            "id": "1924398532_0_0",
+            "name": "toggles favorite from false to true",
+            "fullName": "useCardOperations - toggleFavorite toggles favorite from false to true",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/simple-tdd-check.test.tsx",
+        "tests": 2,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 5.015800000000127,
+        "state": "pass",
+        "testsDetailed": [
+          {
+            "id": "-160637467_0_1",
+            "name": "should render a create new deck button",
+            "fullName": "DeckScreen TDD Verification should render a create new deck button",
+            "mode": "run"
+          },
+          {
+            "id": "-160637467_0_0",
+            "name": "should render the deck screen header",
+            "fullName": "DeckScreen TDD Verification should render the deck screen header",
+            "mode": "run"
+          }
+        ]
+      },
+      {
+        "file": "C:/Users/Cameron/Projects/note_apps/notecards/src/test/e2e/service-account-integration.test.ts",
+        "tests": 3,
+        "failed": 0,
+        "skipped": 3,
+        "durationMs": 0,
+        "state": "skip",
+        "testsDetailed": [
+          {
+            "id": "649393504_0_2",
+            "name": "navigates without losing auth",
+            "fullName": "Service Account + Central Browser Service E2E navigates without losing auth",
+            "mode": "skip"
+          },
+          {
+            "id": "649393504_0_1",
+            "name": "can trigger create interactions",
+            "fullName": "Service Account + Central Browser Service E2E can trigger create interactions",
+            "mode": "skip"
+          },
+          {
+            "id": "649393504_0_0",
+            "name": "authenticates and exposes protected UI",
+            "fullName": "Service Account + Central Browser Service E2E authenticates and exposes protected UI",
+            "mode": "skip"
+          }
+        ]
+      }
+    ]
+  }
+}
