@@ -21,6 +21,18 @@ service cloud.firestore {
   function isUser(userId) { return isSignedIn() && request.auth.uid == userId; }
   function getDeck(deckId) { return get(/databases/$(database)/documents/decks/$(deckId)); }
   function isDeckOwner(deckId) { return isSignedIn() && getDeck(deckId).data.ownerId == request.auth.uid; }
+  // --- Sharing Draft (Phase 1 – COMMENTED until enabled) ---
+  // function deckRoles(deckId) { return getDeck(deckId).data.roles; }
+  // function hasRole(deckId, role) {
+  //   return isSignedIn() && (deckRoles(deckId)[request.auth.uid] == role);
+  // }
+  // function isCollaborator(deckId) {
+  //   return isSignedIn() && (request.auth.uid in deckRoles(deckId));
+  // }
+  // Future adjusted predicates (when feature flag active):
+  //   allow read: if isDeckOwner(deckId) || isCollaborator(deckId);
+  //   allow update: if isDeckOwner(deckId) || hasRole(deckId, 'editor');
+  //   Cards & snapshots: read if collaborator; write if owner or editor.
 
   match /databases/{database}/documents {
     // User Profile Docs
@@ -83,3 +95,5 @@ service cloud.firestore {
 
 // NOTE: Remove the previous temporary open rules. These rules lock data to authenticated owners.
 // If you introduce sharing/collaboration later, extend predicates accordingly.
+// Sharing extension plan inserted 2025-09-21 (see commented helper functions above). Activation requires
+// migrating existing deck docs to include roles map and applying feature flag in client before uncommenting.
