@@ -99,6 +99,8 @@ Local working directory contains the most recent, complete, production-ready cod
 3. **Analytics Integration:** User behavior and performance metrics
 4. **CI/CD Pipeline:** Automated testing and deployment
 5. **Security Audit:** Dependency updates and vulnerability scanning
+ 
+> Deployment Improvement Backlog: See `docs/Deployment-Improvements.md` for the living list of  platform/deployment enhancements (preview channels, performance budgets, monitoring, rollback procedures, etc.). Update that doc instead of expanding this historical sprint outline.
 
 ---
 
