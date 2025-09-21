@@ -33,9 +33,10 @@
     "test:ui": "TEST_TERMINAL_MODE=full vitest --ui",
     "test:log": "node scripts/run-tests-log.mjs",
     "test:wait": "node scripts/wait-for-test-complete.mjs",
-  "test:rules": "node scripts/run-rules-tests.mjs",
+    "test:rules": "node scripts/run-rules-tests.mjs",
     "test:rules:standalone": "node scripts/verify-firestore-rules.mjs",
     "test:rules:ci": "node scripts/verify-firestore-rules.mjs",
+    "test:rules:vitest": "cross-env FIRESTORE_RULES_VITEST=1 vitest run src/test/rules/sharing-rules.test.ts",
     "auth:setup": "node scripts/setup-authentication.mjs",
     "auth:quick": "node -e \"import s from './services/browser-service.mjs'; s.quickAuth().then(r => { console.log(r ? 'âœ… Done' : 'âŒ Failed'); return s.shutdown(); }).then(() => process.exit(r ? 0 : 1))\"",
     "auth:verify": "node -e \"import s from './services/browser-service.mjs'; s.verifyAuthentication().then(r => { console.log(r ? 'âœ… Authenticated' : 'âŒ Not authenticated'); process.exit(0); })\"",
@@ -86,6 +87,7 @@
     "tailwindcss": "^4.1.12",
     "typescript": "^5.9.2",
     "vite": "^7.1.3",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "cross-env": "^7.0.3"
   }
 }

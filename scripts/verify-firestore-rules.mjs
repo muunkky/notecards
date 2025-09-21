@@ -64,6 +64,18 @@ async function main() {
   async function canUpdateTitle(deckId, uid) {
     try { const db = await dbFor(uid); await updateDoc(doc(db, 'decks', deckId), { title: 'Updated Title' }); return true } catch { return false }
   }
+  async function attemptChangeCreatedAt(deckId, uid) {
+    try { const db = await dbFor(uid); await updateDoc(doc(db, 'decks', deckId), { createdAt: new Date() }); return true } catch { return false }
+  }
+  async function attemptChangeOwnerId(deckId, uid) {
+    try { const db = await dbFor(uid); await updateDoc(doc(db, 'decks', deckId), { ownerId: 'different_user' }); return true } catch { return false }
+  }
+  async function editorAttemptsRoleMutation(deckId) {
+    try { const db = await dbFor(EDITOR); await updateDoc(doc(db, 'decks', deckId), { roles: { [OWNER]: 'owner', [EDITOR]: 'owner' } }); return true } catch { return false }
+  }
+  async function viewerAttemptsCreateCard(deckId) {
+    try { const db = await dbFor(VIEWER); await addDoc(collection(doc(db, 'decks', deckId), 'cards'), { title: 'Should Fail', createdAt: new Date(), updatedAt: new Date() }); return true } catch { return false }
+  }
 
   const deckId = await seedDeck(OWNER)
   const cardId = await seedCard(deckId, OWNER)
@@ -87,6 +99,16 @@ async function main() {
   await check('viewer can read deck', true, () => canRead(deckId, VIEWER))
   await check('viewer cannot update card', false, () => canUpdateCard(deckId, cardId, VIEWER))
   await check('viewer cannot update title', false, () => canUpdateTitle(deckId, VIEWER))
+
+  // Immutable + privilege negative cases
+  await check('owner cannot change createdAt', false, () => attemptChangeCreatedAt(deckId, OWNER))
+  await check('owner cannot change ownerId', false, () => attemptChangeOwnerId(deckId, OWNER))
+  await addRoles(deckId, { [OWNER]: 'owner', [EDITOR]: 'editor' })
+  await check('editor cannot change createdAt', false, () => attemptChangeCreatedAt(deckId, EDITOR))
+  await check('editor cannot change ownerId', false, () => attemptChangeOwnerId(deckId, EDITOR))
+  await check('editor cannot escalate role to owner', false, () => editorAttemptsRoleMutation(deckId))
+  await addRoles(deckId, { [OWNER]: 'owner', [VIEWER]: 'viewer' })
+  await check('viewer cannot create card', false, () => viewerAttemptsCreateCard(deckId))
 
   log('Summary:')
   results.forEach(r => console.log(` - ${r.name}: ${r.ok ? 'ALLOWED' : 'DENIED'} (expected ${r.expected ? 'ALLOW' : 'DENY'})`))

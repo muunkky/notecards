@@ -16,6 +16,8 @@ service cloud.firestore {
         && ('ownerId' in request.resource.data)
         && request.resource.data.ownerId == request.auth.uid
         && ('title' in request.resource.data) && request.resource.data.title is string
+        && ('createdAt' in request.resource.data) && request.resource.data.createdAt is timestamp
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is timestamp)
         && (!('roles' in request.resource.data) || request.resource.data.roles is map)
         && (!('collaboratorIds' in request.resource.data) || request.resource.data.collaboratorIds is list);
 
@@ -41,9 +43,14 @@ service cloud.firestore {
           request.resource.data.collaboratorIds == resource.data.collaboratorIds
         )
       )
+        // Immutable fields
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.ownerId == resource.data.ownerId
+        // Type constraints
         && (!('title' in request.resource.data) || request.resource.data.title is string)
         && (!('roles' in request.resource.data) || request.resource.data.roles is map)
-        && (!('collaboratorIds' in request.resource.data) || request.resource.data.collaboratorIds is list);
+        && (!('collaboratorIds' in request.resource.data) || request.resource.data.collaboratorIds is list)
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is timestamp);
 
       // Delete: owner only
       allow delete: if isOwner();
