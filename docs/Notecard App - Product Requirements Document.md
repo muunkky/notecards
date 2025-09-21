@@ -131,13 +131,14 @@ This section details the specific features required to build the POC (implemente
 * Archived cards excluded from default view when archived-hide toggle enabled (default ON once implemented).
 
 ## 8.0 Out of Scope (Still)
-* Realtime collaboration / multi-user shared decks.
+* Realtime collaboration / multi-user shared decks (Now INITIATED: design documented in `docs/sharing/Deck-Sharing-and-Collaboration.md` and tracked under feature flag `FEATURE_DECK_SHARING` – implementation phased, still non-functional in production until flag enabled).
 * Rich media (images, audio) embedding.
 * Offline persistence & conflict resolution.
 * External integrations (export/import) until core card operations stabilized.
 
 ## 9.0 Revision Notes
 2025-09-01: Added post-POC enhancements (duplicate, favorite, archive) and clarified planned roadmap. Consolidated status table for quick stakeholder scan.
+2025-09-21: Added cross-reference to new Deck Sharing & Collaboration design doc; marked collaboration as initiated but still gated behind feature flag.
 
 ---
 This PRD is now the authoritative source; legacy handoff summaries have been archived (see `docs/HISTORY.md`).
