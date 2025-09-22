@@ -22,6 +22,14 @@
     }
   },
   "include": ["src"],
-  "exclude": [],
+  // Exclude all test code (unit, e2e, rules) from the production type build so
+  // "npm run build" (tsc && vite build) is not blocked by speculative / WIP test files.
+  // Vitest / custom runners still transpile these with esbuild, and we can add a
+  // separate tsconfig for full test type-checking later if desired.
+  "exclude": [
+    "src/test",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

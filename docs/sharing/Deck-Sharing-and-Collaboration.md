@@ -2,7 +2,7 @@
 
 _Last updated: 2025-09-21 (later increment)_
 
-Status: Phase 1 In Progress (model + helpers + subscription implemented; rules + UI pending)
+Status: Phase 1 Nearly Complete (model + helpers + subscription + UI + security rules + emulator tests implemented)
 Owner: (assign engineer)  
 Related Docs: `Notecard App - Product Requirements Document.md`, `Deployment-Improvements.md`
 
@@ -166,3 +166,19 @@ This document is the canonical source for deck sharing design. Update change log
 |------|--------|
 | 2025-09-21 | Initial draft created (Phase 1 scope defined). |
 | 2025-09-21 | Added implemented primitives section; updated status & incremental progress checklist. |
+| 2025-09-21 | Implemented share dialog, Firestore collaborator services, security rules, emulator tests, role capability matrix. |
+
+## 14. Role Capability Matrix (Implemented)
+
+| Capability | Owner | Editor | Viewer | Outsider |
+|------------|:-----:|:------:|:------:|:--------:|
+| Read Deck Metadata | ✅ | ✅ | ✅ | ❌ |
+| Read Cards | ✅ | ✅ | ✅ | ❌ |
+| Create Cards | ✅ | ✅ | ❌ | ❌ |
+| Update Card Content | ✅ | ✅ | ❌ | ❌ |
+| Delete Cards | ✅ | ✅ | ❌ | ❌ |
+| Update Deck Title | ✅ | ✅ (title only) | ❌ | ❌ |
+| Delete Deck | ✅ | ✅ (current rule; may tighten) | ❌ | ❌ |
+| Manage Collaborators (roles) | ✅ | ❌ | ❌ | ❌ |
+
+NOTE: Future tightening may restrict deck deletion to owner only; tests and rules can be updated with a single predicate change.

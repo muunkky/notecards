@@ -3,6 +3,9 @@ import { useDecks } from '../../hooks/useDecks'
 import { useDeckOperations } from '../../hooks/useDeckOperations'
 import { useAuth } from '../../providers/AuthProvider'
 import type { Deck } from '../../types'
+import { FEATURE_DECK_SHARING } from '../../types'
+import ShareDeckDialog from '../../ui/ShareDeckDialog'
+import { addCollaboratorFirestore, removeCollaboratorFirestore } from '../../sharing/firestoreCollaborators'
 
 // TDD: Connect our beautiful DeckScreen to real Firestore data via useDecks hook
 
@@ -73,6 +76,7 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null)
+  const [showShareDialog, setShowShareDialog] = useState(false)
   const [newDeckTitle, setNewDeckTitle] = useState('')
   const [renameTitle, setRenameTitle] = useState('')
   const userMenuRef = useRef<HTMLDivElement | null>(null)
@@ -182,6 +186,29 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
     }
   }
 
+  const openShareDialog = (deck: Deck) => {
+    setSelectedDeck(deck)
+    setShowShareDialog(true)
+  }
+
+  // Firestore-backed collaborator handlers
+  const addCollaborator = async (deck: Deck, email: string) => {
+    try {
+      await addCollaboratorFirestore(deck.id, email)
+    } catch (e) {
+      console.error('Add collaborator failed', e)
+      throw e
+    }
+  }
+  const removeCollaborator = async (deck: Deck, uid: string) => {
+    try {
+      await removeCollaboratorFirestore(deck.id, uid)
+    } catch (e) {
+      console.error('Remove collaborator failed', e)
+      throw e
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
@@ -264,6 +291,16 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
                     onSelect={handleDeckSelect}
                     onMenu={handleDeckMenu}
                   />
+                  {FEATURE_DECK_SHARING && user?.uid === deck.ownerId && (
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        className="text-xs px-3 py-1 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+                        onClick={() => openShareDialog(deck)}
+                        aria-label="Share"
+                        type="button"
+                      >Share</button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -369,6 +406,14 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
               </div>
             </div>
           </div>
+        )}
+        {showShareDialog && selectedDeck && FEATURE_DECK_SHARING && (
+          <ShareDeckDialog
+            deck={selectedDeck}
+            onClose={() => { setShowShareDialog(false); setSelectedDeck(null) }}
+            addCollaborator={addCollaborator}
+            removeCollaborator={removeCollaborator}
+          />
         )}
       </div>
     </div>

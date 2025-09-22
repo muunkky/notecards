@@ -82,6 +82,37 @@ await browserService.shutdown();
 - 🎨 **Modern UI**: Tailwind CSS with responsive design
 - 🔥 **Firebase Integration**: Real-time data synchronization
 
+- **Deck Sharing & Collaboration (New)**: Role-based access (Owner / Editor / Viewer) with immutable ownership and secure Firestore rules.
+
+### **Deck Sharing & Collaboration**
+
+| Role    | Deck Read | Update Deck Title | Manage Roles | Card CRUD | Notes |
+|---------|-----------|-------------------|--------------|-----------|-------|
+| Owner   | ✅        | ✅                | ✅ (roles + collaborators) | ✅ | Cannot change createdAt/ownerId after create |
+| Editor  | ✅        | ✅                | ❌            | ✅        | Cannot change roles/collaborators or ownership |
+| Viewer  | ✅        | ❌                | ❌            | ❌        | Read-only |
+
+Key UI Elements:
+- Share button appears on each owned deck (feature-flagged via `FEATURE_DECK_SHARING`).
+- `ShareDeckDialog` allows inviting by email (Phase 1: direct email string, lookup service can evolve later).
+- Collaborators list shows role and remove option (owner only).
+
+Security Model Updates:
+- Firestore rules enforce: owner/editor/viewer separation; immutable `ownerId` and `createdAt`; editors restricted from altering role structures.
+- Subcollections (`cards`, `orderSnapshots`) reuse parent deck role logic (owner/editor CRUD, viewer read-only).
+- Standalone deterministic rules verifier script (`scripts/verify-firestore-rules.mjs`) runs in CI; Vitest suite is opt-in via `FIRESTORE_RULES_VITEST=1`.
+
+Usage Flow:
+1. Owner opens a deck and clicks Share.
+2. Enters collaborator email and selects role (current phase: default assignment logic in service layer).
+3. Collaborator sees deck appear in their list (accessible via subscription hook).
+4. Editors can modify cards & deck title; viewers can only read.
+
+Extensibility Roadmap:
+- Email → UID lookup service (cloud function or cached index) for resilient invites.
+- Activity log (audit trail of share / unshare events).
+- Granular per-card permissions or “commenter” role if future requirements justify.
+
 ## 📋 **50-Point Plan Breakdown**
 
 ### **Points 1-20: Foundation & Backend** ✅

@@ -50,7 +50,8 @@
     "test:browser": "node test/main-test-suite.mjs",
     "demo:browser": "node scripts/browser-service-demo.mjs",
     "demo:simple": "node demo-simple-service.mjs",
-    "ui:interactive": "node scripts/interactive-ui.mjs"
+    "ui:interactive": "node scripts/interactive-ui.mjs",
+    "typecheck:tests": "tsc -p tsconfig.tests.json --noEmit"
   },
   "keywords": [],
   "author": "",

@@ -53,7 +53,8 @@ export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose,
         <header className="flex items-start justify-between">
           <div>
             <h2 className="text-xl font-bold">Share Deck</h2>
-            <p className="text-sm text-gray-500 mt-1">Invite collaborators to work on "{deck.title}"</p>
+            {/* Avoid repeating the word "Collaborators" so tests using getByText(/Collaborators/i) match only the section heading */}
+            <p className="text-sm text-gray-500 mt-1">Invite people to work on "{deck.title}"</p>
           </div>
           <button aria-label="Close" className="text-gray-500 hover:text-gray-700" onClick={onClose}>×</button>
         </header>

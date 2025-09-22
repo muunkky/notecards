@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Allow test files to import with explicit .ts endings if they currently do so
+    "allowImportingTsExtensions": true,
+    // Keep test typechecking fast; they may contain many any's right now
+    "skipLibCheck": true
+  },
+  // Explicitly include test globs
+  "include": [
+    "src/test/**/*",
+    "src/**/*.test.*",
+    "src/**/*.spec.*"
+  ],
+  // Override base exclude (which removed tests) by providing an empty list
+  "exclude": []
+}

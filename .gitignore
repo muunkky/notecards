@@ -118,3 +118,9 @@ test-*.png
 rules-test-output/
 rules-debug.log
 firestore_emulator_logs/
+
+# Test run artifacts (unit/e2e logs & reports)
+test-results/
+share-dialog-report.json
+share-dialog-report-*.json
+unit-*.json
