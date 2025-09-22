@@ -57,32 +57,35 @@ beforeAll(() => {
     googleProvider: {},
   }))
 
-  // Mock Firestore functions
-  vi.mock('firebase/firestore', () => ({
-    collection: vi.fn(() => ({})),
-    doc: vi.fn(() => ({})),
-    addDoc: vi.fn(() => Promise.resolve({ id: 'test-doc' })),
-    updateDoc: vi.fn(() => Promise.resolve()),
-    deleteDoc: vi.fn(() => Promise.resolve()),
-    getDocs: vi.fn(() => Promise.resolve({ docs: [] })),
-    getDoc: vi.fn(() => Promise.resolve({ exists: () => false })),
-    query: vi.fn(() => ({})),
-    where: vi.fn(() => ({})),
-    orderBy: vi.fn(() => ({})),
-    onSnapshot: mockOnSnapshot,
-    writeBatch: vi.fn(() => ({
-      update: vi.fn(),
-      commit: vi.fn(() => Promise.resolve()),
-    })),
-    serverTimestamp: vi.fn(() => new Date()),
-    Timestamp: {
-      fromDate: vi.fn((date) => ({ 
-        toDate: () => date,
-        seconds: Math.floor(date.getTime() / 1000),
-        nanoseconds: 0
+  // Mock Firestore functions for standard unit/UI tests only.
+  // Rules tests need the REAL Firestore client + emulator, so they set process.env.RULES_TESTS=true
+  if (!process.env.RULES_TESTS) {
+    vi.mock('firebase/firestore', () => ({
+      collection: vi.fn(() => ({})),
+      doc: vi.fn(() => ({})),
+      addDoc: vi.fn(() => Promise.resolve({ id: 'test-doc' })),
+      updateDoc: vi.fn(() => Promise.resolve()),
+      deleteDoc: vi.fn(() => Promise.resolve()),
+      getDocs: vi.fn(() => Promise.resolve({ docs: [] })),
+      getDoc: vi.fn(() => Promise.resolve({ exists: () => false })),
+      query: vi.fn(() => ({})),
+      where: vi.fn(() => ({})),
+      orderBy: vi.fn(() => ({})),
+      onSnapshot: mockOnSnapshot,
+      writeBatch: vi.fn(() => ({
+        update: vi.fn(),
+        commit: vi.fn(() => Promise.resolve()),
       })),
-    },
-  }))
+      serverTimestamp: vi.fn(() => new Date()),
+      Timestamp: {
+        fromDate: vi.fn((date) => ({ 
+          toDate: () => date,
+          seconds: Math.floor(date.getTime() / 1000),
+          nanoseconds: 0
+        })),
+      },
+    }))
+  }
 })
 
 // Global test utilities

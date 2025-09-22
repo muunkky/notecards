@@ -194,6 +194,15 @@ describe('DeckScreen Component', () => {
       })
     })
 
+    it('should show share button for each deck when sharing feature flag enabled (TDD)', async () => {
+      render(<DeckScreen />)
+      await waitFor(() => {
+        expect(screen.getByText('Test Deck')).toBeInTheDocument()
+      })
+      // Intentionally failing until Share button added
+      expect(screen.getByRole('button', { name: /share/i })).toBeInTheDocument()
+    })
+
     it('should show rename modal when deck menu is clicked', async () => {
       render(<DeckScreen />)
       
