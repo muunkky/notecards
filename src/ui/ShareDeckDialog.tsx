@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import type { Deck } from '../types'
 import { FEATURE_DECK_SHARING } from '../types'
+import { UserNotFoundError } from '../sharing/firestoreCollaborators'
 
 interface ShareDeckDialogProps {
   deck: Deck
@@ -32,7 +33,11 @@ export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose,
       await addCollaborator(deck, email.trim())
       setEmail('')
     } catch (e: any) {
-      setError(e?.message || 'Failed to add collaborator')
+      if (e instanceof UserNotFoundError) {
+        setError('No account with that email. Ask them to sign in once, then try again.')
+      } else {
+        setError(e?.message || 'Failed to add collaborator')
+      }
     } finally {
       setLoading(false)
     }

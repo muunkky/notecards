@@ -2,14 +2,21 @@ import { doc, runTransaction, getDoc, updateDoc, serverTimestamp, collection, qu
 import { db } from '../firebase/firebase'
 import type { Deck, DeckRole } from '../types'
 
+export class UserNotFoundError extends Error {
+  constructor(message = 'User not found') {
+    super(message)
+    this.name = 'UserNotFoundError'
+  }
+}
+
 // Utility to lookup a user by email. Assumes a 'users' collection keyed by uid with email field.
-// Returns user UID or throws if not found.
+// Returns user UID or throws UserNotFoundError if not found.
 export async function lookupUserIdByEmail(email: string): Promise<string> {
   const usersRef = collection(db, 'users')
   const q = query(usersRef, where('email', '==', email.toLowerCase()))
   const snap = await getDocs(q)
   if (snap.empty) {
-    throw new Error('User not found')
+    throw new UserNotFoundError()
   }
   // If multiple, take first (emails should be unique)
   return snap.docs[0].id
@@ -23,7 +30,7 @@ interface CollaboratorUpdateResult {
 
 export async function addCollaboratorFirestore(deckId: string, email: string, defaultRole: DeckRole = 'editor'): Promise<CollaboratorUpdateResult> {
   const uid = await lookupUserIdByEmail(email)
-  if (!uid) throw new Error('User not found')
+  if (!uid) throw new UserNotFoundError()
   const deckRef = doc(db, 'decks', deckId)
 
   await runTransaction(db, async (tx) => {

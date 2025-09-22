@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
-import { auth } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 interface AuthContextType {
   user: User | null;
@@ -17,10 +18,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     try {
       console.log('AuthProvider: Setting up auth state listener')
+      const ensureUserProfile = async (u: User) => {
+        if (!u.email) return
+        const userRef = doc(db, 'users', u.uid)
+        const snap = await getDoc(userRef)
+        if (!snap.exists()) {
+          try {
+            await setDoc(userRef, {
+              email: u.email,
+              emailLower: u.email.toLowerCase(),
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            })
+            console.log('AuthProvider: Created user profile doc')
+          } catch (e) {
+            console.warn('AuthProvider: Failed to create user profile doc', e)
+          }
+        }
+      }
+
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         console.log('AuthProvider: Auth state changed', { user: !!user, uid: user?.uid, email: user?.email })
         setUser(user);
         setLoading(false);
+        if (user) {
+          // Fire and forget; no need to block auth flow
+          ensureUserProfile(user)
+        }
       });
 
       return () => unsubscribe();
