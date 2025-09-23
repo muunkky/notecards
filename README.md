@@ -223,6 +223,27 @@ copilot: You may stop tailing now; final summary JSON written. Parse summaryJson
 
 Automation should poll (tail/read) the sanitized log until `[TEST-RUN-COMPLETE]` appears. The terminal separately prints `[TEST-RUN-COMPLETE-TERMINAL]` after streams close, but relying on the file sentinel is preferred.
 
+### Mandatory Wrapper Usage
+All test executions MUST go through the logging wrapper (`npm run test`, `npm run test:log`, `npm run test:coverage:log`, etc.). Direct `vitest` / `npx vitest` usage is prohibited because it bypasses:
+1. Sentinel emission (`[TEST-RUN-START]`, `[TEST-RUN-COMPLETE]`).
+2. Sanitized + raw dual log generation.
+3. Structured JSON summary production and latest pointer files.
+
+Examples (allowed):
+```
+npm run test:log -- src/test/features/decks/DeckScreen.test.tsx -t "editor"
+TEST_TERMINAL_MODE=summary npm run test
+```
+
+Disallowed:
+```
+npx vitest run
+vitest --run src/test/features/decks/DeckScreen.test.tsx
+```
+
+If a direct invocation is required temporarily for debugging, set `TEST_TERMINAL_MODE=full` with the wrapper instead.
+
+
 ### Helper: Wait for Completion
 ```
 npm run test:log               # start (in one process)

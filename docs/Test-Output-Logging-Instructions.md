@@ -1,6 +1,7 @@
 # Test Output Logging Instructions
 
-**Purpose**: Standardized test execution with clean log file output for AI assistant compatibility  
+**Purpose**: Standardized test execution with clean log file output for AI assistant compatibility.  
+**MANDATORY**: Always run tests via the wrapper scripts (`npm run test`, `npm run test:log`, etc.) so the sentinel lines `[TEST-RUN-START]` and `[TEST-RUN-COMPLETE]` are emitted. Direct `vitest` or `npx vitest` calls are prohibited because they bypass centralized logging and sentinel signaling.
 **Created**: 2025-09-01  
 **Compatible With**: PowerShell, Vitest, React Testing Library  
 
@@ -106,6 +107,9 @@ log/temp/card-screen-test-2025-09-01-14-45.log
 
 ### Avoid These Patterns
 ```powershell
+# ❌ Bypassing wrapper (no sentinel, noisy console)
+npx vitest run
+
 # ❌ Without NO_COLOR (creates ANSI codes)
 npm run test > test-results.log
 
@@ -117,6 +121,9 @@ npm run test > test-results.txt
 
 # ❌ Without stderr redirection (missing error info)
 npm run test > test-results.log
+
+# ❌ Direct vitest invocation even for a single file (use wrapper + args instead)
+vitest run src/test/features/decks/DeckScreen.test.tsx
 ```
 
 ## ✅ Best Practices
