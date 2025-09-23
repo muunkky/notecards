@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import type { Deck } from '../types'
 import { FEATURE_DECK_SHARING } from '../types'
-import { UserNotFoundError } from '../sharing/firestoreCollaborators'
+import { UserNotFoundError } from '../sharing/membershipService'
 
 interface ShareDeckDialogProps {
   deck: Deck

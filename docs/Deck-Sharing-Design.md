@@ -247,8 +247,8 @@ validateTransition(current, target):
 |------|--------|-------------|
 | 1 | DONE | Implement `useAccessibleDecks()` hook. |
 | 2 | DONE | Add `effectiveRole` to `Deck` type + UI badges (badges pending visual pass but data field added). |
-| 3 | IN-PROGRESS | Replace `useDecks` usage in `DeckScreen` with new hook. |
-| 4 | TODO | Add membership service abstraction (move logic out of screen). |
+| 3 | DONE | Replace `useDecks` usage in `DeckScreen` with new hook. |
+| 4 | DONE | Add membership service abstraction (move logic out of screen). |
 | 5 | TODO | Add role change + remove collaborator UI. |
 | 6 | TODO | Introduce invitation collection + basic create/list/revoke (no email). |
 | 7 | TODO | Expand Share dialog (pending invites tab). |

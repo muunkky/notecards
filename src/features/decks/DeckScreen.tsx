@@ -6,7 +6,7 @@ import { useAuth } from '../../providers/AuthProvider'
 import type { Deck } from '../../types'
 import { FEATURE_DECK_SHARING } from '../../types'
 import ShareDeckDialog from '../../ui/ShareDeckDialog'
-import { addCollaboratorFirestore, removeCollaboratorFirestore } from '../../sharing/firestoreCollaborators'
+import { addCollaborator as addCollaboratorService, removeCollaborator as removeCollaboratorService, UserNotFoundError } from '../../sharing/membershipService'
 
 // TDD: Connect our beautiful DeckScreen to real Firestore data via useDecks hook
 
@@ -217,7 +217,7 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
   // Firestore-backed collaborator handlers
   const addCollaborator = async (deck: Deck, email: string) => {
     try {
-      const result = await addCollaboratorFirestore(deck.id, email)
+      const result = await addCollaboratorService(deck.id, email)
       // Update selectedDeck (and underlying decks array via optimistic merge) so dialog reflects new collaborator immediately.
       setSelectedDeck(prev => prev && prev.id === deck.id ? { ...prev, ...result.deck } : prev)
       // Optimistically patch decks list so closing/reopening dialog shows latest without waiting for listener update
@@ -232,7 +232,7 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
   }
   const removeCollaborator = async (deck: Deck, uid: string) => {
     try {
-      const result = await removeCollaboratorFirestore(deck.id, uid)
+      const result = await removeCollaboratorService(deck.id, uid)
       setSelectedDeck(prev => prev && prev.id === deck.id ? { ...prev, ...result.deck } : prev)
     } catch (e) {
       console.error('Remove collaborator failed', e)
