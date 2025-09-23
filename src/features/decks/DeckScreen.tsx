@@ -194,7 +194,14 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
   // Firestore-backed collaborator handlers
   const addCollaborator = async (deck: Deck, email: string) => {
     try {
-      await addCollaboratorFirestore(deck.id, email)
+      const result = await addCollaboratorFirestore(deck.id, email)
+      // Update selectedDeck (and underlying decks array via optimistic merge) so dialog reflects new collaborator immediately.
+      setSelectedDeck(prev => prev && prev.id === deck.id ? { ...prev, ...result.deck } : prev)
+      // Optimistically patch decks list so closing/reopening dialog shows latest without waiting for listener update
+      // (listener will eventually sync exact server state).
+      // NOTE: Future improvement – subscribe to individual deck doc in Share dialog for real-time multi-user updates.
+      // TODO: Replace this optimistic local patch with a dedicated useDeck(deckId) hook that listens to deck doc,
+      // providing live collaborator changes (esp. when multiple owners edit simultaneously) once sharing matures.
     } catch (e) {
       console.error('Add collaborator failed', e)
       throw e
@@ -202,7 +209,8 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
   }
   const removeCollaborator = async (deck: Deck, uid: string) => {
     try {
-      await removeCollaboratorFirestore(deck.id, uid)
+      const result = await removeCollaboratorFirestore(deck.id, uid)
+      setSelectedDeck(prev => prev && prev.id === deck.id ? { ...prev, ...result.deck } : prev)
     } catch (e) {
       console.error('Remove collaborator failed', e)
       throw e

@@ -48,16 +48,20 @@ export const useDecks = (): UseDecksResult => {
             
             snapshot.docs.forEach((doc) => {
               const data = doc.data()
-              
+
               // Validate required fields to handle malformed data
               if (data.title && data.ownerId && data.createdAt && data.updatedAt) {
+                // Include sharing fields (Phase 1 feature) if present so Share dialog reflects current state.
+                // These are optional and absent for decks created before sharing fields were added.
                 deckData.push({
                   id: doc.id,
                   title: data.title,
                   ownerId: data.ownerId,
                   createdAt: data.createdAt.toDate ? data.createdAt.toDate() : data.createdAt,
                   updatedAt: data.updatedAt.toDate ? data.updatedAt.toDate() : data.updatedAt,
-                  cardCount: data.cardCount || 0
+                  cardCount: data.cardCount || 0,
+                  collaboratorIds: data.collaboratorIds || [],
+                  roles: data.roles || undefined
                 })
               }
             })

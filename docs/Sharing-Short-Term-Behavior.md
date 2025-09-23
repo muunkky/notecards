@@ -1,4 +1,6 @@
-# Deck Sharing (Current Short-Term Behavior)
+# DEPRECATED: Deck Sharing (Current Short-Term Behavior)
+
+> This document is deprecated and superseded by `Deck-Sharing-Design.md` (unified sharing & invitation architecture). Refer there for the authoritative specification and migration checklist.
 
 This document summarizes the present (Phase 1) implementation of deck sharing and its temporary constraints.
 
@@ -40,4 +42,4 @@ A future iteration will introduce an Auth-based invitation flow with pending inv
 - [ ] Owner adds invitee by exact email (case differences tolerated if code lowercases input).
 - [ ] Collaborator appears in Share dialog without page reload.
 
-This document will be retired once the full invitation system ships.
+This document is retired; kept temporarily for historical context only.

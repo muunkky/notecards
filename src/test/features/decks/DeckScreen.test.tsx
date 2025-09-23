@@ -8,6 +8,8 @@ import type { Deck } from '../../../types'
 const mockUseDecks = vi.hoisted(() => vi.fn())
 const mockUseDeckOperations = vi.hoisted(() => vi.fn())
 const mockUseAuth = vi.hoisted(() => vi.fn())
+// NEW MOCK for useAccessibleDecks (sharing migration)
+const mockUseAccessibleDecks = vi.hoisted(() => vi.fn())
 
 // Mock the custom hooks
 vi.mock('../../../hooks/useDecks', () => ({
@@ -35,6 +37,19 @@ const mockDecks: Deck[] = [
   }
 ]
 
+// augment mock decks for collaborator scenario
+const collaboratorDeck: Deck = {
+  id: 'deck-collab-1',
+  title: 'Shared Biology',
+  ownerId: 'other-user-999',
+  cardCount: 12,
+  createdAt: new Date('2024-03-01'),
+  updatedAt: new Date('2024-03-05'),
+  collaboratorIds: ['test-user-123'],
+  roles: { 'test-user-123': 'editor' },
+  effectiveRole: 'editor'
+}
+
 // TDD: Start with tests for DeckScreen component
 describe('DeckScreen Component', () => {
   beforeEach(() => {
@@ -60,6 +75,8 @@ describe('DeckScreen Component', () => {
       loading: false,
       error: null
     })
+    // default for useAccessibleDecks
+    mockUseAccessibleDecks.mockReturnValue({ decks: [], loading: false, error: null })
   })
 
   describe('Initial Render', () => {
@@ -302,5 +319,18 @@ describe('DeckListItem Component', () => {
     fireEvent.click(screen.getByLabelText(/menu/i))
     
     expect(mockOnMenu).toHaveBeenCalledWith(mockDeck.id)
+  })
+})
+
+describe('DeckScreen Sharing Integration (TDD placeholder)', () => {
+  it('skipped: shows both owned and collaborator decks when sharing enabled', () => {
+    // placeholder: once DeckScreen migrates, enable this and assert combined list length
+    // expected: owned decks + collaborator decks appear
+  })
+  it('skipped: displays role badge for collaborator deck (editor/viewer)', () => {
+    // placeholder for future UI badge test
+  })
+  it('skipped: share button hidden for collaborator deck (non-owner)', () => {
+    // placeholder for future assertion once UI differentiates actions by role
   })
 })

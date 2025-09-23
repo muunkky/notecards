@@ -1,4 +1,6 @@
-# Invitation System Design (Planned Enhancement)
+# DEPRECATED: Invitation System Design (Planned Enhancement)
+
+> This draft is deprecated. See `Deck-Sharing-Design.md` for the consolidated, current design (data model, rules, APIs, migration plan). This file is retained only for historical comparison.
 
 Status: Draft / Proposed
 Target Phase: Post initial sharing release

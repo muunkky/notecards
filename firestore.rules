@@ -5,8 +5,16 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // User profiles (self only)
     match /users/{userId} {
+      // User documents currently store basic profile (e.g., email) used for collaborator lookup by email.
+      // To enable adding collaborators by email, any signed-in user must be able to read another user's
+      // profile document (query-by-email requires read access to matching docs). We deliberately scope:
+      //  - read: any authenticated user (no sensitive fields should be stored here).
+      //  - create/update/delete: only the user themself.
+      // If more sensitive data is added in future, move public lookup fields to a separate collection
+      // (e.g., userPublic/) and tighten this rule back to self-only.
       allow create: if isSignedIn() && request.auth.uid == userId;
-      allow read, update, delete: if isSignedIn() && request.auth.uid == userId;
+      allow read: if isSignedIn();
+      allow update, delete: if isSignedIn() && request.auth.uid == userId;
     }
 
     // Decks

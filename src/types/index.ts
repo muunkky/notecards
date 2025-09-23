@@ -20,6 +20,8 @@ export interface Deck {
   collaboratorIds?: string[];
   // Role map keyed by user UID; owner implicitly has 'owner' role (may be duplicated here for simplicity)
   roles?: Record<string, DeckRole>;
+  // Derived at runtime (not persisted): the current user's effective role relative to this deck.
+  effectiveRole?: DeckRole;
 }
 
 // Card model - represents individual notecards within a deck
