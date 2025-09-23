@@ -322,15 +322,34 @@ describe('DeckListItem Component', () => {
   })
 })
 
-describe('DeckScreen Sharing Integration (TDD placeholder)', () => {
-  it('skipped: shows both owned and collaborator decks when sharing enabled', () => {
-    // placeholder: once DeckScreen migrates, enable this and assert combined list length
-    // expected: owned decks + collaborator decks appear
+describe('DeckScreen Sharing Integration', () => {
+  it('shows both owned and collaborator decks when sharing enabled', async () => {
+    mockUseAccessibleDecks.mockReturnValue({
+      decks: [ ...mockDecks, collaboratorDeck ],
+      loading: false,
+      error: null
+    })
+    render(<DeckScreen />)
+    await waitFor(() => {
+      expect(screen.getByText('Test Deck')).toBeInTheDocument()
+      expect(screen.getByText('Shared Biology')).toBeInTheDocument()
+    })
   })
-  it('skipped: displays role badge for collaborator deck (editor/viewer)', () => {
-    // placeholder for future UI badge test
+
+  it('displays role badge for collaborator deck (editor)', async () => {
+    mockUseAccessibleDecks.mockReturnValue({ decks: [collaboratorDeck], loading: false, error: null })
+    render(<DeckScreen />)
+    await waitFor(() => {
+      expect(screen.getByText('EDITOR')).toBeInTheDocument()
+    })
   })
-  it('skipped: share button hidden for collaborator deck (non-owner)', () => {
-    // placeholder for future assertion once UI differentiates actions by role
+
+  it('hides share button for collaborator deck (non-owner)', async () => {
+    mockUseAccessibleDecks.mockReturnValue({ decks: [collaboratorDeck], loading: false, error: null })
+    render(<DeckScreen />)
+    await waitFor(() => {
+      // There should be no Share button because current user isn't the owner
+      expect(screen.queryByRole('button', { name: /share/i })).not.toBeInTheDocument()
+    })
   })
 })

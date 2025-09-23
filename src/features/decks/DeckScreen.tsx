@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useDecks } from '../../hooks/useDecks'
+import { useAccessibleDecks } from '../../hooks/useAccessibleDecks'
 import { useDeckOperations } from '../../hooks/useDeckOperations'
 import { useAuth } from '../../providers/AuthProvider'
 import type { Deck } from '../../types'
@@ -41,9 +42,23 @@ export const DeckListItem: React.FC<DeckListItemProps> = ({ deck, onSelect, onMe
           {deck.title.charAt(0).toUpperCase()}
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
-            {deck.title}
-          </h2>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-lg font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+              {deck.title}
+            </h2>
+            {deck.effectiveRole && deck.effectiveRole !== 'owner' && (
+              <span
+                className={`text-[10px] leading-tight font-semibold px-2 py-0.5 rounded-full border tracking-wide select-none ${
+                  deck.effectiveRole === 'editor'
+                    ? 'bg-indigo-100 text-indigo-700 border-indigo-300'
+                    : 'bg-gray-200 text-gray-700 border-gray-300'
+                }`}
+                aria-label={`Your role: ${deck.effectiveRole}`}
+              >
+                {deck.effectiveRole.toUpperCase()}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-500 flex items-center space-x-1" aria-label={`${deck.cardCount} cards in this deck`}>
             <span aria-hidden="true">📝</span>
             <span>{deck.cardCount} {deck.cardCount === 1 ? 'card' : 'cards'}</span>
@@ -68,7 +83,15 @@ export const DeckListItem: React.FC<DeckListItemProps> = ({ deck, onSelect, onMe
 
 // TDD: Implement DeckScreen component to make tests pass
 export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
-  const { decks, loading, error } = useDecks()
+  // Owner-only decks (legacy path)
+  const { decks: ownerDecks, loading: loadingOwner, error: ownerError } = useDecks()
+  // Accessible decks (owner + collaborator) new sharing path
+  const { decks: accessibleDecks, loading: loadingAccessible, error: accessibleError } = useAccessibleDecks()
+  // Feature-flag controlled selection (call both hooks to keep rules-of-hooks stable; optimize later if needed)
+  const usingAccessible = FEATURE_DECK_SHARING
+  const decks = usingAccessible ? accessibleDecks : ownerDecks
+  const loading = usingAccessible ? loadingAccessible : loadingOwner
+  const error = usingAccessible ? accessibleError : ownerError
   const { createDeck, updateDeck, deleteDeck, loading: operationLoading, error: operationError } = useDeckOperations()
   const { user, signOut } = useAuth()
   const [showCreateModal, setShowCreateModal] = useState(false)
