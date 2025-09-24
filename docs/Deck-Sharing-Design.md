@@ -249,7 +249,7 @@ validateTransition(current, target):
 | 2 | DONE | Add `effectiveRole` to `Deck` type + UI badges (badges pending visual pass but data field added). |
 | 3 | DONE | Replace `useDecks` usage in `DeckScreen` with new hook. |
 | 4 | DONE | Add membership service abstraction (move logic out of screen). |
-| 5 | TODO | Add role change + remove collaborator UI. |
+| 5 | DONE | Add role change + remove collaborator UI: role dropdown (editor/viewer), remove button, row-level busy state, wired to membershipService.changeCollaboratorRole/removeCollaborator with optimistic UI patching in DeckScreen. Basic tests updated to pass new prop; follow-up tests to assert role-change calls and error handling will land next. |
 | 6 | TODO | Introduce invitation collection + basic create/list/revoke (no email). |
 | 7 | TODO | Expand Share dialog (pending invites tab). |
 | 8 | TODO | Implement token generation + `acceptInvite` Cloud Function stub (local emulator focus). |

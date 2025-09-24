@@ -5,8 +5,8 @@
 import { describe, it, expect } from 'vitest';
 
 describe('DeckScreen (user menu)', () => {
-	it('placeholder: opens user menu (to be implemented)', () => {
-		expect(true).toBe(true);
+	it.skip('TODO(user-menu): implement opens user menu interaction test', () => {
+		/* Placeholder skipped – see docs/Test-Backlog.md */
 	});
 });
 

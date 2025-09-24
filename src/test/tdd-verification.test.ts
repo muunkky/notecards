@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest'
 
 describe('TDD Verification', () => {
-  it('should verify that our test infrastructure works', () => {
-    expect(true).toBe(true)
-  })
+  // Removed trivial infrastructure assertion; real tests below retain minimal utility.
 
   it('should perform basic math operations', () => {
     expect(2 + 2).toBe(4)

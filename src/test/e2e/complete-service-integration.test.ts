@@ -1,6 +1,7 @@
 import { describe, test, beforeAll, afterAll, expect } from 'vitest'
 import { ensureDevServer } from './support/dev-server-utils.ts'
 import { mkdir } from 'node:fs/promises'
+import { assertPage } from './support/helpers'
 
 /**
  * Complete Service Account + Browser Integration Test
@@ -50,15 +51,16 @@ describe('Complete Service Account Integration', () => {
 
     if (!authSuccess) {
       console.warn('[complete-service] service-account authentication failed')
-      console.warn('  • Ensure firebase-admin is installed')
-      console.warn('  • Run `npm run auth:service-setup` to create credentials')
-      console.warn('  • Verify the app can load Firebase configuration locally')
+      console.warn('  ï¿½ Ensure firebase-admin is installed')
+      console.warn('  ï¿½ Run `npm run auth:service-setup` to create credentials')
+      console.warn('  ï¿½ Verify the app can load Firebase configuration locally')
       return
     }
 
-    const { browser, page } = browserService.getBrowser()
-    expect(browser).toBeDefined()
-    expect(page).toBeDefined()
+  const { browser, page } = browserService.getBrowser()
+  expect(browser).toBeDefined()
+  expect(page).toBeDefined()
+  assertPage(page)
 
     const currentUrl = page.url()
     console.log(`[complete-service] page url: ${currentUrl}`)
@@ -67,8 +69,9 @@ describe('Complete Service Account Integration', () => {
     const pageTitle = await page.title()
     console.log(`[complete-service] page title: ${pageTitle}`)
 
-    const buttonCount = await page.$$eval('button', buttons => buttons.length)
-    const linkCount = await page.$$eval('a', links => links.length)
+  // Typed element arrays to avoid implicit any
+  const buttonCount = await page.$$eval('button', (buttons: Element[]) => buttons.length)
+  const linkCount = await page.$$eval('a', (links: Element[]) => links.length)
     console.log(`[complete-service] buttons=${buttonCount} links=${linkCount}`)
 
     await mkdir('test-results/e2e/screenshots', { recursive: true })
@@ -94,7 +97,7 @@ describe('Complete Service Account Integration', () => {
     expect(invalidAuthResult).toBe(false)
   })
 
-  test('provides setup guidance even when skipped', async () => {
-    expect(true).toBe(true)
+  test.skip('TODO(e2e-complete): add guidance verification assertions', async () => {
+    // Placeholder skipped â€“ see docs/Test-Backlog.md
   })
 })

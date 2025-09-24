@@ -6,7 +6,7 @@ import { useAuth } from '../../providers/AuthProvider'
 import type { Deck } from '../../types'
 import { FEATURE_DECK_SHARING } from '../../types'
 import ShareDeckDialog from '../../ui/ShareDeckDialog'
-import { addCollaborator as addCollaboratorService, removeCollaborator as removeCollaboratorService, UserNotFoundError } from '../../sharing/membershipService'
+import { addCollaborator as addCollaboratorService, removeCollaborator as removeCollaboratorService, changeCollaboratorRole as changeCollaboratorRoleService, UserNotFoundError } from '../../sharing/membershipService'
 
 // TDD: Connect our beautiful DeckScreen to real Firestore data via useDecks hook
 
@@ -240,6 +240,16 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
     }
   }
 
+  const changeCollaboratorRole = async (deck: Deck, uid: string, role: 'editor' | 'viewer') => {
+    try {
+      const result = await changeCollaboratorRoleService(deck.id, uid, role)
+      setSelectedDeck(prev => prev && prev.id === deck.id ? { ...prev, ...result.deck } : prev)
+    } catch (e) {
+      console.error('Change collaborator role failed', e)
+      throw e
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 max-w-4xl">
@@ -444,6 +454,7 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
             onClose={() => { setShowShareDialog(false); setSelectedDeck(null) }}
             addCollaborator={addCollaborator}
             removeCollaborator={removeCollaborator}
+            changeCollaboratorRole={changeCollaboratorRole}
           />
         )}
       </div>

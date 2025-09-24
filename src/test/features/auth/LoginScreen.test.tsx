@@ -5,8 +5,8 @@
 import { describe, it, expect } from 'vitest';
 
 describe('LoginScreen', () => {
-	it('placeholder: renders login form (to be implemented)', () => {
-		expect(true).toBe(true);
+	it.skip('TODO(login): implement login form render & interaction tests', () => {
+		/* Placeholder skipped – see docs/Test-Backlog.md */
 	});
 });
 

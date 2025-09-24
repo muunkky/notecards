@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import type { Deck } from '../types'
+import type { Deck, DeckRole } from '../types'
 import { FEATURE_DECK_SHARING } from '../types'
 import { UserNotFoundError } from '../sharing/membershipService'
 
@@ -8,15 +8,17 @@ interface ShareDeckDialogProps {
   onClose: () => void
   addCollaborator: (deck: Deck, email: string) => Promise<void> | void
   removeCollaborator: (deck: Deck, userId: string) => Promise<void> | void
+  changeCollaboratorRole: (deck: Deck, userId: string, role: Exclude<DeckRole, 'owner'>) => Promise<void> | void
 }
 
 // Minimal implementation (Phase 1) – no email lookup yet, just propagates email string upward.
-export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose, addCollaborator, removeCollaborator }) => {
+export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose, addCollaborator, removeCollaborator, changeCollaboratorRole }) => {
   if (!FEATURE_DECK_SHARING) return null
 
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [rowBusy, setRowBusy] = useState<string | null>(null)
 
   const collaboratorEntries = Object.entries(deck.roles || {})
     .filter(([uid, role]) => uid !== deck.ownerId && (role === 'editor' || role === 'viewer'))
@@ -45,10 +47,25 @@ export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose,
 
   const handleRemove = async (uid: string) => {
     try {
+      setRowBusy(uid)
       await removeCollaborator(deck, uid)
     } catch (e) {
       // Non-blocking; could surface toast in future
       console.warn('Remove collaborator failed', e)
+    } finally {
+      setRowBusy(null)
+    }
+  }
+
+  const handleRoleChange = async (uid: string, role: Exclude<DeckRole, 'owner'>) => {
+    try {
+      setRowBusy(uid)
+      await changeCollaboratorRole(deck, uid, role)
+    } catch (e: any) {
+      console.warn('Change role failed', e)
+      setError(e?.message || 'Failed to change role')
+    } finally {
+      setRowBusy(null)
     }
   }
 
@@ -97,11 +114,27 @@ export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose,
                   <span className="font-medium" data-testid="collaborator-id">{c.uid}</span>
                   <span className="text-gray-500 text-xs">{c.role}</span>
                 </div>
-                <button
-                  onClick={() => handleRemove(c.uid)}
-                  className="text-red-600 hover:text-red-800 text-xs font-medium"
-                  aria-label={`Remove collaborator ${c.uid}`}
-                >Remove</button>
+                <div className="flex items-center gap-3">
+                  <label className="sr-only" htmlFor={`role-${c.uid}`}>Role</label>
+                  <select
+                    id={`role-${c.uid}`}
+                    data-testid={`role-select-${c.uid}`}
+                    className="text-xs border rounded px-2 py-1"
+                    value={c.role}
+                    onChange={(e) => handleRoleChange(c.uid, e.target.value as Exclude<DeckRole,'owner'>)}
+                    disabled={rowBusy === c.uid || loading}
+                    aria-label={`Change role for ${c.uid}`}
+                  >
+                    <option value="editor">Editor</option>
+                    <option value="viewer">Viewer</option>
+                  </select>
+                  <button
+                    onClick={() => handleRemove(c.uid)}
+                    className="text-red-600 hover:text-red-800 text-xs font-medium disabled:opacity-50"
+                    aria-label={`Remove collaborator ${c.uid}`}
+                    disabled={rowBusy === c.uid || loading}
+                  >Remove</button>
+                </div>
               </li>
             ))}
           </ul>

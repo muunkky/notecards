@@ -5,8 +5,8 @@
 import { describe, it, expect } from 'vitest';
 
 describe('DeckScreen (permission)', () => {
-	it('placeholder: restricts non-owner action (to be implemented)', () => {
-		expect(true).toBe(true);
+	it.skip('TODO(permissions): add non-owner restricted action tests', () => {
+		/* Placeholder skipped – see docs/Test-Backlog.md */
 	});
 });
 

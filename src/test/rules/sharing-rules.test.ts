@@ -44,9 +44,7 @@ let cardId: string
 
 // Use describe.skip transparently when not enabled
   describe('Firestore Rules (Sharing)', () => {
-  it('sanity collects tests', () => {
-    expect(true).toBe(true)
-  })
+  // Removed prior tautological sanity test; suite presence alone is sufficient.
 
   let emulatorAvailable = true
 
