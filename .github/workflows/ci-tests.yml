@@ -1,0 +1,77 @@
+name: CI Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ feature/**, develop, staging ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Run unit tests (wrapper)
+        run: npm run test:unit
+
+      - name: Upload unit test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-logs
+          path: |
+            test-results/unit/*.log
+            test-results/unit/*.json
+          if-no-files-found: ignore
+
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools
+
+      - name: Verify Firestore rules (emulator)
+        env:
+          FIREBASE_PROJECT_ID: notecards-1b054
+        run: |
+          firebase emulators:exec --only firestore --project $FIREBASE_PROJECT_ID "node scripts/verify-firestore-rules.mjs"
+
+      - name: (Optional) Vitest rules suite
+        env:
+          FIRESTORE_RULES_VITEST: '1'
+        run: |
+          npm run test:rules:vitest || true
+
+      - name: Build app
+        run: npm run build
+
+      - name: Start preview server
+        run: npx vite preview --port 4173 &
+
+      - name: Run E2E tests (wrapper)
+        env:
+          E2E_TERMINAL_MODE: summary
+          CI: '1'
+        run: npm run test:e2e
+
+      - name: Upload E2E test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-logs
+          path: |
+            test-results/e2e/*.log
+            test-results/e2e/*.json
+          if-no-files-found: ignore

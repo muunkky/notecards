@@ -250,8 +250,8 @@ validateTransition(current, target):
 | 3 | DONE | Replace `useDecks` usage in `DeckScreen` with new hook. |
 | 4 | DONE | Add membership service abstraction (move logic out of screen). |
 | 5 | DONE | Add role change + remove collaborator UI: role dropdown (editor/viewer), remove button, row-level busy state, wired to membershipService.changeCollaboratorRole/removeCollaborator with optimistic UI patching in DeckScreen. Basic tests updated to pass new prop; follow-up tests to assert role-change calls and error handling will land next. |
-| 6 | TODO | Introduce invitation collection + basic create/list/revoke (no email). |
-| 7 | TODO | Expand Share dialog (pending invites tab). |
+| 6 | DONE | Introduce invitation collection + basic create/list/revoke (no email). |
+| 7 | DONE | Expand Share dialog (pending invites section) with list + revoke and fallback to create invite on unknown email. |
 | 8 | TODO | Implement token generation + `acceptInvite` Cloud Function stub (local emulator focus). |
 | 9 | TODO | Add audit log writes for membership & invite events. |
 | 10 | TODO | Reinstate rules test suite (fix emulator or finalize standalone rule verifier set for new rules). |

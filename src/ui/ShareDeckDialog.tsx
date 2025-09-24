@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import type { Deck, DeckRole } from '../types'
 import { FEATURE_DECK_SHARING } from '../types'
 import { UserNotFoundError } from '../sharing/membershipService'
+import { createInvite, listPendingInvites, revokeInvite, type Invite } from '../sharing/invitationService'
 
 interface ShareDeckDialogProps {
   deck: Deck
@@ -19,6 +20,27 @@ export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose,
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [rowBusy, setRowBusy] = useState<string | null>(null)
+  const [invites, setInvites] = useState<Invite[]>([])
+  const [invitesLoading, setInvitesLoading] = useState(false)
+
+  // Load pending invites on open and when deck changes
+  React.useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        setInvitesLoading(true)
+        const list = await listPendingInvites(deck.id)
+        if (!cancelled) setInvites(list)
+      } catch (e) {
+        // non-blocking; optionally surface error later
+        console.warn('Failed to load pending invites', e)
+      } finally {
+        if (!cancelled) setInvitesLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [deck.id])
 
   const collaboratorEntries = Object.entries(deck.roles || {})
     .filter(([uid, role]) => uid !== deck.ownerId && (role === 'editor' || role === 'viewer'))
@@ -35,8 +57,15 @@ export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose,
       await addCollaborator(deck, email.trim())
       setEmail('')
     } catch (e: any) {
+      // Fallback: if the user doesn't exist, create a pending invite instead of blocking the flow.
       if (e instanceof UserNotFoundError) {
-        setError('No account with that email. Ask them to sign in once, then try again.')
+        try {
+          await createInvite(deck.id, deck.ownerId, email.trim(), 'viewer')
+          setEmail('')
+          // Optionally show a transient success message in the future
+        } catch (inviteErr: any) {
+          setError(inviteErr?.message || 'Failed to create invite')
+        }
       } else {
         setError(e?.message || 'Failed to add collaborator')
       }
@@ -64,6 +93,20 @@ export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose,
     } catch (e: any) {
       console.warn('Change role failed', e)
       setError(e?.message || 'Failed to change role')
+    } finally {
+      setRowBusy(null)
+    }
+  }
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    try {
+      setRowBusy(`invite:${inviteId}`)
+      await revokeInvite(inviteId, deck.ownerId)
+      // Optimistically remove from local list
+      setInvites(prev => prev.filter(i => i.id !== inviteId))
+    } catch (e) {
+      console.warn('Revoke invite failed', e)
+      setError((e as any)?.message || 'Failed to revoke invite')
     } finally {
       setRowBusy(null)
     }
@@ -138,6 +181,35 @@ export const ShareDeckDialog: React.FC<ShareDeckDialogProps> = ({ deck, onClose,
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* Pending Invites */}
+        <section aria-label="Pending invites" className="space-y-2">
+          <h3 className="font-semibold">Pending Invites</h3>
+          {invitesLoading && <p className="text-sm text-gray-500">Loading…</p>}
+          {!invitesLoading && invites.length === 0 && (
+            <p className="text-sm text-gray-500">No pending invites.</p>
+          )}
+          {invites.length > 0 && (
+            <ul className="divide-y border rounded-md">
+              {invites.map(inv => (
+                <li key={inv.id} className="flex items-center justify-between px-3 py-2 text-sm">
+                  <div className="flex flex-col">
+                    <span className="font-medium" data-testid="invite-email">{inv.emailLower}</span>
+                    <span className="text-gray-500 text-xs">{inv.roleRequested}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleRevokeInvite(inv.id)}
+                      className="text-red-600 hover:text-red-800 text-xs font-medium disabled:opacity-50"
+                      aria-label={`Revoke invite ${inv.emailLower}`}
+                      disabled={rowBusy === `invite:${inv.id}` || loading}
+                    >Revoke</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
         <footer className="flex justify-end pt-2">
           <button onClick={onClose} className="text-sm text-gray-600 hover:text-gray-800">Close</button>

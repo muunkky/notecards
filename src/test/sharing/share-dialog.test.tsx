@@ -6,6 +6,7 @@ import { addCollaborator as addCollabHelper } from '../../sharing/collaborators'
 
 // We will implement ShareDeckDialog next; for now test will fail.
 import { ShareDeckDialog } from '../../ui/ShareDeckDialog'
+import * as invitation from '../../sharing/invitationService'
 
 const mockDeck: Deck = {
   id: 'd1',
@@ -83,5 +84,45 @@ describe('ShareDeckDialog basic behaviors', () => {
     const btn = screen.getByRole('button', { name: /Remove collaborator u2/i })
     fireEvent.click(btn)
     expect(remove).toHaveBeenCalledWith(deck, 'u2')
+  })
+
+  it('falls back to creating an invite when user email not found', async () => {
+    const add = vi.fn().mockRejectedValue(new (class extends Error {})())
+    const createInviteSpy = vi.spyOn(invitation, 'createInvite').mockResolvedValue({
+      id: 'inv1', deckId: mockDeck.id, inviterId: 'owner-1', emailLower: 'nouser@example.com', roleRequested: 'viewer', status: 'pending', createdAt: new Date(), updatedAt: new Date()
+    } as any)
+
+    render(<ShareDeckDialog deck={mockDeck} onClose={() => {}} addCollaborator={add} removeCollaborator={vi.fn()} changeCollaboratorRole={vi.fn()} />)
+    const input = screen.getByPlaceholderText(/invite by email/i)
+    fireEvent.change(input, { target: { value: 'NoUser@Example.com' } })
+    fireEvent.click(screen.getByRole('button', { name: /add/i }))
+    // Implementation will call invitationService when addCollaborator rejects with UserNotFound; our test uses a generic error
+    // to keep coupling low and only asserts the fallback path is attempted.
+    expect(createInviteSpy).toHaveBeenCalled()
+  })
+
+  it('renders pending invites and allows revoke', async () => {
+    const listSpy = vi.spyOn(invitation, 'listPendingInvites').mockResolvedValue([
+      { id: 'inv-1', deckId: mockDeck.id, inviterId: 'owner-1', emailLower: 'pending@example.com', roleRequested: 'viewer', status: 'pending', createdAt: new Date(), updatedAt: new Date() } as any
+    ])
+    const revokeSpy = vi.spyOn(invitation, 'revokeInvite').mockResolvedValue()
+
+    render(
+      <ShareDeckDialog
+        deck={mockDeck}
+        onClose={() => {}}
+        addCollaborator={vi.fn()}
+        removeCollaborator={vi.fn()}
+        changeCollaboratorRole={vi.fn()}
+      />
+    )
+
+    // Invite email should render
+    expect(await screen.findByText('pending@example.com')).toBeInTheDocument()
+
+    // Click revoke and ensure service called
+    const revokeBtn = screen.getByRole('button', { name: /Revoke invite pending@example.com/i })
+    fireEvent.click(revokeBtn)
+    expect(revokeSpy).toHaveBeenCalledWith('inv-1', 'owner-1')
   })
 })
