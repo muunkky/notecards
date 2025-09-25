@@ -113,6 +113,15 @@ Extensibility Roadmap:
 - Activity log (audit trail of share / unshare events).
 - Granular per-card permissions or “commenter” role if future requirements justify.
 
+#### Invitations & Accept Flow
+- Client service: `src/sharing/acceptInviteService.ts`
+- Server callable: `functions/src/index.ts` → `acceptInvite` (delegates to `acceptInviteCore`)
+- API doc: `docs/Accept-Invite-API.md`
+
+Run functions tests headlessly:
+- Full: `npm run test:functions`
+- Focused: `npm run test:functions -- functions/test/acceptInvite.emulator.test.ts -t "case"`
+
 ## 📋 **50-Point Plan Breakdown**
 
 ### **Points 1-20: Foundation & Backend** ✅

@@ -12,6 +12,12 @@ try {
 /**
  * Placeholder acceptInvite callable. Will be fully implemented with validation and transaction.
  */
+/**
+ * Callable: acceptInvite
+ * Input: { deckId: string, tokenHash: string }
+ * Output: { deckId: string, roleGranted?: 'viewer'|'editor', alreadyHadRole: boolean }
+ * Notes: Maps core result (ok/roleGranted/alreadyMember) to the client-facing contract.
+ */
 export const acceptInvite = functions.https.onCall(async (req) => {
   const uid = req.auth?.uid
   if (!uid) {
@@ -22,7 +28,12 @@ export const acceptInvite = functions.https.onCall(async (req) => {
     throw new functions.https.HttpsError('invalid-argument', 'deckId and tokenHash are required')
   }
   try {
-    return await acceptInviteCore({ deckId, tokenHash, uid })
+    const core = await acceptInviteCore({ deckId, tokenHash, uid })
+    return {
+      deckId,
+      roleGranted: core.roleGranted,
+      alreadyHadRole: !!core.alreadyMember,
+    }
   } catch (e: any) {
     if (e?.code && typeof e.code === 'string') {
       throw new functions.https.HttpsError('failed-precondition', e.message, { code: e.code })

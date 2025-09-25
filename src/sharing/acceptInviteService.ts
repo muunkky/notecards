@@ -1,14 +1,25 @@
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { app } from '../firebase/firebase'
 
+/**
+ * AcceptInviteRequest
+ * deckId: Target deck to accept invitation for
+ * tokenPlain: The invitation token from the email/link (client hashes it before sending)
+ */
 export interface AcceptInviteRequest {
   deckId: string
   tokenPlain: string
 }
 
+/**
+ * AcceptInviteResponse
+ * deckId: Deck ID the invite applies to
+ * roleGranted: Granted role, if an upgrade/addition occurred (undefined if already had equal/higher role)
+ * alreadyHadRole: True if user already had equal/higher access; server marks invite accepted idempotently
+ */
 export interface AcceptInviteResponse {
   deckId: string
-  roleGranted: 'editor' | 'viewer'
+  roleGranted?: 'editor' | 'viewer'
   alreadyHadRole: boolean
 }
 
@@ -35,6 +46,11 @@ export async function sha256HexAsync(input: string): Promise<string> {
   return hex
 }
 
+/**
+ * acceptInvite
+ * Hashes the plain invite token client-side, then calls the callable `acceptInvite`.
+ * Returns server contract with roleGranted if applicable and alreadyHadRole flag.
+ */
 export async function acceptInvite({ deckId, tokenPlain }: AcceptInviteRequest): Promise<AcceptInviteResponse> {
   const functions = getFunctions(app)
   const callable = httpsCallable(functions, 'acceptInvite')

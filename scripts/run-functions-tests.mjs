@@ -10,8 +10,17 @@ const start = Date.now()
 let stdoutBuf = ''
 let stderrBuf = ''
 
+const extraArgs = process.argv.slice(2)
 const cmd = 'firebase'
-const args = ['emulators:exec', '--only', 'firestore,functions', '--project', 'notecards-1b054', '--', 'npx', 'vitest', 'run', '--dir', 'functions', '--config', 'functions/vitest.config.ts']
+const args = [
+  'emulators:exec',
+  '--only', 'firestore,functions',
+  '--project', 'notecards-1b054',
+  '--',
+  'npx', 'vitest', 'run',
+  '--config', 'functions/vitest.config.ts',
+  ...extraArgs
+]
 
 const child = spawn(cmd, args, { cwd: root, shell: true, stdio: ['ignore','pipe','pipe'] })
 

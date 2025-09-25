@@ -65,8 +65,9 @@ service cloud.firestore {
 
       // Cards subcollection
       match /cards/{cardId} {
-        function deckDoc() { return get(/databases/$(database)/documents/decks/$(deckId)); }
-        function deckExists() { return exists(/databases/$(database)/documents/decks/$(deckId)); }
+        // Use explicit (default) database path to avoid emulator warnings about variable names
+        function deckDoc() { return get(/databases/(default)/documents/decks/$(deckId)); }
+        function deckExists() { return exists(/databases/(default)/documents/decks/$(deckId)); }
         function deckOwner() { return deckExists() && deckDoc().data.ownerId == request.auth.uid; }
         function deckRole(uid) { return (deckExists() && deckDoc().data.roles is map && uid in deckDoc().data.roles) ? deckDoc().data.roles[uid] : null; }
         function deckIsCollab() { return deckExists() && deckDoc().data.roles is map && (request.auth.uid in deckDoc().data.roles); }
@@ -79,8 +80,8 @@ service cloud.firestore {
 
       // Order snapshots subcollection
       match /orderSnapshots/{snapshotId} {
-        function deckDoc() { return get(/databases/$(database)/documents/decks/$(deckId)); }
-        function deckExists() { return exists(/databases/$(database)/documents/decks/$(deckId)); }
+        function deckDoc() { return get(/databases/(default)/documents/decks/$(deckId)); }
+        function deckExists() { return exists(/databases/(default)/documents/decks/$(deckId)); }
         function deckOwner() { return deckExists() && deckDoc().data.ownerId == request.auth.uid; }
         function deckRole(uid) { return (deckExists() && deckDoc().data.roles is map && uid in deckDoc().data.roles) ? deckDoc().data.roles[uid] : null; }
         function deckIsCollab() { return deckExists() && deckDoc().data.roles is map && (request.auth.uid in deckDoc().data.roles); }
