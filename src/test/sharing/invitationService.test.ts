@@ -17,7 +17,7 @@ describe('invitationService', () => {
   const emailLower = 'newuser@example.com'
 
   beforeEach(() => {
-    vi.resetModules()
+    vi.clearAllMocks()
   })
 
   it('normalizes email to lowercase and creates a pending invite', async () => {
@@ -28,7 +28,7 @@ describe('invitationService', () => {
     const serverTimestamp = vi.mocked((await import('firebase/firestore')).serverTimestamp)
 
     collection.mockReturnValue({} as any)
-    serverTimestamp.mockReturnValue(new Date())
+  serverTimestamp.mockReturnValue({ __fieldValue: 'serverTimestamp' } as any)
     addDoc.mockResolvedValue(fakeDocRef as any)
 
     // Act
@@ -38,6 +38,12 @@ describe('invitationService', () => {
     expect(created.emailLower).toBe(emailLower)
     expect(created.status).toBe('pending')
     expect(created.roleRequested).toBe('viewer')
+    // New secure invite fields
+    expect(created.tokenPlain).toBeDefined()
+    expect(created.tokenPlain.length).toBeGreaterThan(30)
+    expect(created.tokenHash).toBeDefined()
+    expect(created.tokenHash!.length).toBe(64) // sha256 hex length
+    expect(created.expiresAt).toBeInstanceOf(Date)
   })
 
   it('lists only pending invites for a deck', async () => {
@@ -54,7 +60,7 @@ describe('invitationService', () => {
       docs: [
         {
           id: 'i1',
-          data: () => ({ deckId, inviterId, emailLower, roleRequested: 'editor', status: 'pending', createdAt: new Date(), updatedAt: new Date() })
+          data: () => ({ deckId, inviterId, emailLower, roleRequested: 'editor', status: 'pending', tokenHash: 'abc', expiresAt: new Date(), createdAt: new Date(), updatedAt: new Date() })
         }
       ]
     } as any)
@@ -70,7 +76,7 @@ describe('invitationService', () => {
     const doc = vi.mocked((await import('firebase/firestore')).doc)
     const serverTimestamp = vi.mocked((await import('firebase/firestore')).serverTimestamp)
     doc.mockReturnValue({} as any)
-    serverTimestamp.mockReturnValue(new Date())
+  serverTimestamp.mockReturnValue({ __fieldValue: 'serverTimestamp' } as any)
     updateDoc.mockResolvedValue()
 
     await revokeInvite('invite-xyz', inviterId)

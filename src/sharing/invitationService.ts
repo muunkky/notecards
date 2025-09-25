@@ -9,6 +9,9 @@ export interface Invite {
   emailLower: string
   roleRequested: Exclude<DeckRole, 'owner'>
   status: 'pending' | 'revoked' | 'accepted' | 'expired'
+  // hashed token for acceptance lookup (sha256 hex). Not exposed externally except in specialized admin flows.
+  tokenHash?: string
+  expiresAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -17,8 +20,30 @@ export class EmailAlreadyInvitedError extends Error { constructor(msg = 'Email a
 export class InviteLimitExceededError extends Error { constructor(msg = 'Invite/collaborator limit exceeded for this deck') { super(msg); this.name = 'InviteLimitExceededError' } }
 
 const INVITE_LIMIT_SOFT = 25 // combined collaborators + pending invites
+const INVITE_TTL_MS = 1000 * 60 * 60 * 24 * 14 // 14 days
 
-export async function createInvite(deckId: string, inviterId: string, email: string, role: Exclude<DeckRole,'owner'>): Promise<Invite> {
+async function sha256Hex(input: string): Promise<string> {
+  if (typeof window !== 'undefined' && (window as any).crypto?.subtle) {
+    const enc = new TextEncoder().encode(input)
+    const digest = await (window as any).crypto.subtle.digest('SHA-256', enc)
+    return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('')
+  }
+  // Node path (tests / SSR)
+  const { createHash } = await import('crypto')
+  return createHash('sha256').update(input).digest('hex')
+}
+
+function randomTokenHex(bytes = 32): string {
+  if (typeof window !== 'undefined' && (window as any).crypto?.getRandomValues) {
+    const arr = new Uint8Array(bytes)
+    ;(window as any).crypto.getRandomValues(arr)
+    return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('')
+  }
+  const { randomBytes } = require('crypto')
+  return randomBytes(bytes).toString('hex')
+}
+
+export async function createInvite(deckId: string, inviterId: string, email: string, role: Exclude<DeckRole,'owner'>): Promise<Invite & { tokenPlain: string }> {
   const emailLower = email.trim().toLowerCase()
 
   // prevent duplicate pending invite for same deck+email
@@ -40,12 +65,17 @@ export async function createInvite(deckId: string, inviterId: string, email: str
   }
 
   const now = serverTimestamp()
+  const tokenPlain = randomTokenHex(32)
+  const tokenHash = await sha256Hex(tokenPlain)
+  const expiresAtDate = new Date(Date.now() + INVITE_TTL_MS)
   const docRef = await addDoc(invitesRef, {
     deckId,
     inviterId,
     emailLower,
     roleRequested: role,
     status: 'pending',
+    tokenHash,
+    expiresAt: expiresAtDate,
     createdAt: now,
     updatedAt: now
   } as any)
@@ -58,8 +88,11 @@ export async function createInvite(deckId: string, inviterId: string, email: str
     emailLower,
     roleRequested: role,
     status: 'pending',
+    tokenHash,
+    expiresAt: expiresAtDate,
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
+    tokenPlain
   }
 }
 
@@ -77,6 +110,8 @@ export async function listPendingInvites(deckId: string): Promise<Invite[]> {
       emailLower: data.emailLower,
       roleRequested: data.roleRequested,
       status: data.status,
+      tokenHash: data.tokenHash,
+      expiresAt: data.expiresAt?.toDate?.() || undefined,
       createdAt: data.createdAt?.toDate?.() || new Date(),
       updatedAt: data.updatedAt?.toDate?.() || new Date(),
     } as Invite
