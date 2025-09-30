@@ -4,8 +4,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: [
-      'test/**/*.test.ts',
-      'src/**/__tests__/*.test.ts'
+      'functions/test/**/*.test.ts',
+      'functions/src/**/__tests__/*.test.ts'
     ]
   }
 })
