@@ -47,7 +47,7 @@ describe('Complete Service Account Integration', () => {
       return
     }
 
-    const authSuccess = await browserService.serviceAccountAuth(null, devServerUrl)
+    const authSuccess = await browserService.quickServiceAuth({ url: devServerUrl })
 
     if (!authSuccess) {
       console.warn('[complete-service] service-account authentication failed')
@@ -93,7 +93,7 @@ describe('Complete Service Account Integration', () => {
       return
     }
 
-    const invalidAuthResult = await browserService.serviceAccountAuth('/invalid/path/key.json')
+    const invalidAuthResult = await browserService.quickServiceAuth({ userEmail: 'invalid@test.com' })
     expect(invalidAuthResult).toBe(false)
   })
 

@@ -17,7 +17,7 @@ async function setupManualAuthentication() {
   try {
     const targetUrl = process.env.NOTECARD_APP_URL || 
                      process.argv[2] || 
-                     'http://127.0.0.1:5175';
+                     'http://127.0.0.1:5174';
 
     console.log(`🎯 Target URL: ${targetUrl}\n`);
 
@@ -46,7 +46,7 @@ async function setupManualAuthentication() {
     console.error('💡 This might be a temporary Google OAuth issue. Try again in a few minutes.');
     console.error('');
     console.error('🔧 If this keeps failing:');
-    console.error('   1. Make sure the app is running on localhost:5175');
+    console.error('   1. Make sure the app is running on localhost:5174');
     console.error('   2. Check for "browser not secure" errors');
     console.error('   3. Try the original auth-setup.mjs script for comparison');
   } finally {

@@ -8,7 +8,7 @@
 import puppeteer from 'puppeteer';
 import { findChromePath } from './browser-service.mjs';
 
-const APP_URL = 'http://127.0.0.1:5175';
+const APP_URL = 'http://127.0.0.1:5174';
 
 async function debugCards() {
   console.log('🐛 Starting card loading debug test...');

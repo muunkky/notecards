@@ -62,7 +62,7 @@ describe('Service Account Data Round-Trip', () => {
     
     // Step 1: Authenticate with service account
     console.log('🔐 Step 1: Authenticating with service account...');
-    const authSuccess = await browserService.serviceAccountAuth(null, devServerUrl);
+    const authSuccess = await browserService.quickServiceAuth({ url: devServerUrl });
     
     if (!authSuccess) {
       throw new Error('Service account authentication failed - cannot proceed with data tests');

@@ -20,7 +20,7 @@ export const ENVIRONMENT = {
  * Default ports for different services
  */
 export const DEFAULT_PORTS = {
-  DEV_SERVER: 5175,
+  DEV_SERVER: 5174,
   TEST_SERVER: 5176,
   STAGING_SERVER: 5177
 };
