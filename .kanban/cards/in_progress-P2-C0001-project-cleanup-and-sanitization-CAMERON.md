@@ -17,27 +17,28 @@ Clean up and sanitize the notecards project folder to remove legacy files, outda
 ## Todo Checklist
 
 ### Discovery Phase
-- [ ] Audit root directory for unnecessary files
+- [x] Audit root directory for unnecessary files
 - [ ] Review `/scripts` folder for unused/duplicate scripts
 - [ ] Check `/docs` folder for outdated documentation
-- [ ] Identify legacy config files (old vite configs, etc.)
-- [ ] Review `/test` and `/test-results` for old artifacts
+- [x] Identify legacy config files (old vite configs, etc.)
+- [x] Review `/test` and `/test-results` for old artifacts
 - [ ] Check for duplicate or abandoned feature branches locally
+- [x] make a detailed for the consolidation plan for each of the above folders (what gets consolidated, new filenames, deleted files, etc). Insert that Todo list here in this card
 
 ### File Categories to Review
-- [ ] Old backup files (`.bak`, `.old`, `.backup` extensions)
-- [ ] Temporary files and directories (`temp/`, `tmp/`)
-- [ ] Legacy configuration files
+- [x] Old backup files (`.bak`, `.old`, `.backup` extensions)
+- [x] Temporary files and directories (`temp/`, `tmp/`)
+- [x] Legacy configuration files
 - [ ] Unused assets or media files
-- [ ] Old log files beyond retention policy
-- [ ] Abandoned test files or outdated test data
+- [x] Old log files beyond retention policy
+- [x] Abandoned test files or outdated test data
 - [ ] Documentation that references removed features
 
 ### Cleanup Actions
-- [ ] Move or delete identified legacy files
+- [x] Move or delete identified legacy files
 - [ ] Update `.gitignore` if needed for new patterns
 - [ ] Consolidate similar files where appropriate
-- [ ] Document removal decisions in cleanup log
+- [x] Document removal decisions in cleanup log
 - [ ] Update README if file structure changes significantly
 
 ### Code Opportunity Identification
@@ -215,3 +216,195 @@ Clean up and sanitize the notecards project folder to remove legacy files, outda
 **Risk**: ✅ Zero - all removed files were regeneratable artifacts
 
 **Next Phase**: Medium-risk assessment of demo files and backup
+
+## Phase 2 Completion Summary
+
+## Phase 2 - Medium Risk Cleanup ✅ COMPLETE
+
+### Successfully Removed:
+- **Old Backup File**: `notecards-local-backup-2025-09-01_00-38-37.zip` (100KB, 29 days old)
+- **Legacy Config File**: `vite.config.new.ts` (older, less complete version)
+
+### Demo Files Review:
+- `demo-simple-service.mjs` and `super-simple-example.mjs` are useful onboarding/documentation examples. **Recommendation:** Keep for now, but move to `/docs/examples/` for clarity in a future pass.
+
+### Git Status:
+- All changes committed (commit: 733ed346)
+- Branch: `feature/deck-sharing` remains up to date
+
+**Next Phase:** Scripts directory audit and config file review
+
+**Acceptance Criteria Update:**
+- All legacy/temporary files removed
+- Demo/example files moved to documentation folder (future pass)
+- All changes committed to git after each major cleanup phase
+- No functional regressions or loss of onboarding/documentation value
+- Disk space and project clarity improved
+
+**Status:** 🎯 Phase 2 Complete - Ready for scripts/config audit
+
+## Phase 3: Scripts Directory Audit
+
+
+## Scripts Audit Complete ✅
+
+**Total Scripts**: 49 .mjs files + 3 .ps1 files + 1 .png = 53 files analyzed
+
+### Category Analysis:
+
+#### ✅ KEEP - Active Production Scripts (Referenced in package.json):
+1. **Test Runners** (9 files):
+   - `run-tests-log.mjs` - Unit test runner with logging
+   - `run-e2e-tests-log.mjs` - E2E test runner with logging
+   - `run-functions-tests.mjs` - Functions test runner
+   - `run-rules-tests.mjs` - Firestore rules test runner
+   - `wait-for-test-complete.mjs` - Test polling utility
+   - `verify-firestore-rules.mjs` - Standalone rules verification
+   
+2. **Authentication Scripts** (6 files):
+   - `setup-authentication.mjs` - Auth setup
+   - `professional-auth.mjs` - Professional auth CLI
+   - `auth-stealth.mjs` - Stealth auth setup
+   - `setup-service-account.mjs` - Service account setup
+   - `test-service-account.mjs` - Service account testing
+   - `setup-auth-browser-service.mjs` - Browser service auth
+
+3. **Browser Service & Demos** (2 files):
+   - `browser-service-demo.mjs` - Browser service examples
+   - `interactive-ui.mjs` - Interactive UI automation
+
+4. **PowerShell Utilities** (3 files):
+   - `deploy-capture.ps1` - Deployment capture script
+   - `kill-orphans.ps1` - Kill orphaned processes
+   - `list-emulator-ports.ps1` - List emulator ports
+
+5. **Framework Files** (2 files):
+   - `puppeteer-test-framework.mjs` - Test framework (imported by other scripts)
+   - `browser-service.mjs` - Browser service module
+
+#### 🟡 REVIEW/CONSOLIDATE - Potentially Redundant:
+1. **Multiple Auth CLIs**:
+   - `auth-cli.mjs` - Auth CLI (possibly redundant with professional-auth.mjs)
+   - `auth-setup.mjs` - Legacy auth setup
+   - `test-auth-quick.mjs` - Quick auth test
+
+2. **Screenshot Utilities**:
+   - `quick-screenshot.mjs` - Screenshot utility
+   - `screenshot-cleanup.mjs` - Screenshot management
+
+3. **Debug/Inspection Tools**:
+   - `debug-cards.mjs` - Debug card operations
+   - `debug-page-content.mjs` - Debug page content
+   - `inspect-data.mjs` - Firebase data inspector
+   - `inspect-html.mjs` - HTML inspector
+
+4. **Legacy Test Files**:
+   - `demo-test-suite.mjs` - Demo test suite
+   - `e2e-user-journey-tests.mjs` - E2E user journey tests
+   - `puppeteer-tests.mjs` - Legacy puppeteer tests
+   - `puppeteer-tests-localhost.mjs` - Localhost tests
+   - `puppeteer-tests-manual-auth.mjs` - Manual auth tests
+   - `puppeteer-tests-production.mjs` - Production tests
+   - `puppeteer-tests-real.mjs` - Real tests
+
+5. **Build/Utility Scripts**:
+   - `build-log.mjs` - Build logger
+   - `test-log.mjs` - Test logger
+   - `test-framework-constructor.mjs` - Framework constructor
+
+#### 🗑️ REMOVE - Likely Obsolete/Experimental:
+1. **Git History Recovery Tools** (one-off utilities):
+   - `restore-nonempty-tests.mjs` - Restore deleted test files
+   - `restore-nonempty-tests.ps1` - PowerShell version
+   - `scan-nonempty-history.mjs` - Scan git history
+   - `scan-nonempty-multi-branch.ps1` - Multi-branch scanner
+
+2. **Obsolete/Experimental**:
+   - `automate-app.mjs` - Old automation (replaced by browser-service)
+   - `css-html-audit.mjs` - One-off CSS/HTML audit tool
+   - `test-chrome.mjs` - Chrome testing experiment
+   - `test-features.mjs` - Feature testing experiment
+   - `test-headless.mjs` - Headless testing experiment
+   - `test-stealth-plugin.mjs` - Stealth plugin test
+
+3. **Debug PNG**:
+   - `debug-no-auth.png` - Debug screenshot (should be in /screenshots)
+
+### Cleanup Recommendations:
+
+#### Phase A: Safe Removals (7 files)
+Files that are clearly obsolete one-off utilities:
+```
+rm scripts/restore-nonempty-tests.mjs
+rm scripts/restore-nonempty-tests.ps1
+rm scripts/scan-nonempty-history.mjs
+rm scripts/scan-nonempty-multi-branch.ps1
+rm scripts/css-html-audit.mjs
+rm scripts/test-chrome.mjs
+rm scripts/test-headless.mjs
+```
+
+#### Phase B: Relocate (1 file)
+```
+mv scripts/debug-no-auth.png screenshots/debug-no-auth.png
+```
+
+#### Phase C: Consolidate Auth Scripts
+- Keep: `professional-auth.mjs`, `auth-stealth.mjs`, `setup-authentication.mjs`
+- Review for removal: `auth-cli.mjs`, `auth-setup.mjs`, `test-auth-quick.mjs`
+- Need to verify if `auth-cli.mjs` offers unique functionality
+
+#### Phase D: Archive Legacy Tests (Move to `/scripts/archive/`)
+Create archive folder for historical reference:
+```
+mkdir scripts/archive
+mv scripts/puppeteer-tests*.mjs scripts/archive/
+mv scripts/demo-test-suite.mjs scripts/archive/
+mv scripts/e2e-user-journey-tests.mjs scripts/archive/
+mv scripts/test-features.mjs scripts/archive/
+mv scripts/test-stealth-plugin.mjs scripts/archive/
+mv scripts/automate-app.mjs scripts/archive/
+```
+
+#### Phase E: Consolidate Utils (Future consideration)
+- Screenshot utilities could be merged into one
+- Debug tools could be consolidated
+- Build/test loggers appear to be used
+
+**Decision**: Proceeding with Phase A (safe removals) immediately.
+
+## Phase 3 Results Summary
+
+
+## Phase 3: Cleanup Completed ✅
+
+### Scripts Cleanup:
+- **Removed**: 7 obsolete one-off utility scripts (git history recovery tools, test experiments)
+- **Archived**: 10 legacy test scripts moved to `scripts/archive/`
+- **Relocated**: 1 debug PNG moved from scripts to screenshots
+- **Result**: Scripts folder reduced from 53 to 36 active files (32% reduction)
+
+### Documentation Cleanup:
+- **Archived**: CSS-HTML-Audit-Report.md moved to `docs/archive/`
+- **Assessment**: Docs are well-organized, no further cleanup needed
+
+### Git Branches Identified:
+**Potentially Stale Branches:**
+- `backup-main-before-restore` (5 weeks old)
+- `backup-pre-reset-20250902-060339` (4 weeks old)
+- `feature/manual-card-reordering-world-class` (5 weeks old, possibly merged?)
+
+**Active Branches:**
+- `feature/deck-sharing` (current, 2 days ago)
+- `main` (11 days ago)
+
+**Recommendation**: Check if backup branches and old feature branch can be deleted after confirming they're no longer needed.
+
+### Screenshot Files:
+- **Found**: 70+ test screenshot files in `/screenshots`
+- **Many dated**: Timestamps from 1756950958980, 1757276608307, etc. (test artifact naming)
+- **Recommendation**: Use `screenshot-cleanup.mjs` script to prune old files (>7 days)
+  - Command: `node scripts/screenshot-cleanup.mjs cleanup`
+
+### Changes Committed:
+- All cleanup operations ready for git commit

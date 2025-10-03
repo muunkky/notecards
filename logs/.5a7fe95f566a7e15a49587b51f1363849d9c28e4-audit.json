@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\Cameron\\projects\\note_apps\\notecards\\logs\\.5a7fe95f566a7e15a49587b51f1363849d9c28e4-audit.json",
+    "files": [
+        {
+            "date": 1759259420636,
+            "name": "C:\\Users\\Cameron\\projects\\note_apps\\notecards\\logs\\mcp-puppeteer-2025-09-30.log",
+            "hash": "ea99f9b8baa2c914d08567ce6ac5ec25114a1f27926682a23cd2ef8e3e504348"
+        }
+    ],
+    "hashType": "sha256"
+}

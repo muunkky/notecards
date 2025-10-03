@@ -124,3 +124,9 @@ test-results/
 share-dialog-report.json
 share-dialog-report-*.json
 unit-*.json
+
+# Old backup archives
+*-local-backup-*.zip
+
+# Log directory temporary files
+log/temp/
