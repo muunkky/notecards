@@ -1,5 +1,5 @@
 import { describe, test, beforeAll, afterAll, expect } from 'vitest'
-import { ensureDevServer } from './support/dev-server-utils.ts'
+import { ensureDevServer, cleanupAfterTests } from './support/dev-server-utils.ts'
 import { mkdir } from 'node:fs/promises'
 import { assertPage } from './support/helpers'
 
@@ -39,6 +39,8 @@ describe('Complete Service Account Integration', () => {
       await browserService.close()
       console.log('[complete-service] browser service closed')
     }
+    // Cleanup auto-started dev server if we started it
+    await cleanupAfterTests()
   })
 
   test('authenticates with service account and captures a screenshot', async () => {

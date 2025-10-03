@@ -346,3 +346,154 @@ src/test/e2e/
 ---
 
 **Priority Justification**: P1 - Tests are currently broken and confusing. This blocks both development (can't verify changes) and onboarding (new developers can't understand test setup). Must fix before moving forward with features.
+
+## Automated Dev Server Management
+
+
+**Feature**: Auto-start dev server for E2E tests if not already running
+
+### Requirements:
+- [ ] **Check if dev server is running** before tests start
+  - Probe port 5174 for active HTTP server
+  - If found, use existing server (don't start new one)
+  
+- [ ] **Auto-start dev server if not running**:
+  - Spawn detached `npm run dev` process
+  - Wait for server to be ready (probe port until responsive)
+  - Continue with test execution
+  
+- [ ] **Publish PID information**:
+  ```
+  ✅ Dev server auto-started
+  📍 PID: 12345
+  🌐 URL: http://127.0.0.1:5174
+  ⚠️  If tests hang, kill process: kill 12345 (macOS/Linux) or taskkill /PID 12345 (Windows)
+  ```
+  
+- [ ] **Auto-cleanup after tests**:
+  - Track whether we started the server or it was already running
+  - If we started it: gracefully shut down after tests complete
+  - If already running: leave it running (user's server)
+  - Handle cleanup in `afterAll()` hooks
+  
+- [ ] **Handle edge cases**:
+  - Server fails to start → clear error message
+  - Server hangs during shutdown → force kill with timeout
+  - Tests crash → ensure server cleanup still happens
+  - User Ctrl+C → cleanup server before exit
+
+### Implementation Notes:
+
+**Dev Server Detection:**
+```typescript
+async function isDevServerRunning(port = 5174): Promise<boolean> {
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}`);
+    return response.ok || response.status < 500;
+  } catch {
+    return false;
+  }
+}
+```
+
+**Auto-Start with PID Tracking:**
+```typescript
+let devServerProcess: ChildProcess | null = null;
+let weStartedServer = false;
+
+async function ensureDevServer(): Promise<string> {
+  const port = 5174;
+  const url = `http://127.0.0.1:${port}`;
+  
+  // Check if already running
+  if (await isDevServerRunning(port)) {
+    console.log('✅ Dev server already running');
+    console.log(`🌐 URL: ${url}`);
+    return url;
+  }
+  
+  // Start detached server
+  console.log('🚀 Starting dev server...');
+  devServerProcess = spawn('npm', ['run', 'dev'], {
+    detached: true,
+    stdio: 'ignore',
+    shell: true
+  });
+  
+  weStartedServer = true;
+  const pid = devServerProcess.pid;
+  
+  console.log(`✅ Dev server auto-started`);
+  console.log(`📍 PID: ${pid}`);
+  console.log(`🌐 URL: ${url}`);
+  console.log(`⚠️  If hung, kill with: ${process.platform === 'win32' ? `taskkill /PID ${pid}` : `kill ${pid}`}`);
+  
+  // Wait for server to be ready
+  await waitForServer(url, 30000);
+  
+  return url;
+}
+```
+
+**Cleanup Handler:**
+```typescript
+async function cleanupDevServer() {
+  if (!weStartedServer || !devServerProcess) {
+    return; // We didn't start it, don't touch it
+  }
+  
+  console.log('🧹 Shutting down auto-started dev server...');
+  
+  try {
+    // Graceful shutdown
+    devServerProcess.kill('SIGTERM');
+    
+    // Wait up to 5 seconds for graceful shutdown
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    
+    // Force kill if still running
+    if (!devServerProcess.killed) {
+      console.log('⚠️  Force killing dev server...');
+      devServerProcess.kill('SIGKILL');
+    }
+    
+    console.log('✅ Dev server stopped');
+  } catch (error) {
+    console.error('⚠️  Failed to stop dev server:', error.message);
+    console.error(`   Manually kill PID: ${devServerProcess.pid}`);
+  }
+}
+
+// Register cleanup handlers
+process.on('exit', cleanupDevServer);
+process.on('SIGINT', cleanupDevServer);
+process.on('SIGTERM', cleanupDevServer);
+```
+
+**Integration with Test Setup:**
+```typescript
+// In beforeAll hook
+beforeAll(async () => {
+  devServerUrl = await ensureDevServer();
+  // ... rest of setup
+}, 60000);
+
+// In afterAll hook
+afterAll(async () => {
+  // ... existing cleanup
+  await cleanupDevServer();
+});
+```
+
+### Benefits:
+- ✅ **No manual setup**: Tests "just work" without running `npm run dev` first
+- ✅ **Safe for CI/CD**: Always starts fresh server in automated environments
+- ✅ **Respects existing servers**: Won't interfere with developer's running server
+- ✅ **Debuggable**: PID published makes it easy to kill hung processes
+- ✅ **Clean**: Auto-cleanup prevents orphaned processes
+
+### Considerations:
+- **Port conflicts**: If 5174 is taken by non-Vite process, tests will fail with clear error
+- **CI environment**: Always auto-starts (no server running)
+- **Local development**: Typically uses existing server (faster test iteration)
+- **Cleanup reliability**: Multiple safety nets ensure no orphaned processes
