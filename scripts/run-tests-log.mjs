@@ -66,9 +66,16 @@ const rawLogFile = join(logDir, `${baseName}.raw.log`)
 const out = createWriteStream(logFile, { flags: 'a' })
 const rawOut = createWriteStream(rawLogFile, { flags: 'a' })
 
-// Allow passing additional vitest args (e.g., file patterns, -t test name)
+// Allow passing additional vitest args (e.g., file patterns, -t test name, --coverage)
 // Usage: npm run test:log -- path/to/test -t "name"
-const extraArgs = process.argv.slice(2)
+// Filter out standalone '--' which npm adds as separator
+const rawArgs = process.argv.slice(2).filter(arg => arg !== '--')
+
+// Separate vitest CLI flags from file patterns
+// File patterns are passed as positional args to startVitest
+// CLI flags need to be handled via config options
+const hasCoverage = rawArgs.includes('--coverage')
+const extraArgs = rawArgs.filter(arg => arg !== '--coverage')
 
 // Monkey-patch stdout/stderr write to tee output into files while optionally silencing terminal
 const originalStdoutWrite = process.stdout.write.bind(process.stdout)
@@ -127,7 +134,10 @@ silent = prevSilent
   let summary = null
   try {
   const { startVitest } = await import('vitest/node')
-  const ctx = await startVitest('run', extraArgs, { watch: false })
+  const ctx = await startVitest('run', extraArgs, { 
+    watch: false,
+    coverage: hasCoverage ? { enabled: true } : undefined
+  })
     const files = ctx?.state?.getFiles?.() || []
     const flattenTests = (fileTask) => {
       if (!fileTask) return []
