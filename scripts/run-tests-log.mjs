@@ -134,10 +134,11 @@ silent = prevSilent
   let summary = null
   try {
   const { startVitest } = await import('vitest/node')
-  const ctx = await startVitest('run', extraArgs, { 
-    watch: false,
-    coverage: hasCoverage ? { enabled: true } : undefined
-  })
+  const vitestConfig = { watch: false }
+  if (hasCoverage) {
+    vitestConfig.coverage = { enabled: true }
+  }
+  const ctx = await startVitest('run', extraArgs, vitestConfig)
     const files = ctx?.state?.getFiles?.() || []
     const flattenTests = (fileTask) => {
       if (!fileTask) return []
