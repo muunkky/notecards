@@ -121,7 +121,7 @@ export async function changeCollaboratorRole(deckId: string, uid: string, target
   // Ensure deck snapshot reflects committed transaction values
   const updated = await getDoc(deckRef)
   const data: any = updated.data()
-  return { ...result, deck: mapDeck(updated.id, data) }
+  return { ...(result as MembershipResult), deck: mapDeck(updated.id, data) }
 }
 
 // Utility for tests to directly set a collaborator role (bypassing email lookup)

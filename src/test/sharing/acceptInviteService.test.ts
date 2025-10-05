@@ -1,32 +1,99 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import * as functions from 'firebase/functions'
-import { acceptInvite, sha256HexAsync } from '../../sharing/acceptInviteService'
+import { acceptInvite, sha256HexAsync, InviteError } from '../../sharing/acceptInviteService'
+import { getDocs, getDoc, runTransaction, Timestamp } from 'firebase/firestore'
 
-describe('acceptInviteService (client)', () => {
+vi.mock('firebase/firestore')
+vi.mock('../../firebase/firebase', () => ({ db: {} }))
+
+describe('acceptInviteService (client-side)', () => {
   beforeEach(() => {
-    vi.resetModules()
+    vi.clearAllMocks()
   })
 
-  it('hashes token and calls callable function with tokenHash', async () => {
-    // Mock hashing
-    const hashSpy = vi.spyOn(await import('../../sharing/acceptInviteService'), 'sha256HexAsync').mockResolvedValue('deadbeefhash')
-    // Mock callable
-    const getFunctions = vi.spyOn(functions, 'getFunctions').mockReturnValue({} as any)
-    const callableMock = vi.fn().mockResolvedValue({ data: { deckId: 'd1', roleGranted: 'viewer', alreadyHadRole: false } })
-    const httpsCallableSpy = vi.spyOn(functions, 'httpsCallable').mockReturnValue(callableMock as any)
-
-    const res = await acceptInvite({ deckId: 'd1', tokenPlain: 'plain-token' })
-    expect(hashSpy).toHaveBeenCalledWith('plain-token')
-    expect(httpsCallableSpy).toHaveBeenCalled()
-    expect(callableMock).toHaveBeenCalledWith({ deckId: 'd1', tokenHash: 'deadbeefhash' })
-    expect(res.roleGranted).toBe('viewer')
+  it('validates required fields', async () => {
+    await expect(acceptInvite({ deckId: '', tokenPlain: 'token' }, 'uid1')).rejects.toThrow(InviteError)
+    await expect(acceptInvite({ deckId: 'd1', tokenPlain: '' }, 'uid1')).rejects.toThrow(InviteError)
+    await expect(acceptInvite({ deckId: 'd1', tokenPlain: 'token' }, '')).rejects.toThrow(InviteError)
   })
 
-  it('bubbles errors from callable', async () => {
-    vi.spyOn(await import('../../sharing/acceptInviteService'), 'sha256HexAsync').mockResolvedValue('h')
-    vi.spyOn(functions, 'getFunctions').mockReturnValue({} as any)
-    const err = new Error('invite/not-found')
-    vi.spyOn(functions, 'httpsCallable').mockReturnValue(vi.fn().mockRejectedValue(err) as any)
-    await expect(acceptInvite({ deckId: 'd1', tokenPlain: 'x' })).rejects.toThrow(/invite\/not-found/)
+  it('throws invite/not-found when invite does not exist', async () => {
+    vi.mocked(getDocs).mockResolvedValue({ empty: true, docs: [] } as any)
+    
+    await expect(acceptInvite({ deckId: 'd1', tokenPlain: 'token' }, 'uid1'))
+      .rejects.toThrow('Invite not found')
+  })
+
+  it('throws invite/revoked when invite is revoked', async () => {
+    const inviteDoc = {
+      ref: {},
+      data: () => ({ status: 'revoked', roleRequested: 'viewer' })
+    }
+    vi.mocked(getDocs).mockResolvedValue({ empty: false, docs: [inviteDoc] } as any)
+    
+    await expect(acceptInvite({ deckId: 'd1', tokenPlain: 'token' }, 'uid1'))
+      .rejects.toThrow('Invite has been revoked')
+  })
+
+  it('throws invite/expired when invite is expired', async () => {
+    const expiredTimestamp = { toDate: () => new Date(Date.now() - 1000) } as Timestamp
+    const inviteDoc = {
+      ref: {},
+      data: () => ({ status: 'pending', roleRequested: 'viewer', expiresAt: expiredTimestamp })
+    }
+    vi.mocked(getDocs).mockResolvedValue({ empty: false, docs: [inviteDoc] } as any)
+    
+    await expect(acceptInvite({ deckId: 'd1', tokenPlain: 'token' }, 'uid1'))
+      .rejects.toThrow('Invite has expired')
+  })
+
+  it('grants role when valid invite exists', async () => {
+    const inviteDoc = {
+      ref: { id: 'invite1' },
+      data: () => ({ status: 'pending', roleRequested: 'editor', deckId: 'd1' })
+    }
+    vi.mocked(getDocs).mockResolvedValue({ empty: false, docs: [inviteDoc] } as any)
+    
+    const mockTransaction = vi.fn(async (callback: any) => {
+      const inviteSnap = { exists: () => true, data: () => ({ status: 'pending', roleRequested: 'editor' }) }
+      const deckSnap = { exists: () => true, data: () => ({ roles: {}, collaboratorIds: [] }) }
+      const tx = { get: vi.fn().mockResolvedValue(inviteSnap), update: vi.fn() }
+      
+      // First call returns invite, second returns deck
+      tx.get.mockResolvedValueOnce(inviteSnap).mockResolvedValueOnce(deckSnap)
+      
+      return await callback(tx)
+    })
+    vi.mocked(runTransaction).mockImplementation(mockTransaction as any)
+    
+    const result = await acceptInvite({ deckId: 'd1', tokenPlain: 'token' }, 'uid1')
+    
+    expect(result.deckId).toBe('d1')
+    expect(result.roleGranted).toBe('editor')
+    expect(result.alreadyHadRole).toBe(false)
+  })
+
+  it('returns alreadyHadRole when user already has equal or higher role', async () => {
+    const inviteDoc = {
+      ref: { id: 'invite1' },
+      data: () => ({ status: 'pending', roleRequested: 'viewer', deckId: 'd1' })
+    }
+    vi.mocked(getDocs).mockResolvedValue({ empty: false, docs: [inviteDoc] } as any)
+    
+    const mockTransaction = vi.fn(async (callback: any) => {
+      const inviteSnap = { exists: () => true, data: () => ({ status: 'pending', roleRequested: 'viewer' }) }
+      const deckSnap = { exists: () => true, data: () => ({ roles: { uid1: 'editor' }, collaboratorIds: ['uid1'] }) }
+      const tx = { get: vi.fn(), update: vi.fn() }
+      
+      tx.get.mockResolvedValueOnce(inviteSnap).mockResolvedValueOnce(deckSnap)
+      
+      return await callback(tx)
+    })
+    vi.mocked(runTransaction).mockImplementation(mockTransaction as any)
+    
+    const result = await acceptInvite({ deckId: 'd1', tokenPlain: 'token' }, 'uid1')
+    
+    expect(result.deckId).toBe('d1')
+    expect(result.alreadyHadRole).toBe(true)
+    expect(result.roleGranted).toBeUndefined()
   })
 })

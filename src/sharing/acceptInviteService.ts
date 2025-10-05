@@ -1,5 +1,6 @@
-import { getFunctions, httpsCallable } from 'firebase/functions'
-import { app } from '../firebase/firebase'
+import { collection, query, where, limit, getDocs, doc, getDoc, runTransaction, Timestamp } from 'firebase/firestore'
+import { db } from '../firebase/firebase'
+import type { DeckRole } from '../types'
 
 /**
  * AcceptInviteRequest
@@ -23,17 +24,20 @@ export interface AcceptInviteResponse {
   alreadyHadRole: boolean
 }
 
-function sha256Hex(input: string): string {
-  // Minimal hashing via Web Crypto; in tests we mock this function
-  // Note: In Node.js under Vitest (jsdom), crypto.subtle may be available; otherwise mocked.
-  const encoder = new TextEncoder()
-  const subtle = typeof globalThis !== 'undefined' && (globalThis as any).crypto && (globalThis as any).crypto.subtle
-  if (!subtle) throw new Error('crypto.subtle not available')
-  const data = encoder.encode(input)
-  // Convert ArrayBuffer to hex
-  const toHex = (buf: ArrayBuffer) => Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('')
-  // Caller must await this; wrap in a fake sync for TypeScript. We'll implement async API below.
-  throw new Error('sha256Hex requires async environment')
+export class InviteError extends Error {
+  constructor(public code: string, message: string) {
+    super(message)
+    this.name = 'InviteError'
+  }
+}
+
+const roleRank: Record<DeckRole, number> = { viewer: 1, editor: 2, owner: 3 }
+
+function hasAtLeast(current?: DeckRole, required?: DeckRole): boolean {
+  if (!required) return true
+  if (!current) return false
+  if (!(current in roleRank) || !(required in roleRank)) return false
+  return roleRank[current] >= roleRank[required]
 }
 
 export async function sha256HexAsync(input: string): Promise<string> {
@@ -47,14 +51,108 @@ export async function sha256HexAsync(input: string): Promise<string> {
 }
 
 /**
- * acceptInvite
- * Hashes the plain invite token client-side, then calls the callable `acceptInvite`.
- * Returns server contract with roleGranted if applicable and alreadyHadRole flag.
+ * acceptInvite - Client-side implementation (no Cloud Functions required)
+ * Hashes the plain invite token client-side, finds the invite, validates it,
+ * and grants access to the deck using Firestore transactions.
  */
-export async function acceptInvite({ deckId, tokenPlain }: AcceptInviteRequest): Promise<AcceptInviteResponse> {
-  const functions = getFunctions(app)
-  const callable = httpsCallable(functions, 'acceptInvite')
+export async function acceptInvite({ deckId, tokenPlain }: AcceptInviteRequest, uid: string): Promise<AcceptInviteResponse> {
+  if (!deckId || !tokenPlain || !uid) {
+    throw new InviteError('invalid-argument', 'Missing required fields')
+  }
+
   const tokenHash = await sha256HexAsync(tokenPlain)
-  const res: any = await callable({ deckId, tokenHash })
-  return res.data as AcceptInviteResponse
+
+  // Find the invite by deckId + tokenHash
+  const invitesRef = collection(db, 'deckInvites')
+  const inviteQuery = query(invitesRef, where('deckId', '==', deckId), where('tokenHash', '==', tokenHash), limit(1))
+  const inviteSnap = await getDocs(inviteQuery)
+
+  if (inviteSnap.empty) {
+    throw new InviteError('invite/not-found', 'Invite not found')
+  }
+
+  const inviteDoc = inviteSnap.docs[0]
+  const inviteRef = inviteDoc.ref
+  const invite = inviteDoc.data() as any
+  const status: string = invite.status || 'pending'
+  const roleRequested: DeckRole = (invite.roleRequested || 'viewer') as DeckRole
+  const expiresAt: Timestamp | undefined = invite.expiresAt
+
+  if (status === 'revoked') {
+    throw new InviteError('invite/revoked', 'Invite has been revoked')
+  }
+
+  // Expiry check
+  if (expiresAt && expiresAt.toDate().getTime() < Date.now()) {
+    throw new InviteError('invite/expired', 'Invite has expired')
+  }
+
+  const deckRef = doc(db, 'decks', deckId)
+
+  // Execute transaction to ensure atomic update of deck + invite
+  const result = await runTransaction(db, async (tx): Promise<AcceptInviteResponse> => {
+    const [inviteLatestSnap, deckSnap] = await Promise.all([tx.get(inviteRef), tx.get(deckRef)])
+
+    if (!inviteLatestSnap.exists()) {
+      throw new InviteError('invite/not-found', 'Invite not found')
+    }
+
+    const inv = inviteLatestSnap.data() as any
+    const invStatus: string = inv.status || 'pending'
+    const invRole: DeckRole = (inv.roleRequested || roleRequested) as DeckRole
+    const invExpires: Timestamp | undefined = inv.expiresAt
+
+    if (invStatus === 'revoked') {
+      throw new InviteError('invite/revoked', 'Invite has been revoked')
+    }
+    if (invExpires && invExpires.toDate().getTime() < Date.now()) {
+      throw new InviteError('invite/expired', 'Invite has expired')
+    }
+
+    if (!deckSnap.exists()) {
+      throw new InviteError('invite/not-found', 'Invite not found')
+    }
+
+    const deck = deckSnap.data() as any
+    const roles: Record<string, DeckRole> = deck.roles || {}
+    const collaboratorIds: string[] = Array.isArray(deck.collaboratorIds) ? deck.collaboratorIds : []
+    const currentRole = roles[uid] as DeckRole | undefined
+
+    // If the invite was already accepted, return idempotent success
+    if (invStatus === 'accepted') {
+      return { deckId, alreadyHadRole: true }
+    }
+
+    // If the user already has equal or higher role, just mark invite accepted
+    if (hasAtLeast(currentRole, invRole)) {
+      tx.update(inviteRef, {
+        status: 'accepted',
+        acceptedBy: uid,
+        acceptedAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      })
+      return { deckId, alreadyHadRole: true }
+    }
+
+    // Grant the requested role
+    const newRoles = { ...roles, [uid]: invRole }
+    const newCollaboratorIds = collaboratorIds.includes(uid) ? collaboratorIds : [...collaboratorIds, uid]
+
+    tx.update(deckRef, {
+      roles: newRoles,
+      collaboratorIds: newCollaboratorIds,
+      updatedAt: Timestamp.now(),
+    })
+
+    tx.update(inviteRef, {
+      status: 'accepted',
+      acceptedBy: uid,
+      acceptedAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    })
+
+    return { deckId, roleGranted: invRole as 'editor' | 'viewer', alreadyHadRole: false }
+  })
+
+  return result
 }
