@@ -1,0 +1,23 @@
+{
+  "sprint_id": "sprint-sharevalidation-complete-20251015",
+  "sprint_name": "SHAREVALIDATION-COMPLETE",
+  "sprint_folder": "sprint-sharevalidation-complete-20251015",
+  "created_at": "2025-10-15T02:09:19.837902",
+  "start_date": null,
+  "end_date": "2025-10-15",
+  "archived_at": "2025-10-15T02:09:19.837902",
+  "card_ids": [],
+  "metrics": {
+    "total_cards": 6,
+    "by_priority": {
+      "P1": 6
+    },
+    "by_type": {
+      "feature": 4,
+      "test": 2
+    },
+    "by_owner": {
+      "CAMERON": 6
+    }
+  }
+}
