@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import { cleanup } from '@testing-library/react'
 import { vi, beforeAll, afterEach } from 'vitest'
 
 // Create proper mock functions that can be reused
@@ -117,7 +118,45 @@ beforeAll(() => {
   vi.spyOn(console, 'log').mockImplementation(() => {})
 })
 
-// Clean up after each test
-afterEach(() => {
-  vi.clearAllMocks()
+// Clean up after each test with aggressive cleanup to prevent hanging
+afterEach(async () => {
+  console.log('🧹 Starting enhanced cleanup...')
+  
+  try {
+    // Clean up React Testing Library first
+    cleanup()
+    
+    // Clear all mocks to prevent state leakage between tests
+    vi.clearAllMocks()
+    
+    // Reset all modules to clear any cached state
+    vi.resetModules()
+    
+    // Clear timers safely
+    try {
+      vi.runOnlyPendingTimers()  // Run pending timers first
+      vi.clearAllTimers()        // Then clear them
+      vi.useRealTimers()         // Switch back to real timers
+    } catch (timerError) {
+      console.warn('Timer cleanup warning:', timerError)
+      // Force clear timers even if error occurs
+      vi.useRealTimers()
+    }
+    
+    // Wait for microtasks to complete (important for React state updates)
+    await new Promise(resolve => queueMicrotask(() => resolve(undefined)))
+    
+    // Wait for any remaining async operations
+    await new Promise(resolve => setTimeout(resolve, 0))
+    
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc()
+    }
+    
+    console.log('✅ Enhanced cleanup complete')
+  } catch (error) {
+    console.error('❌ Cleanup error:', error)
+    // Don't throw - this would mask the real test error
+  }
 })

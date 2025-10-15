@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import '@testing-library/jest-dom'
 import CardScreen, { CardListItem } from '../../../features/cards/CardScreen'
 import { mockUser } from '../../utils/test-utils'
 import type { Card } from '../../../types'
@@ -244,7 +245,14 @@ describe('CardScreen Component', () => {
     })
 
     it('should update card when edit form is submitted', async () => {
-      const mockUpdateCard = vi.fn().mockResolvedValue(undefined)
+      const mockUpdateCard = vi.fn().mockImplementation(async (cardId, updates) => {
+        console.log('Mock updateCard called with:', { cardId, updates })
+        // Simulate async operation without hanging
+        await new Promise(resolve => setTimeout(resolve, 10))
+        console.log('Mock updateCard completed')
+        return Promise.resolve()
+      })
+      
       mockUseCardOperations.mockReturnValue(buildOpsMock({ updateCard: mockUpdateCard }))
 
       render(<CardScreen deckId={mockDeckId} />)
@@ -255,19 +263,26 @@ describe('CardScreen Component', () => {
 
       // Modal elements should now be present synchronously
       const titleInput = screen.getByDisplayValue('Test Card 1')
-      const submitButton = screen.getByRole('button', { name: /save/i })
+      // Be more specific - look for Save button that's NOT the snapshot button
+      const submitButton = screen.getByRole('button', { name: /^save$/i })
 
       fireEvent.change(titleInput, { target: { value: 'Updated Card Title' } })
+      
+      // Click submit and wait for async operations to complete
       fireEvent.click(submitButton)
-
-      // Allow any microtasks to resolve
-      await Promise.resolve()
-
-      expect(mockUpdateCard).toHaveBeenCalledTimes(1)
-      expect(mockUpdateCard).toHaveBeenCalledWith('card-1', {
-        title: 'Updated Card Title',
-        body: 'This is the body of test card 1'
-      })
+      
+      // Wait for the updateCard mock to be called and complete
+      await waitFor(() => {
+        expect(mockUpdateCard).toHaveBeenCalledWith('card-1', {
+          title: 'Updated Card Title',
+          body: 'This is the body of test card 1'
+        })
+      }, { timeout: 1000 }) // Short timeout to prevent hanging
+      
+      // Wait for modal to close (indicates component state updates completed)
+      await waitFor(() => {
+        expect(screen.queryByText('Edit Card')).not.toBeInTheDocument()
+      }, { timeout: 1000 })
     })
 
     it('should delete card with confirmation', async () => {

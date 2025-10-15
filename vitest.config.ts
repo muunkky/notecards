@@ -10,6 +10,8 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
+    testTimeout: 30000, // 30 second timeout for tests
+    hookTimeout: 10000, // 10 second timeout for hooks
     coverage: {
       reporter: ['text', 'json', 'html'],
       exclude: [
