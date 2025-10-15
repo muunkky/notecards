@@ -1,0 +1,23 @@
+{
+  "sprint_id": "sprint-sharing-completed-october-2025-20251015",
+  "sprint_name": "SHARING-COMPLETED-OCTOBER-2025",
+  "sprint_folder": "sprint-sharing-completed-october-2025-20251015",
+  "created_at": "2025-10-15T01:11:35.376750",
+  "start_date": null,
+  "end_date": "2025-10-15",
+  "archived_at": "2025-10-15T01:11:35.376750",
+  "card_ids": [],
+  "metrics": {
+    "total_cards": 2,
+    "by_priority": {
+      "P1": 2
+    },
+    "by_type": {
+      "chore": 1,
+      "feature": 1
+    },
+    "by_owner": {
+      "CAMERON": 2
+    }
+  }
+}
