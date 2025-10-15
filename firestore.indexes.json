@@ -7,6 +7,14 @@
         { "fieldPath": "ownerId", "mode": "ASCENDING" },
         { "fieldPath": "updatedAt", "mode": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "decks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "collaboratorIds", "mode": "ASCENDING" },
+        { "fieldPath": "updatedAt", "mode": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

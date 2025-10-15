@@ -121,8 +121,9 @@ export function useAccessibleDecks(): UseAccessibleDecksResult {
         setError('Failed processing collaborator decks')
       }
     }, err => {
-      console.error('Collaborator decks listener error', err)
-      setError(err.message || 'Collaborator decks listener failed')
+      console.error('Collaborator decks listener error (gracefully degrading to owned-only)', err)
+      // Don't set error state - gracefully degrade to owned decks only
+      // This handles cases where Firestore indexes aren't ready yet
       collabMap.current = {}
       recompute()
     })
