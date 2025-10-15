@@ -130,3 +130,5 @@ unit-*.json
 
 # Log directory temporary files
 log/temp/
+log/mcp-server/
+logs/*.log.gz
