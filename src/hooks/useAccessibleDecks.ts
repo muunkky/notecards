@@ -86,9 +86,10 @@ export function useAccessibleDecks(): UseAccessibleDecksResult {
     })
 
     // Listener B: Collaborator decks (exclude those we own; query ensures different ownerId)
+    // Query using roles map field to match security rules authorization
     const collabQuery = query(
       decksRef,
-      where('collaboratorIds', 'array-contains', user.uid),
+      where(`roles.${user.uid}`, 'in', ['editor', 'viewer']),
       orderBy('updatedAt', 'desc')
     )
 

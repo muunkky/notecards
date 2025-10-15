@@ -6,24 +6,14 @@
     "auditLog": "c:\\Users\\Cameron\\Projects\\note_apps\\notecards\\logs\\.a3ba139802d35de1b9573fea6dc64a5d3ace3a93-audit.json",
     "files": [
         {
-            "date": 1756805902929,
-            "name": "c:\\Users\\Cameron\\Projects\\note_apps\\notecards\\logs\\mcp-puppeteer-2025-09-02.log",
-            "hash": "f38e73b74cd9e2e870299ac2f7343eea84f3e6db3c6ad45290bab5cfe9283339"
+            "date": 1760501489240,
+            "name": "c:\\Users\\Cameron\\Projects\\note_apps\\notecards\\logs\\mcp-puppeteer-2025-10-14.log",
+            "hash": "b415577c84efa6bb95936abde374a1160850f5e23fce67d74a6c2a61b4678bab"
         },
         {
-            "date": 1756951824949,
-            "name": "c:\\Users\\Cameron\\Projects\\note_apps\\notecards\\logs\\mcp-puppeteer-2025-09-03.log",
-            "hash": "bbdb92207a7053f85f284deb97dd714d9464c4ed339a0ab1c4477fa76e2b0236"
-        },
-        {
-            "date": 1757001312961,
-            "name": "c:\\Users\\Cameron\\Projects\\note_apps\\notecards\\logs\\mcp-puppeteer-2025-09-04.log",
-            "hash": "8bf02a8ec01dc22ddf7b77a6fc6cae1db9d80c6e0fe3c43a00534de6efa6d05f"
-        },
-        {
-            "date": 1757230871729,
-            "name": "c:\\Users\\Cameron\\Projects\\note_apps\\notecards\\logs\\mcp-puppeteer-2025-09-07.log",
-            "hash": "e353382fc162c689bae91f7ca861b79bb94154aa0984a8b7a395ab8fdd8f67b0"
+            "date": 1760511627184,
+            "name": "c:\\Users\\Cameron\\Projects\\note_apps\\notecards\\logs\\mcp-puppeteer-2025-10-15.log",
+            "hash": "75534eaabf0ed8ab57ecdd5e579540c4d80327b736662700e37a058b93e9855d"
         }
     ],
     "hashType": "sha256"

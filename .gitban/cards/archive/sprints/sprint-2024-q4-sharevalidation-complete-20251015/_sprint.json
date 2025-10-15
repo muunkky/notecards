@@ -1,0 +1,26 @@
+{
+  "sprint_id": "sprint-2024-q4-sharevalidation-complete-20251015",
+  "sprint_name": "2024-Q4-SHAREVALIDATION-Complete",
+  "sprint_folder": "sprint-2024-q4-sharevalidation-complete-20251015",
+  "created_at": "2025-10-15T03:13:51.639754",
+  "start_date": null,
+  "end_date": "2025-10-15",
+  "archived_at": "2025-10-15T03:13:51.639754",
+  "card_ids": [],
+  "metrics": {
+    "total_cards": 11,
+    "by_priority": {
+      "P1": 5,
+      "P2": 6
+    },
+    "by_type": {
+      "feature": 4,
+      "test": 1,
+      "chore": 3,
+      "docs": 3
+    },
+    "by_owner": {
+      "Unassigned": 11
+    }
+  }
+}
