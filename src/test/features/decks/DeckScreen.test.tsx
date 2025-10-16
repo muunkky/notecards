@@ -20,6 +20,11 @@ vi.mock('../../../hooks/useDeckOperations', () => ({
   useDeckOperations: mockUseDeckOperations
 }))
 
+// CRITICAL FIX: Mock the useAccessibleDecks hook (sharing feature)
+vi.mock('../../../hooks/useAccessibleDecks', () => ({
+  useAccessibleDecks: mockUseAccessibleDecks
+}))
+
 // Mock the AuthProvider hook
 vi.mock('../../../providers/AuthProvider', () => ({
   useAuth: mockUseAuth
@@ -126,7 +131,14 @@ describe('DeckScreen Component', () => {
 
   describe('Deck List', () => {
     beforeEach(() => {
+      // Mock both hooks since DeckScreen calls both (feature flag determines which is used)
       mockUseDecks.mockReturnValue({
+        decks: mockDecks,
+        loading: false,
+        error: null
+      })
+      // CRITICAL FIX: Since FEATURE_DECK_SHARING is enabled, mock the hook that's actually used
+      mockUseAccessibleDecks.mockReturnValue({
         decks: mockDecks,
         loading: false,
         error: null
@@ -204,7 +216,14 @@ describe('DeckScreen Component', () => {
 
   describe('Deck Actions', () => {
     beforeEach(() => {
+      // Mock both hooks since DeckScreen calls both (feature flag determines which is used)
       mockUseDecks.mockReturnValue({
+        decks: mockDecks,
+        loading: false,
+        error: null
+      })
+      // CRITICAL FIX: Since FEATURE_DECK_SHARING is enabled, mock the hook that's actually used
+      mockUseAccessibleDecks.mockReturnValue({
         decks: mockDecks,
         loading: false,
         error: null
