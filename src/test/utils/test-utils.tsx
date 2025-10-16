@@ -116,3 +116,90 @@ export const mockTimestamp = (date: Date = new Date()) => ({
   seconds: Math.floor(date.getTime() / 1000),
   nanoseconds: (date.getTime() % 1000) * 1000000,
 })
+
+// Modern async testing utilities
+export const asyncTestUtils = {
+  /** Wait for all pending promises and micro-tasks */
+  flushAll: async () => {
+    await flushPromises()
+    await new Promise<void>(resolve => queueMicrotask(() => resolve()))
+  },
+  
+  /** Wait for a specific condition with timeout */
+  waitForCondition: async (
+    condition: () => boolean | Promise<boolean>,
+    timeout = 5000,
+    interval = 50
+  ): Promise<void> => {
+    const start = Date.now()
+    while (Date.now() - start < timeout) {
+      if (await condition()) return
+      await new Promise(resolve => setTimeout(resolve, interval))
+    }
+    throw new Error(`Condition not met within ${timeout}ms`)
+  },
+  
+  /** Wait for element to be removed from DOM */
+  waitForRemoval: async (element: HTMLElement, timeout = 5000) => {
+    await waitFor(() => {
+      expect(element).not.toBeInTheDocument()
+    }, { timeout })
+  }
+}
+
+// Modern mock factories
+export const mockFactories = {
+  user: (overrides: Partial<User> = {}): User => ({
+    ...mockUser,
+    ...overrides
+  }),
+  
+  deck: (overrides = {}) => ({
+    id: `deck-${Math.random().toString(36).substr(2, 9)}`,
+    title: 'Test Deck',
+    ownerId: 'test-user-123',
+    cardCount: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    ...overrides
+  }),
+  
+  card: (overrides = {}) => ({
+    id: `card-${Math.random().toString(36).substr(2, 9)}`,
+    title: 'Test Card',
+    body: 'Test card body',
+    deckId: 'test-deck-id',
+    orderIndex: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    archived: false,
+    favorite: false,
+    ...overrides
+  })
+}
+
+// Performance testing utilities
+export const performanceTestUtils = {
+  /** Measure render time of a component */
+  measureRender: async (renderFn: () => any) => {
+    const start = performance.now()
+    const result = renderFn()
+    await flushPromises()
+    const end = performance.now()
+    return { result, renderTime: end - start }
+  },
+  
+  /** Assert that an operation completes within time limit */
+  assertPerformance: async (
+    operation: () => Promise<any> | any,
+    maxTime: number,
+    description: string
+  ) => {
+    const start = performance.now()
+    await operation()
+    const duration = performance.now() - start
+    if (duration > maxTime) {
+      throw new Error(`${description} took ${duration}ms, expected < ${maxTime}ms`)
+    }
+  }
+}
