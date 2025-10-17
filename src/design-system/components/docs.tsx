@@ -621,13 +621,13 @@ export const ComponentDocumentationPortal: React.FC = () => {
       
       <Card variant="outlined" style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>
         <h3>Quick Example</h3>
-        <div style={{ 
+        <div style={{
           background: tokenCSS.semantic.color.backgroundSecondary,
           padding: tokenCSS.semantic.spacing.md,
           borderRadius: tokenCSS.semantic.borderRadius.md,
           marginBottom: tokenCSS.semantic.spacing.md
         }}>
-          <currentDoc.examples[0].component {...currentDoc.examples[0].props} />
+          {React.createElement(currentDoc.examples[0].component, currentDoc.examples[0].props)}
         </div>
         <pre style={{ 
           background: tokenCSS.color.gray100,
@@ -652,7 +652,7 @@ export const ComponentDocumentationPortal: React.FC = () => {
             {example.description}
           </p>
           
-          <div style={{ 
+          <div style={{
             background: tokenCSS.semantic.color.backgroundSecondary,
             padding: tokenCSS.semantic.spacing.lg,
             borderRadius: tokenCSS.semantic.borderRadius.md,
@@ -662,7 +662,7 @@ export const ComponentDocumentationPortal: React.FC = () => {
             justifyContent: 'center',
             minHeight: '80px'
           }}>
-            <example.component {...example.props} />
+            {React.createElement(example.component, example.props)}
           </div>
           
           <pre style={{ 
