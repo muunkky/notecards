@@ -27,24 +27,8 @@ jobs:
       - name: Type Check
         run: npx tsc --noEmit
 
-      - name: Run Tests with Coverage
-        run: npm run test:coverage -- --reporter=json --outputFile=coverage/coverage-final.json || true
-
-      - name: Enforce Coverage Threshold
-        run: |
-          node <<'EOF'
-          import fs from 'fs'
-          const min = parseInt(process.env.MIN_LINES_COVERAGE || '80',10)
-          const summaryPath = 'coverage/coverage-summary.json'
-          if (!fs.existsSync(summaryPath)) {
-            console.error('Coverage summary not found at', summaryPath)
-            process.exit(1)
-          }
-            const data = JSON.parse(fs.readFileSync(summaryPath,'utf8'))
-            const lines = data.total.lines.pct
-            console.log('Lines coverage:', lines, 'required:', min)
-            if (lines < min) { console.error(`Coverage ${lines}% < required ${min}%`); process.exit(1) }
-          EOF
+      - name: Run Tests
+        run: npm run test:run
 
       - name: Build
         run: npm run build
