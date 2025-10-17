@@ -3,6 +3,18 @@ import { describe, it, expect, beforeAll, afterEach } from 'vitest'
 const RUN_RULES_VITEST = process.env.FIRESTORE_RULES_VITEST === '1'
 
 // If not running, define a skipped placeholder suite and bail early (avoid loading emulator helpers at all)
+// Import emulator utils at top level (tree-shaking will handle unused imports)
+import {
+  initTestEnv,
+  cleanupEnv,
+  seedDeck,
+  addRoles,
+  attemptReadDeck,
+  seedCard,
+  attemptUpdateCard,
+  attemptUpdateDeckTitle
+} from './utils/emulator'
+
 if (!RUN_RULES_VITEST) {
   describe.skip('Firestore Rules (Sharing) (disabled)', () => {
     it('skipped because FIRESTORE_RULES_VITEST != 1', () => {
@@ -10,11 +22,6 @@ if (!RUN_RULES_VITEST) {
     })
   })
 } else {
-  // Only import heavy helpers when actually executing
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  var emulator = require('./utils/emulator')
-  // Destructure after require to keep types loose in this guarded path
-  const { initTestEnv, cleanupEnv, seedDeck, addRoles, attemptReadDeck, seedCard, attemptUpdateCard, attemptUpdateDeckTitle } = emulator
 
 // This test suite is OPTIONAL and only runs when FIRESTORE_RULES_VITEST=1 is set.
 // Rationale: The standalone verifier script (scripts/verify-firestore-rules.mjs) is the
