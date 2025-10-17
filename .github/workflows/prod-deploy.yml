@@ -33,10 +33,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Firebase Deploy (Hosting + Firestore)
+      - name: Firebase Deploy (Hosting Only)
         uses: w9jds/firebase-action@v13.29.0
         with:
-          args: deploy --only hosting,firestore:rules,firestore:indexes --force
+          args: deploy --only hosting
         env:
           GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_NOTECARDS_1B054 }}
           PROJECT_ID: notecards-1b054
