@@ -1,0 +1,25 @@
+{
+  "sprint_id": "sprint-designsys-2024-q4-complete-foundation-infrastructure-20251017",
+  "sprint_name": "DESIGNSYS-2024-Q4-complete-foundation-infrastructure",
+  "sprint_folder": "sprint-designsys-2024-q4-complete-foundation-infrastructure-20251017",
+  "created_at": "2025-10-17T00:02:47.783465",
+  "start_date": null,
+  "end_date": "2025-10-17",
+  "archived_at": "2025-10-17T00:02:47.783465",
+  "card_ids": [],
+  "metrics": {
+    "total_cards": 12,
+    "by_priority": {
+      "P1": 8,
+      "P2": 4
+    },
+    "by_type": {
+      "docs": 2,
+      "feature": 6,
+      "chore": 4
+    },
+    "by_owner": {
+      "Unassigned": 12
+    }
+  }
+}
