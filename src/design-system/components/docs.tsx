@@ -619,8 +619,9 @@ export const ComponentDocumentationPortal: React.FC = () => {
         {currentDoc.description}
       </p>
       
-      <Card variant="outlined" style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>
-        <h3>Quick Example</h3>
+      <div style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>
+        <Card variant="outlined">
+          <h3>Quick Example</h3>
         <div style={{
           background: tokenCSS.semantic.color.backgroundSecondary,
           padding: tokenCSS.semantic.spacing.md,
@@ -638,7 +639,8 @@ export const ComponentDocumentationPortal: React.FC = () => {
         }}>
           {currentDoc.examples[0].code}
         </pre>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
   
@@ -646,7 +648,8 @@ export const ComponentDocumentationPortal: React.FC = () => {
     <div>
       <h2 style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>Examples</h2>
       {currentDoc.examples.map((example, index) => (
-        <Card key={index} variant="outlined" style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>
+        <div key={index} style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>
+          <Card variant="outlined">
           <h3>{example.title}</h3>
           <p style={{ color: tokenCSS.semantic.color.textSecondary, marginBottom: tokenCSS.semantic.spacing.md }}>
             {example.description}
@@ -675,7 +678,8 @@ export const ComponentDocumentationPortal: React.FC = () => {
           }}>
             {example.code}
           </pre>
-        </Card>
+          </Card>
+        </div>
       ))}
     </div>
   );
@@ -790,34 +794,35 @@ export const ComponentDocumentationPortal: React.FC = () => {
     <div>
       <h2 style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>Accessibility</h2>
       
-      <Card variant="outlined" style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>
+      <div style={{ marginBottom: tokenCSS.semantic.spacing.lg }}><Card variant="outlined">
         <h3>ARIA Support</h3>
         <ul>
           {currentDoc.accessibility.ariaSupport.map((item, index) => (
             <li key={index}>{item}</li>
           ))}
         </ul>
-      </Card>
-      
-      <Card variant="outlined" style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>
+      </Card></div>
+
+      <div style={{ marginBottom: tokenCSS.semantic.spacing.lg }}><Card variant="outlined">
         <h3>Keyboard Support</h3>
         <ul>
           {currentDoc.accessibility.keyboardSupport.map((item, index) => (
             <li key={index}>{item}</li>
           ))}
         </ul>
-      </Card>
-      
-      <Card variant="outlined" style={{ marginBottom: tokenCSS.semantic.spacing.lg }}>
+      </Card></div>
+
+      <div style={{ marginBottom: tokenCSS.semantic.spacing.lg }}><Card variant="outlined">
         <h3>WCAG Compliance</h3>
         <ul>
           {currentDoc.accessibility.wcagCompliance.map((item, index) => (
             <li key={index}>{item}</li>
           ))}
         </ul>
-      </Card>
-      
-      <Card variant="outlined">
+      </Card></div>
+
+      <div>
+        <Card variant="outlined">
         <h3>Recommendations</h3>
         <ul>
           {currentDoc.accessibility.recommendations.map((item, index) => (
@@ -825,6 +830,7 @@ export const ComponentDocumentationPortal: React.FC = () => {
           ))}
         </ul>
       </Card>
+      </div>
     </div>
   );
   
