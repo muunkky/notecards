@@ -71,7 +71,12 @@
     "ui:interactive": "node scripts/interactive-ui.mjs",
     "typecheck:tests": "tsc -p tsconfig.tests.json --noEmit",
     "kill:orphans": "powershell -ExecutionPolicy Bypass -File ./scripts/kill-orphans.ps1",
-    "ports:emulators": "powershell -ExecutionPolicy Bypass -File ./scripts/list-emulator-ports.ps1"
+    "ports:emulators": "powershell -ExecutionPolicy Bypass -File ./scripts/list-emulator-ports.ps1",
+    "release": "node scripts/release.mjs",
+    "release:patch": "node scripts/release.mjs patch",
+    "release:minor": "node scripts/release.mjs minor",
+    "release:major": "node scripts/release.mjs major",
+    "release:dry-run": "node scripts/release.mjs patch --dry-run"
   },
   "keywords": [],
   "author": "",
