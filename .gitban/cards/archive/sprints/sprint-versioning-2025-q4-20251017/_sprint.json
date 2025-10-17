@@ -1,0 +1,23 @@
+{
+  "sprint_id": "sprint-versioning-2025-q4-20251017",
+  "sprint_name": "VERSIONING-2025-Q4",
+  "sprint_folder": "sprint-versioning-2025-q4-20251017",
+  "created_at": "2025-10-17T17:52:50.209694",
+  "start_date": null,
+  "end_date": "2025-10-17",
+  "archived_at": "2025-10-17T17:52:50.209694",
+  "card_ids": [],
+  "metrics": {
+    "total_cards": 6,
+    "by_priority": {
+      "P1": 6
+    },
+    "by_type": {
+      "feature": 6
+    },
+    "by_owner": {
+      "Unassigned": 5,
+      "CAMERON": 1
+    }
+  }
+}
