@@ -1,6 +1,6 @@
 {
   "name": "notecards",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Professional notecard application with world-class manual reordering and browser automation services",
   "main": "index.js",
   "directories": {
