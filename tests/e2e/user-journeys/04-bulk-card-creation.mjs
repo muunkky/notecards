@@ -40,10 +40,14 @@ const RUN_TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19
 const SCREENSHOT_DIR = resolve(process.cwd(), 'tests/e2e/screenshots', JOURNEY_NAME, RUN_TIMESTAMP);
 
 // Test data
-const TEST_DECK_TITLE = `Workflow Test ${TIMESTAMP}`;
-const TEST_CARD_FRONT = `Question ${TIMESTAMP}`;
-const TEST_CARD_BACK = `Answer ${TIMESTAMP}`;
-const TEST_CARD_UPDATED_FRONT = `Updated Question ${TIMESTAMP}`;
+const TEST_DECK_TITLE = `Bulk Cards Test ${TIMESTAMP}`;
+const TEST_CARDS = [
+  { front: `Capital of France ${TIMESTAMP}`, back: `Paris` },
+  { front: `Capital of Italy ${TIMESTAMP}`, back: `Rome` },
+  { front: `Capital of Spain ${TIMESTAMP}`, back: `Madrid` },
+  { front: `Capital of Germany ${TIMESTAMP}`, back: `Berlin` },
+  { front: `Capital of Portugal ${TIMESTAMP}`, back: `Lisbon` }
+];
 
 /**
  * Take a screenshot and save with descriptive filename
@@ -465,44 +469,53 @@ async function runProductionWorkflowTest() {
       results.warnings.push('Deck view navigation');
     }
 
-    // Step 6: Create card
+    // Step 6: Create 5 cards in bulk
     step++;
-    console.log(`\n📋 Step ${step}: Create Card`);
+    console.log(`\n📋 Step ${step}: Create Multiple Cards (Bulk Operation)`);
     console.log('─'.repeat(60));
-    console.log(`📝 Front: "${TEST_CARD_FRONT}"`);
-    console.log(`📝 Back: "${TEST_CARD_BACK}"`);
+    console.log(`📦 Creating ${TEST_CARDS.length} cards...`);
 
-    // Click add card button
-    const addCardClicked = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
-      const addButton = buttons.find(btn => {
-        const text = btn.textContent.toLowerCase();
-        return (text.includes('add') && text.includes('card')) ||
-               text.includes('new card') ||
-               text.includes('create card');
+    let cardsCreated = 0;
+    for (let i = 0; i < TEST_CARDS.length; i++) {
+      const card = TEST_CARDS[i];
+      console.log(`\n  Card ${i + 1}/${TEST_CARDS.length}:`);
+      console.log(`  📝 Front: "${card.front}"`);
+      console.log(`  📝 Back: "${card.back}"`);
+
+      // Click add card button
+      const addCardClicked = await page.evaluate(() => {
+        const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+        const addButton = buttons.find(btn => {
+          const text = btn.textContent.toLowerCase();
+          return (text.includes('add') && text.includes('card')) ||
+                 text.includes('new card') ||
+                 text.includes('create card');
+        });
+
+        if (addButton) {
+          addButton.click();
+          return true;
+        }
+        return false;
       });
 
-      if (addButton) {
-        console.log('Found add card button');
-        addButton.click();
-        return true;
+      if (!addCardClicked) {
+        console.log(`  ⚠️  Add card button not found for card ${i + 1}`);
+        continue;
       }
-      return false;
-    });
 
-    if (addCardClicked) {
-      await wait(1500, 'Waiting for card form...');
+      await wait(1500);
 
-      await logPageState(page, 'Card form');
-      const screenshot6a = await takeScreenshot(page, step, 'card-form');
-      if (screenshot6a) results.screenshots.push(screenshot6a);
+      // Take screenshot of form (only for first card)
+      if (i === 0) {
+        const screenshotForm = await takeScreenshot(page, `${step}-card-${i+1}`, 'card-form');
+        if (screenshotForm) results.screenshots.push(screenshotForm);
+      }
 
       // Fill card front and back
-      console.log('📝 Filling card content...');
       const fillResult = await page.evaluate(({ front, back }) => {
         const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
 
-        // Find front and back inputs
         const frontInput = inputs.find(input => {
           const placeholder = input.placeholder?.toLowerCase() || '';
           const name = input.name?.toLowerCase() || '';
@@ -515,11 +528,8 @@ async function runProductionWorkflowTest() {
           return placeholder.includes('back') || placeholder.includes('answer') || name.includes('back');
         }) || inputs[1];
 
-        // Helper function to get the correct native setter for an element
         const setReactValue = (element, value) => {
           if (!element) return false;
-
-          // Get the correct setter based on element type
           let nativeValueSetter;
           if (element.tagName === 'TEXTAREA') {
             nativeValueSetter = Object.getOwnPropertyDescriptor(
@@ -530,7 +540,6 @@ async function runProductionWorkflowTest() {
               window.HTMLInputElement.prototype, 'value'
             )?.set;
           }
-
           if (nativeValueSetter) {
             nativeValueSetter.call(element, value);
             element.dispatchEvent(new Event('input', { bubbles: true }));
@@ -544,173 +553,79 @@ async function runProductionWorkflowTest() {
         const frontSet = setReactValue(frontInput, front);
         const backSet = setReactValue(backInput, back);
 
-        return {
-          inputCount: inputs.length,
-          frontSet,
-          backSet,
-          frontValue: frontInput?.value,
-          backValue: backInput?.value
-        };
-      }, { front: TEST_CARD_FRONT, back: TEST_CARD_BACK });
+        return { frontSet, backSet };
+      }, { front: card.front, back: card.back });
 
-      console.log('🔍 Card fill result:', fillResult);
+      if (!fillResult.frontSet || !fillResult.backSet) {
+        console.log(`  ⚠️  Failed to fill card ${i + 1}`);
+        continue;
+      }
 
       await wait(1000);
 
       // Save card
-      console.log('💾 Saving card...');
       const cardSaveResult = await page.evaluate(() => {
         const buttons = Array.from(document.querySelectorAll('button'));
-
-        // Look for exact matches first (modal buttons)
         const exactMatches = buttons.filter(btn => {
           const text = btn.textContent.trim().toLowerCase();
           return text === 'save' || text === 'create' || text === 'add';
         });
-
-        // Then look for partial matches (exclude long button text)
         const partialMatches = buttons.filter(btn => {
           const text = btn.textContent.trim().toLowerCase();
           return (text.includes('save') || text.includes('create') || text.includes('add')) &&
                  !text.includes('new') &&
                  text.length < 20;
         });
-
         const saveButton = exactMatches[0] || partialMatches[0];
-
         if (saveButton) {
           saveButton.click();
-          return {
-            success: true,
-            buttonText: saveButton.textContent.trim()
-          };
+          return { success: true };
         }
-
-        return {
-          success: false,
-          buttonCount: buttons.length,
-          allButtons: buttons.map(b => b.textContent.trim())
-        };
+        return { success: false };
       });
 
-      console.log('🔍 Card save result:', cardSaveResult);
+      if (!cardSaveResult.success) {
+        console.log(`  ⚠️  Failed to save card ${i + 1}`);
+        continue;
+      }
 
-      await wait(2000, 'Waiting for card creation...');
-
-      await logPageState(page, 'After card save');
-      const screenshot6b = await takeScreenshot(page, step, 'card-created');
-      if (screenshot6b) results.screenshots.push(screenshot6b);
-
-      // Wait a bit more to ensure card is rendered in the list
-      await wait(1000);
-
-      // Take a final screenshot showing the deck with the created card
-      const screenshot6c = await takeScreenshot(page, step, 'deck-with-card');
-      if (screenshot6c) results.screenshots.push(screenshot6c);
+      await wait(2000);
 
       // Verify card exists
       const cardExists = await page.evaluate((front) => {
         return document.body.textContent.includes(front);
-      }, TEST_CARD_FRONT);
+      }, card.front);
 
       if (cardExists) {
-        console.log('✅ Card created successfully');
-        console.log('📸 Captured deck view with created card');
-        results.passed.push('Create card');
-      } else {
-        console.log('⚠️  Card verification uncertain');
-        results.warnings.push('Card verification');
-      }
-    } else {
-      console.log('⚠️  Add card button not found');
-      results.warnings.push('Card creation skipped');
-    }
+        console.log(`  ✅ Card ${i + 1} created successfully`);
+        cardsCreated++;
 
-    // Step 7: Edit card
-    step++;
-    console.log(`\n📋 Step ${step}: Edit Card`);
-    console.log('─'.repeat(60));
-
-    // Find and click edit button or card
-    const editClicked = await page.evaluate((front) => {
-      // Try to find edit button
-      const editButtons = Array.from(document.querySelectorAll('button, [role="button"]')).filter(btn => {
-        const text = btn.textContent.toLowerCase();
-        return text.includes('edit');
-      });
-
-      if (editButtons.length > 0) {
-        console.log('Found edit button');
-        editButtons[0].click();
-        return true;
-      }
-
-      // Alternative: click on the card itself
-      const cards = Array.from(document.querySelectorAll('[data-card], .card, div[onclick]'));
-      const targetCard = cards.find(card => card.textContent.includes(front));
-      if (targetCard) {
-        console.log('Clicking card itself');
-        targetCard.click();
-        return true;
-      }
-
-      return false;
-    }, TEST_CARD_FRONT);
-
-    if (editClicked) {
-      await wait(1500);
-
-      const screenshot7a = await takeScreenshot(page, step, 'edit-card');
-      if (screenshot7a) results.screenshots.push(screenshot7a);
-
-      // Update the front text
-      console.log(`📝 Updating to: "${TEST_CARD_UPDATED_FRONT}"`);
-      await page.evaluate((newFront) => {
-        const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
-        const frontInput = inputs.find(input => {
-          const placeholder = input.placeholder?.toLowerCase() || '';
-          return placeholder.includes('front') || placeholder.includes('question');
-        }) || inputs[0];
-
-        if (frontInput) {
-          const nativeValueSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLInputElement.prototype, 'value'
-          )?.set || Object.getOwnPropertyDescriptor(
-            window.HTMLTextAreaElement.prototype, 'value'
-          )?.set;
-
-          if (nativeValueSetter) {
-            nativeValueSetter.call(frontInput, newFront);
-            frontInput.dispatchEvent(new Event('input', { bubbles: true }));
-            frontInput.dispatchEvent(new Event('change', { bubbles: true }));
-          }
+        // Take screenshot after each card (to show progress)
+        if (i === TEST_CARDS.length - 1 || i % 2 === 0) {
+          const screenshot = await takeScreenshot(page, `${step}-card-${i+1}`, `after-card-${i+1}`);
+          if (screenshot) results.screenshots.push(screenshot);
         }
-      }, TEST_CARD_UPDATED_FRONT);
-
-      await wait(500);
-
-      // Save changes
-      await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        const saveButton = buttons.find(btn => btn.textContent.toLowerCase().includes('save'));
-        if (saveButton) saveButton.click();
-      });
-
-      await wait(2000);
-
-      const screenshot7b = await takeScreenshot(page, step, 'card-updated');
-      if (screenshot7b) results.screenshots.push(screenshot7b);
-
-      console.log('✅ Card updated');
-      results.passed.push('Edit card');
-    } else {
-      console.log('⚠️  Edit functionality not tested');
-      results.warnings.push('Edit card skipped');
+      } else {
+        console.log(`  ⚠️  Card ${i + 1} verification failed`);
+      }
     }
 
-    // Note: Study mode doesn't exist in current app (only 'decks' and 'cards' screens)
-    // App features: Create deck → View deck → Create card → Edit card
-    // Future: Could add delete card/deck tests, but keeping simple for now
+    console.log(`\n📊 Bulk Creation Summary: ${cardsCreated}/${TEST_CARDS.length} cards created`);
+
+    if (cardsCreated === TEST_CARDS.length) {
+      console.log('✅ All cards created successfully');
+      results.passed.push(`Create ${TEST_CARDS.length} cards`);
+    } else if (cardsCreated > 0) {
+      console.log(`⚠️  Partial success: ${cardsCreated} cards created`);
+      results.warnings.push(`Only ${cardsCreated}/${TEST_CARDS.length} cards created`);
+    } else {
+      console.log('❌ No cards created');
+      results.warnings.push('Bulk card creation failed');
+    }
+
+    // Take final screenshot showing all cards
+    const screenshotFinal = await takeScreenshot(page, step, 'all-cards-final');
+    if (screenshotFinal) results.screenshots.push(screenshotFinal);
 
     // Final summary screenshot
     step++;
