@@ -69,6 +69,7 @@ export const useCards = (deckId: string): UseCardsResult => {
         )
 
         // Subscribe to real-time updates
+        console.log('useCards: About to call onSnapshot...')
         const unsubscribe = onSnapshot(
           q,
           (snapshot) => {
@@ -113,6 +114,8 @@ export const useCards = (deckId: string): UseCardsResult => {
             setCards([])
           }
         )
+
+        console.log('useCards: onSnapshot registered, unsubscribe function obtained:', typeof unsubscribe)
 
         // Return cleanup function
         return unsubscribe
