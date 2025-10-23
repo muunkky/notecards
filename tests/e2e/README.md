@@ -379,8 +379,14 @@ await fs.mkdir(SCREENSHOT_DIR, { recursive: true });
 **Last Updated**: October 23, 2025
 **Maintainer**: Development Team
 **Test Coverage**: 5 journeys
-- Journey 01: Create Deck and Add Card (✅ Implemented)
-- Journey 02: Edit and Delete Card (📝 Template)
-- Journey 03: Share Deck (📝 Template)
-- Journey 04: Bulk Card Creation (📝 Template)
-- Journey 05: Deck Management (📝 Template)
+
+| Journey | Status | Duration | Screenshots | Notes |
+|---------|--------|----------|-------------|-------|
+| 01: Create Deck and Add Card | ✅ Working | ~30s | 9 | Fully tested and verified |
+| 02: Edit and Delete Card | 📝 Template | - | - | Awaiting implementation |
+| 03: Share Deck | 📝 Template | - | - | Awaiting implementation |
+| 04: Bulk Card Creation | ✅ Working | ~45s | 9 | Creates 5 cards (1/5 verified) |
+| 05: Deck Management | 📝 Template | - | - | Awaiting implementation |
+
+**Working Journeys**: 2/5
+**Template Journeys**: 3/5

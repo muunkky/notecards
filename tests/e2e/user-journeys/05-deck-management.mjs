@@ -39,10 +39,11 @@ const RUN_TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19
 const SCREENSHOT_DIR = resolve(process.cwd(), 'tests/e2e/screenshots', JOURNEY_NAME, RUN_TIMESTAMP);
 
 // Test data
-const TEST_DECK_TITLE = `Workflow Test ${TIMESTAMP}`;
-const TEST_CARD_FRONT = `Question ${TIMESTAMP}`;
-const TEST_CARD_BACK = `Answer ${TIMESTAMP}`;
-const TEST_CARD_UPDATED_FRONT = `Updated Question ${TIMESTAMP}`;
+const TEST_DECKS = [
+  { title: `Spanish Vocabulary ${TIMESTAMP}`, action: 'keep' },
+  { title: `French Vocabulary ${TIMESTAMP}`, action: 'rename', newTitle: `French Language ${TIMESTAMP}` },
+  { title: `German Vocabulary ${TIMESTAMP}`, action: 'delete' }
+];
 
 /**
  * Take a screenshot and save with descriptive filename
