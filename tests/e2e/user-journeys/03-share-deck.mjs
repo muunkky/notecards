@@ -265,7 +265,40 @@ async function runShareDeckTest() {
     const screenshot4b = await takeScreenshot(page, step, 'deck-created');
     if (screenshot4b) results.screenshots.push(screenshot4b);
 
-    console.log('✅ Deck created');
+    // Wait for the new deck to appear in the list (Firestore real-time update)
+    console.log('⏳ Waiting for deck to appear in list...');
+    let deckFound = false;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      await wait(1000);
+
+      const checkDeck = await page.evaluate((deckTitle) => {
+        const deckItems = document.querySelectorAll('[data-testid="deck-item"]');
+        for (const deckItem of deckItems) {
+          const h2 = deckItem.querySelector('h2');
+          if (h2 && h2.textContent.includes(deckTitle)) {
+            console.log(`Found deck "${deckTitle}" in list`);
+            return true;
+          }
+        }
+        console.log(`Deck "${deckTitle}" not found yet (${deckItems.length} decks visible)`);
+        return false;
+      }, TEST_DECK_TITLE);
+
+      if (checkDeck) {
+        deckFound = true;
+        console.log(`✅ Deck appeared in list after ${attempt + 1} seconds`);
+        break;
+      }
+    }
+
+    if (!deckFound) {
+      throw new Error(`Deck "${TEST_DECK_TITLE}" did not appear in list after 10 seconds`);
+    }
+
+    const screenshot4c = await takeScreenshot(page, step, 'deck-in-list');
+    if (screenshot4c) results.screenshots.push(screenshot4c);
+
+    console.log('✅ Deck created and visible');
     results.passed.push('Create deck');
 
     // Step 5: Open Share Dialog
