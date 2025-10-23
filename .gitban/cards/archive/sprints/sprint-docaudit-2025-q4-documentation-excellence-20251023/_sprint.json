@@ -1,0 +1,22 @@
+{
+  "sprint_id": "sprint-docaudit-2025-q4-documentation-excellence-20251023",
+  "sprint_name": "DOCAUDIT-2025-Q4-documentation-excellence",
+  "sprint_folder": "sprint-docaudit-2025-q4-documentation-excellence-20251023",
+  "created_at": "2025-10-23T02:07:32.066079",
+  "start_date": null,
+  "end_date": "2025-10-23",
+  "archived_at": "2025-10-23T02:07:32.066079",
+  "card_ids": [],
+  "metrics": {
+    "total_cards": 13,
+    "by_priority": {
+      "P1": 13
+    },
+    "by_type": {
+      "chore": 13
+    },
+    "by_owner": {
+      "CAMERON": 13
+    }
+  }
+}
