@@ -20,8 +20,9 @@ import { resolve } from 'path';
 
 // Configuration
 const PRODUCTION_URL = 'https://notecards-1b054.web.app';
-const SCREENSHOT_DIR = resolve(process.cwd(), 'docs/screenshots/production-workflow');
 const TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+const RUN_TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19); // YYYY-MM-DDTHH-MM-SS
+const SCREENSHOT_DIR = resolve(process.cwd(), 'docs/screenshots/production-workflow', RUN_TIMESTAMP);
 
 // Test data
 const TEST_DECK_TITLE = `Workflow Test ${TIMESTAMP}`;
@@ -584,6 +585,13 @@ async function runProductionWorkflowTest() {
       const screenshot6b = await takeScreenshot(page, step, 'card-created');
       if (screenshot6b) results.screenshots.push(screenshot6b);
 
+      // Wait a bit more to ensure card is rendered in the list
+      await wait(1000);
+
+      // Take a final screenshot showing the deck with the created card
+      const screenshot6c = await takeScreenshot(page, step, 'deck-with-card');
+      if (screenshot6c) results.screenshots.push(screenshot6c);
+
       // Verify card exists
       const cardExists = await page.evaluate((front) => {
         return document.body.textContent.includes(front);
@@ -591,6 +599,7 @@ async function runProductionWorkflowTest() {
 
       if (cardExists) {
         console.log('✅ Card created successfully');
+        console.log('📸 Captured deck view with created card');
         results.passed.push('Create card');
       } else {
         console.log('⚠️  Card verification uncertain');
