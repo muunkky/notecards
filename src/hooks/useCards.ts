@@ -123,16 +123,25 @@ export const useCards = (deckId: string): UseCardsResult => {
       }
     }
 
+    // Store unsubscribe function for cleanup
+    let unsubscribeFn: (() => void) | undefined
+
     checkDeckAndSetupSubscription().then((unsubscribe) => {
       // Store cleanup function for useEffect cleanup
-      if (unsubscribe) {
-        return () => unsubscribe()
-      }
+      unsubscribeFn = unsubscribe
     }).catch((err) => {
       console.error('Error in checkDeckAndSetupSubscription:', err)
       setError('Failed to load cards')
       setLoading(false)
     })
+
+    // Return cleanup function that calls the stored unsubscribe
+    return () => {
+      if (unsubscribeFn) {
+        console.log('useCards: Cleaning up subscription')
+        unsubscribeFn()
+      }
+    }
   }, [user, deckId])
 
   return { cards, loading, error }
