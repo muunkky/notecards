@@ -482,9 +482,8 @@ async function runProductionWorkflowTest() {
 
       // Fill card front and back
       console.log('📝 Filling card content...');
-      await page.evaluate(({ front, back }) => {
+      const fillResult = await page.evaluate(({ front, back }) => {
         const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
-        console.log(`Found ${inputs.length} text inputs`);
 
         // Find front and back inputs
         const frontInput = inputs.find(input => {
@@ -499,43 +498,85 @@ async function runProductionWorkflowTest() {
           return placeholder.includes('back') || placeholder.includes('answer') || name.includes('back');
         }) || inputs[1];
 
-        // React-aware input setting
-        const nativeValueSetter = Object.getOwnPropertyDescriptor(
-          window.HTMLInputElement.prototype, 'value'
-        )?.set || Object.getOwnPropertyDescriptor(
-          window.HTMLTextAreaElement.prototype, 'value'
-        )?.set;
+        // Helper function to get the correct native setter for an element
+        const setReactValue = (element, value) => {
+          if (!element) return false;
 
-        if (frontInput && nativeValueSetter) {
-          nativeValueSetter.call(frontInput, front);
-          frontInput.dispatchEvent(new Event('input', { bubbles: true }));
-          frontInput.dispatchEvent(new Event('change', { bubbles: true }));
-          console.log('Front set to:', frontInput.value);
-        }
+          // Get the correct setter based on element type
+          let nativeValueSetter;
+          if (element.tagName === 'TEXTAREA') {
+            nativeValueSetter = Object.getOwnPropertyDescriptor(
+              window.HTMLTextAreaElement.prototype, 'value'
+            )?.set;
+          } else {
+            nativeValueSetter = Object.getOwnPropertyDescriptor(
+              window.HTMLInputElement.prototype, 'value'
+            )?.set;
+          }
 
-        if (backInput && nativeValueSetter) {
-          nativeValueSetter.call(backInput, back);
-          backInput.dispatchEvent(new Event('input', { bubbles: true }));
-          backInput.dispatchEvent(new Event('change', { bubbles: true }));
-          console.log('Back set to:', backInput.value);
-        }
+          if (nativeValueSetter) {
+            nativeValueSetter.call(element, value);
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+            element.dispatchEvent(new Event('blur', { bubbles: true }));
+            return true;
+          }
+          return false;
+        };
+
+        const frontSet = setReactValue(frontInput, front);
+        const backSet = setReactValue(backInput, back);
+
+        return {
+          inputCount: inputs.length,
+          frontSet,
+          backSet,
+          frontValue: frontInput?.value,
+          backValue: backInput?.value
+        };
       }, { front: TEST_CARD_FRONT, back: TEST_CARD_BACK });
+
+      console.log('🔍 Card fill result:', fillResult);
 
       await wait(1000);
 
       // Save card
       console.log('💾 Saving card...');
-      await page.evaluate(() => {
+      const cardSaveResult = await page.evaluate(() => {
         const buttons = Array.from(document.querySelectorAll('button'));
-        const saveButton = buttons.find(btn => {
-          const text = btn.textContent.toLowerCase();
-          return text.includes('save') || text.includes('create') || text.includes('add');
+
+        // Look for exact matches first (modal buttons)
+        const exactMatches = buttons.filter(btn => {
+          const text = btn.textContent.trim().toLowerCase();
+          return text === 'save' || text === 'create' || text === 'add';
         });
+
+        // Then look for partial matches (exclude long button text)
+        const partialMatches = buttons.filter(btn => {
+          const text = btn.textContent.trim().toLowerCase();
+          return (text.includes('save') || text.includes('create') || text.includes('add')) &&
+                 !text.includes('new') &&
+                 text.length < 20;
+        });
+
+        const saveButton = exactMatches[0] || partialMatches[0];
 
         if (saveButton) {
           saveButton.click();
+          return {
+            success: true,
+            buttonText: saveButton.textContent.trim()
+          };
         }
+
+        return {
+          success: false,
+          buttonCount: buttons.length,
+          allButtons: buttons.map(b => b.textContent.trim())
+        };
       });
+
+      console.log('🔍 Card save result:', cardSaveResult);
 
       await wait(2000, 'Waiting for card creation...');
 
