@@ -1,27 +1,25 @@
 /**
- * User Journey E2E Test: Edit and Delete Card
+ * User Journey E2E Test: Create Deck and Add Card
  *
  * User Story:
- * As a user managing my flashcards, I want to edit card content and delete cards I no longer need,
- * so I can keep my decks up-to-date and relevant.
+ * As a new user, I want to create my first flashcard deck and add a card to it,
+ * so I can start organizing my study materials.
  *
  * Journey Steps:
  * 1. Load production site
  * 2. Authenticate with Google
- * 3. Create a new deck with a card
- * 4. Edit the card's front and back content
- * 5. Verify edits are saved
- * 6. Delete the card
- * 7. Verify card is removed from deck
+ * 3. Create a new deck with a title
+ * 4. Navigate to deck details
+ * 5. Add a flashcard with front/back content
+ * 6. Verify card appears in deck
  *
  * Success Criteria:
- * - Card content updates successfully
- * - Edited content persists after save
- * - Card is removed from deck after deletion
+ * - Deck appears in user's deck list
+ * - Card is visible in the deck
  * - All interactions captured with screenshots
  *
  * Usage:
- *   node tests/e2e/user-journeys/02-edit-and-delete-card.mjs
+ *   node tests/e2e/user-journeys/01-create-deck-and-card.mjs
  */
 
 import browserService from '../../../services/browser-service.mjs';
@@ -100,11 +98,11 @@ async function waitForElement(page, selector, timeout = 5000) {
  * Main workflow test
  */
 async function runProductionWorkflowTest() {
-  console.log('🎬 User Journey E2E Test: Edit and Delete Card');
+  console.log('🎬 User Journey E2E Test: Create Deck and Add Card');
   console.log('═══════════════════════════════════════════════════');
   console.log(`📍 Target: ${PRODUCTION_URL}`);
   console.log(`📁 Screenshots: ${SCREENSHOT_DIR}`);
-  console.log(`👤 User Story: User edits card content and deletes cards`);
+  console.log(`👤 User Story: New user creates first deck and adds a card`);
   console.log('');
 
   // Ensure screenshot directory exists
