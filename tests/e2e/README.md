@@ -57,7 +57,82 @@ tests/e2e/
 
 **Run**:
 ```bash
-node tests/e2e/user-journeys/01-create-deck-and-card.mjs
+npm run test:journey:01
+```
+
+### 02: Edit and Delete Card
+
+**User Story**: As a user managing my flashcards, I want to edit card content and delete cards I no longer need.
+
+**Steps**:
+1. Load production site and authenticate
+2. Create a new deck with a card
+3. Edit the card's front and back content
+4. Verify edits are saved
+5. Delete the card
+6. Verify card is removed from deck
+
+**Duration**: ~45 seconds (estimated)
+
+**Run**:
+```bash
+npm run test:journey:02
+```
+
+### 03: Share Deck
+
+**User Story**: As a teacher or team member, I want to share my flashcard deck with others.
+
+**Steps**:
+1. Load production site and authenticate
+2. Create a new deck with cards
+3. Open sharing settings
+4. Generate shareable link
+5. Verify link is accessible
+6. Test permissions (view-only, edit, etc.)
+
+**Duration**: ~40 seconds (estimated)
+
+**Run**:
+```bash
+npm run test:journey:03
+```
+
+### 04: Bulk Card Creation
+
+**User Story**: As a user building a comprehensive study set, I want to create multiple flashcards efficiently.
+
+**Steps**:
+1. Load production site and authenticate
+2. Create a new deck
+3. Add five cards sequentially with verification
+4. View full deck with all cards
+5. Verify all cards are displayed correctly
+
+**Duration**: ~90 seconds (estimated)
+
+**Run**:
+```bash
+npm run test:journey:04
+```
+
+### 05: Deck Management
+
+**User Story**: As a user organizing my learning materials, I want to create, rename, and delete decks.
+
+**Steps**:
+1. Load production site and authenticate
+2. View current deck list
+3. Create three new decks
+4. Rename one of the decks
+5. Delete one of the decks
+6. Verify final deck list is correct
+
+**Duration**: ~60 seconds (estimated)
+
+**Run**:
+```bash
+npm run test:journey:05
 ```
 
 ## Creating New Journeys
@@ -303,4 +378,9 @@ await fs.mkdir(SCREENSHOT_DIR, { recursive: true });
 
 **Last Updated**: October 23, 2025
 **Maintainer**: Development Team
-**Test Coverage**: 1 journey (basic deck/card creation)
+**Test Coverage**: 5 journeys
+- Journey 01: Create Deck and Add Card (✅ Implemented)
+- Journey 02: Edit and Delete Card (📝 Template)
+- Journey 03: Share Deck (📝 Template)
+- Journey 04: Bulk Card Creation (📝 Template)
+- Journey 05: Deck Management (📝 Template)
