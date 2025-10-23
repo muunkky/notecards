@@ -504,13 +504,13 @@ async function runProductionWorkflowTest() {
         continue;
       }
 
-      // Wait for form to appear with inputs that have front/back placeholders
+      // Wait for card form to appear with "Card title" placeholder
       await wait(1000);
       await page.waitForFunction(() => {
         const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
         return inputs.some(input => {
           const placeholder = input.placeholder?.toLowerCase() || '';
-          return placeholder.includes('front') || placeholder.includes('question');
+          return placeholder.includes('card title') || placeholder.includes('card body');
         });
       }, { timeout: 5000 }).catch(() => {
         console.log(`  ⚠️  Card form didn't appear in time`);
@@ -524,21 +524,20 @@ async function runProductionWorkflowTest() {
         if (screenshotForm) results.screenshots.push(screenshotForm);
       }
 
-      // Fill card front and back
+      // Fill card title and body (not "front"/"back")
       const fillResult = await page.evaluate(({ front, back }) => {
         const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
 
+        // Find inputs by "Card title" and "Card body" placeholders
         const frontInput = inputs.find(input => {
           const placeholder = input.placeholder?.toLowerCase() || '';
-          const name = input.name?.toLowerCase() || '';
-          return placeholder.includes('front') || placeholder.includes('question') || name.includes('front');
-        }) || inputs[0];
+          return placeholder.includes('card title');
+        });
 
         const backInput = inputs.find(input => {
           const placeholder = input.placeholder?.toLowerCase() || '';
-          const name = input.name?.toLowerCase() || '';
-          return placeholder.includes('back') || placeholder.includes('answer') || name.includes('back');
-        }) || inputs[1];
+          return placeholder.includes('card body');
+        });
 
         const setReactValue = (element, value) => {
           if (!element) return false;
