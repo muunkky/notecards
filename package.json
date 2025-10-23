@@ -30,6 +30,8 @@
     "test:e2e:vitest": "vitest run --config vitest.e2e.config.ts",
     "test:e2e:watch": "vitest --config vitest.e2e.config.ts",
     "test:e2e:ui": "vitest --ui --config vitest.e2e.config.ts",
+    "test:journey": "node tests/e2e/user-journeys/01-create-deck-and-card.mjs",
+    "test:journey:01": "node tests/e2e/user-journeys/01-create-deck-and-card.mjs",
     "test:all": "npm run test:unit && npm run test:e2e",
     "test:coverage": "node scripts/run-tests-log.mjs -- --coverage",
     "test:coverage:log": "node scripts/run-tests-log.mjs -- --coverage",
