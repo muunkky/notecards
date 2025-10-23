@@ -144,7 +144,7 @@ async function runProductionWorkflowTest() {
     console.log(`\n📋 Step ${step}: Navigate to Production`);
     console.log('─'.repeat(60));
 
-    await page.goto(PRODUCTION_URL, { waitUntil: 'networkidle0', timeout: 30000 });
+    await page.goto(PRODUCTION_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await wait(2000, 'Stabilizing...');
 
     await logPageState(page, 'After navigation');
@@ -364,7 +364,7 @@ async function runProductionWorkflowTest() {
     // If we're on a deck detail page, navigate back to home
     if (currentUrl !== PRODUCTION_URL && currentUrl !== `${PRODUCTION_URL}/`) {
       console.log('📍 Navigated to deck view, going back to home...');
-      await page.goto(PRODUCTION_URL, { waitUntil: 'networkidle0' });
+      await page.goto(PRODUCTION_URL, { waitUntil: 'domcontentloaded' });
       await wait(2000, 'Loading home...');
 
       await logPageState(page, 'After nav to home');
