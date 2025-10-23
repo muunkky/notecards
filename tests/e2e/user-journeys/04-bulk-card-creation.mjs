@@ -504,7 +504,19 @@ async function runProductionWorkflowTest() {
         continue;
       }
 
-      await wait(1500);
+      // Wait for form to appear with inputs that have front/back placeholders
+      await wait(1000);
+      await page.waitForFunction(() => {
+        const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
+        return inputs.some(input => {
+          const placeholder = input.placeholder?.toLowerCase() || '';
+          return placeholder.includes('front') || placeholder.includes('question');
+        });
+      }, { timeout: 5000 }).catch(() => {
+        console.log(`  ⚠️  Card form didn't appear in time`);
+      });
+
+      await wait(500);
 
       // Take screenshot of form (only for first card)
       if (i === 0) {
