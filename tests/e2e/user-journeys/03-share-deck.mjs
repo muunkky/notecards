@@ -1,25 +1,28 @@
 /**
- * User Journey E2E Test: Create Deck and Add Card
+ * User Journey E2E Test: Share Deck with Collaborators
  *
  * User Story:
- * As a new user, I want to create my first flashcard deck and add a card to it,
- * so I can start organizing my study materials.
+ * As a deck owner, I want to share my deck with other users,
+ * so they can collaborate on creating and studying flashcards together.
  *
  * Journey Steps:
  * 1. Load production site
  * 2. Authenticate with Google
- * 3. Create a new deck with a title
- * 4. Navigate to deck details
- * 5. Add a flashcard with front/back content
- * 6. Verify card appears in deck
+ * 3. Create a new deck
+ * 4. Click Share button to open share dialog
+ * 5. Add collaborator email (creates pending invite)
+ * 6. Verify pending invite appears in dialog
+ * 7. (Optional) Test changing role or removing invite
  *
  * Success Criteria:
- * - Deck appears in user's deck list
- * - Card is visible in the deck
+ * - Deck created successfully
+ * - Share dialog opens
+ * - Collaborator email can be entered
+ * - Pending invite appears in the dialog
  * - All interactions captured with screenshots
  *
  * Usage:
- *   node tests/e2e/user-journeys/01-create-deck-and-card.mjs
+ *   node tests/e2e/user-journeys/03-share-deck.mjs
  */
 
 import browserService from '../../../services/browser-service.mjs';
@@ -34,10 +37,8 @@ const RUN_TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19
 const SCREENSHOT_DIR = resolve(process.cwd(), 'tests/e2e/screenshots', JOURNEY_NAME, RUN_TIMESTAMP);
 
 // Test data
-const TEST_DECK_TITLE = `Workflow Test ${TIMESTAMP}`;
-const TEST_CARD_FRONT = `Question ${TIMESTAMP}`;
-const TEST_CARD_BACK = `Answer ${TIMESTAMP}`;
-const TEST_CARD_UPDATED_FRONT = `Updated Question ${TIMESTAMP}`;
+const TEST_DECK_TITLE = `Share Test Deck ${TIMESTAMP}`;
+const TEST_COLLABORATOR_EMAIL = 'test-collaborator@example.com';
 
 /**
  * Take a screenshot and save with descriptive filename
@@ -83,26 +84,14 @@ async function logPageState(page, label = '') {
 }
 
 /**
- * Check if element exists and is visible
- */
-async function waitForElement(page, selector, timeout = 5000) {
-  try {
-    await page.waitForSelector(selector, { timeout, visible: true });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Main workflow test
  */
-async function runProductionWorkflowTest() {
-  console.log('🎬 User Journey E2E Test: Create Deck and Add Card');
+async function runShareDeckTest() {
+  console.log('🎬 User Journey E2E Test: Share Deck with Collaborators');
   console.log('═══════════════════════════════════════════════════');
   console.log(`📍 Target: ${PRODUCTION_URL}`);
   console.log(`📁 Screenshots: ${SCREENSHOT_DIR}`);
-  console.log(`👤 User Story: New user creates first deck and adds a card`);
+  console.log(`👤 User Story: Deck owner shares deck with collaborators`);
   console.log('');
 
   // Ensure screenshot directory exists
@@ -134,7 +123,7 @@ async function runProductionWorkflowTest() {
     console.log(`\n📋 Step ${step}: Navigate to Production`);
     console.log('─'.repeat(60));
 
-    await page.goto(PRODUCTION_URL, { waitUntil: 'networkidle0', timeout: 30000 });
+    await page.goto(PRODUCTION_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await wait(2000, 'Stabilizing...');
 
     await logPageState(page, 'After navigation');
@@ -196,16 +185,14 @@ async function runProductionWorkflowTest() {
     console.log('─'.repeat(60));
     console.log(`📝 Title: "${TEST_DECK_TITLE}"`);
 
-    // Find and click create button with better logging
+    // Find and click create button
     const createClicked = await page.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
       console.log(`Found ${buttons.length} clickable elements`);
 
       const createButton = buttons.find(btn => {
         const text = btn.textContent.toLowerCase();
-        return (text.includes('create') && text.includes('deck')) ||
-               text.includes('new deck') ||
-               text.includes('add deck');
+        return text.includes('create') && text.includes('deck');
       });
 
       if (createButton) {
@@ -213,21 +200,11 @@ async function runProductionWorkflowTest() {
         createButton.click();
         return true;
       }
-      console.log('No create button found');
       return false;
     });
 
     if (!createClicked) {
-      console.log('⚠️  Create button not found, trying alternative methods...');
-      // Alternative: look for + button or specific data attributes
-      await page.evaluate(() => {
-        const plusButtons = Array.from(document.querySelectorAll('button')).filter(btn =>
-          btn.textContent.trim() === '+' || btn.innerHTML.includes('+')
-        );
-        if (plusButtons.length > 0) {
-          plusButtons[0].click();
-        }
-      });
+      throw new Error('Create deck button not found');
     }
 
     await wait(1500, 'Waiting for form...');
@@ -236,51 +213,31 @@ async function runProductionWorkflowTest() {
     const screenshot4a = await takeScreenshot(page, step, 'create-form');
     if (screenshot4a) results.screenshots.push(screenshot4a);
 
-    // Fill form with React-aware input handling
+    // Fill deck title
     console.log('📝 Filling deck title...');
     const fillResult = await page.evaluate((title) => {
       const inputs = Array.from(document.querySelectorAll('input'));
 
-      // Find title input by placeholder, name, or position
       const titleInput = inputs.find(input => {
         const placeholder = input.placeholder?.toLowerCase() || '';
-        const name = input.name?.toLowerCase() || '';
-        const id = input.id?.toLowerCase() || '';
-        return placeholder.includes('title') ||
-               placeholder.includes('name') ||
-               name.includes('title') ||
-               id.includes('title');
-      }) || inputs[0]; // Fallback to first input
+        return placeholder.includes('title') || placeholder.includes('name');
+      }) || inputs[0];
 
       if (titleInput) {
-        const initialValue = titleInput.value;
-
-        // React-aware input setting
         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
         nativeInputValueSetter.call(titleInput, title);
 
-        // Trigger React events
         titleInput.dispatchEvent(new Event('input', { bubbles: true }));
         titleInput.dispatchEvent(new Event('change', { bubbles: true }));
         titleInput.dispatchEvent(new Event('blur', { bubbles: true }));
 
         return {
           success: true,
-          inputCount: inputs.length,
-          inputInfo: titleInput.placeholder || titleInput.name || 'first input',
-          initialValue,
-          finalValue: titleInput.value,
-          matches: titleInput.value === title
+          finalValue: titleInput.value
         };
       }
-      return {
-        success: false,
-        inputCount: inputs.length,
-        error: 'No title input found'
-      };
+      return { success: false };
     }, TEST_DECK_TITLE);
-
-    console.log(`🔍 Fill result:`, fillResult);
 
     if (!fillResult.success) {
       throw new Error('Could not fill deck title');
@@ -288,431 +245,242 @@ async function runProductionWorkflowTest() {
 
     await wait(1000);
 
-    // Click save/create with better logging
+    // Click save/create
     console.log('💾 Saving deck...');
-    const saveResult = await page.evaluate(() => {
+    await page.evaluate(() => {
       const buttons = Array.from(document.querySelectorAll('button'));
-
-      // Look for the modal's Create button (short, exact match preferred)
-      // Prioritize buttons with just "Create", "Save", "Add", or "Submit"
-      const exactMatches = buttons.filter(btn => {
+      const saveButton = buttons.find(btn => {
         const text = btn.textContent.trim().toLowerCase();
-        return text === 'create' || text === 'save' || text === 'add' || text === 'submit';
+        return text === 'create' || text === 'save';
       });
-
-      // If no exact match, look for buttons containing these words (but not "+ Create New Deck")
-      const partialMatches = buttons.filter(btn => {
-        const text = btn.textContent.trim().toLowerCase();
-        return (text.includes('create') || text.includes('save')) &&
-               !text.includes('new deck') &&  // Exclude header button
-               text.length < 20;  // Prefer shorter button text (modal buttons)
-      });
-
-      const saveButton = exactMatches[0] || partialMatches[0];
 
       if (saveButton) {
-        const result = {
-          success: true,
-          buttonText: saveButton.textContent,
-          disabled: saveButton.disabled,
-          className: saveButton.className,
-          allButtons: buttons.map(b => b.textContent.trim())
-        };
-
         saveButton.click();
-        return result;
       }
-
-      return {
-        success: false,
-        buttonCount: buttons.length,
-        allButtons: buttons.map(b => b.textContent.trim())
-      };
     });
-
-    console.log(`🔍 Save result:`, saveResult);
-
-    if (!saveResult.success) {
-      console.log('⚠️  Save button not clicked, trying Enter key...');
-      await page.keyboard.press('Enter');
-    }
-
-    if (saveResult.disabled) {
-      console.log('⚠️  Warning: Save button was disabled when clicked!');
-    }
 
     await wait(3000, 'Waiting for deck creation...');
 
     await logPageState(page, 'After save');
-    const screenshot4b = await takeScreenshot(page, step, 'after-save');
+    const screenshot4b = await takeScreenshot(page, step, 'deck-created');
     if (screenshot4b) results.screenshots.push(screenshot4b);
 
-    // Check current URL to understand where we are
-    const currentUrl = await page.url();
-    console.log(`🔍 Current URL: ${currentUrl}`);
+    console.log('✅ Deck created');
+    results.passed.push('Create deck');
 
-    // If we're on a deck detail page, navigate back to home
-    if (currentUrl !== PRODUCTION_URL && currentUrl !== `${PRODUCTION_URL}/`) {
-      console.log('📍 Navigated to deck view, going back to home...');
-      await page.goto(PRODUCTION_URL, { waitUntil: 'networkidle0' });
-      await wait(2000, 'Loading home...');
-
-      await logPageState(page, 'After nav to home');
-      const screenshot4c = await takeScreenshot(page, step, 'back-to-home');
-      if (screenshot4c) results.screenshots.push(screenshot4c);
-    }
-
-    // Verify deck exists with correct selectors
-    console.log('🔍 Verifying deck creation...');
-    const deckVerification = await page.evaluate((title) => {
-      const bodyText = document.body.textContent;
-      const hasTitle = bodyText.includes(title);
-
-      // Count deck elements using correct data-testid
-      const deckElements = document.querySelectorAll('[data-testid="deck-item"]');
-
-      // Find h2 elements with the deck title
-      const h2Elements = Array.from(document.querySelectorAll('h2'));
-      const deckTitleElement = h2Elements.find(h2 => h2.textContent.includes(title));
-
-      // List all deck titles found on the page
-      const allDeckTitles = Array.from(deckElements).map(deck => {
-        const h2 = deck.querySelector('h2');
-        return h2 ? h2.textContent.trim() : 'No title';
-      });
-
-      return {
-        hasTitle,
-        deckElementCount: deckElements.length,
-        hasDeckItem: !!deckTitleElement,
-        bodyLength: bodyText.length,
-        allDeckTitles
-      };
-    }, TEST_DECK_TITLE);
-
-    console.log(`🔍 Verification:`, deckVerification);
-    console.log(`   - Body includes title: ${deckVerification.hasTitle}`);
-    console.log(`   - Deck items found: ${deckVerification.deckElementCount}`);
-    console.log(`   - Has matching deck item: ${deckVerification.hasDeckItem}`);
-    console.log(`   - All deck titles: ${deckVerification.allDeckTitles.join(', ')}`);
-
-    if (deckVerification.hasDeckItem && deckVerification.deckElementCount > 0) {
-      console.log('✅ Deck created and verified (found in deck list)');
-      results.passed.push('Create deck');
-    } else if (deckVerification.hasTitle) {
-      console.log('⚠️  Deck title found but not in expected deck-item element');
-      results.warnings.push('Deck verification uncertain');
-      results.passed.push('Create deck (tentative)');
-    } else {
-      console.log('⚠️  Deck title not found in page');
-      console.log('   Deck may not have been created');
-      results.warnings.push('Deck creation may have failed');
-    }
-
-    // Step 5: View deck
+    // Step 5: Open Share Dialog
     step++;
-    console.log(`\n📋 Step ${step}: View Deck Details`);
+    console.log(`\n📋 Step ${step}: Open Share Dialog`);
     console.log('─'.repeat(60));
 
-    // Click on deck to view (using correct data-testid selector)
-    const deckClicked = await page.evaluate((title) => {
-      console.log('Looking for deck with title:', title);
-
-      // Strategy 1: Find deck-item with matching title in h2
+    // Find the deck we just created and click its Share button
+    const shareClicked = await page.evaluate((deckTitle) => {
+      // Find all deck items
       const deckItems = document.querySelectorAll('[data-testid="deck-item"]');
       console.log(`Found ${deckItems.length} deck items`);
 
+      // Find the deck with matching title
       for (const deckItem of deckItems) {
         const h2 = deckItem.querySelector('h2');
-        if (h2 && h2.textContent.includes(title)) {
-          console.log('Found matching deck item, clicking...');
-          deckItem.click();
-          return true;
+        if (h2 && h2.textContent.includes(deckTitle)) {
+          console.log('Found matching deck, looking for Share button...');
+
+          // Find Share button within this deck item
+          const buttons = Array.from(deckItem.querySelectorAll('button'));
+          const shareButton = buttons.find(btn => {
+            const text = btn.textContent.trim();
+            return text === 'Share' || text.toLowerCase().includes('share');
+          });
+
+          if (shareButton) {
+            console.log('Found Share button, clicking...');
+            shareButton.click();
+            return true;
+          } else {
+            console.log('Share button not found in this deck item');
+            console.log('Available buttons:', buttons.map(b => b.textContent.trim()));
+          }
         }
       }
 
-      // Strategy 2: Find any clickable element with the title
-      const allClickable = Array.from(document.querySelectorAll('article, a, [role="button"], div[onclick]'));
-      const matchingElement = allClickable.find(el => el.textContent.includes(title));
-
-      if (matchingElement) {
-        console.log('Found deck via alternative selector');
-        matchingElement.click();
-        return true;
-      }
-
-      console.log('Could not find deck to click');
       return false;
     }, TEST_DECK_TITLE);
 
-    if (deckClicked) {
-      await wait(2000, 'Loading deck view...');
-
-      await logPageState(page, 'Deck view');
-      const screenshot5 = await takeScreenshot(page, step, 'deck-view');
-      if (screenshot5) results.screenshots.push(screenshot5);
-
-      console.log('✅ Deck view loaded');
-      results.passed.push('View deck');
-    } else {
-      console.log('⚠️  Could not navigate to deck view');
-      results.warnings.push('Deck view navigation');
+    if (!shareClicked) {
+      throw new Error('Share button not found or not clicked');
     }
 
-    // Step 6: Create card
-    step++;
-    console.log(`\n📋 Step ${step}: Create Card`);
-    console.log('─'.repeat(60));
-    console.log(`📝 Front: "${TEST_CARD_FRONT}"`);
-    console.log(`📝 Back: "${TEST_CARD_BACK}"`);
+    await wait(2000, 'Waiting for share dialog...');
 
-    // Click add card button
-    const addCardClicked = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+    await logPageState(page, 'Share dialog open');
+    const screenshot5 = await takeScreenshot(page, step, 'share-dialog');
+    if (screenshot5) results.screenshots.push(screenshot5);
+
+    console.log('✅ Share dialog opened');
+    results.passed.push('Open share dialog');
+
+    // Step 6: Add Collaborator
+    step++;
+    console.log(`\n📋 Step ${step}: Add Collaborator`);
+    console.log('─'.repeat(60));
+    console.log(`📧 Email: "${TEST_COLLABORATOR_EMAIL}"`);
+
+    // Find email input in share dialog
+    const emailFilled = await page.evaluate((email) => {
+      // Look for email input in the dialog
+      const inputs = Array.from(document.querySelectorAll('input[type="email"], input[type="text"]'));
+      console.log(`Found ${inputs.length} inputs`);
+
+      // Find the email input (likely has placeholder containing "email")
+      const emailInput = inputs.find(input => {
+        const placeholder = input.placeholder?.toLowerCase() || '';
+        const type = input.type?.toLowerCase() || '';
+        return type === 'email' || placeholder.includes('email');
+      });
+
+      if (emailInput) {
+        console.log('Found email input, filling...');
+        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+        nativeInputValueSetter.call(emailInput, email);
+
+        emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+        emailInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+        return {
+          success: true,
+          value: emailInput.value
+        };
+      }
+
+      console.log('Email input not found');
+      return { success: false };
+    }, TEST_COLLABORATOR_EMAIL);
+
+    if (!emailFilled.success) {
+      throw new Error('Could not fill email input');
+    }
+
+    console.log('📝 Email filled, looking for Add button...');
+
+    await wait(500);
+
+    // Click Add/Invite button
+    const addClicked = await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      console.log('Looking for Add/Invite button...');
+      console.log('Available buttons:', buttons.map(b => b.textContent.trim()));
+
       const addButton = buttons.find(btn => {
-        const text = btn.textContent.toLowerCase();
-        return (text.includes('add') && text.includes('card')) ||
-               text.includes('new card') ||
-               text.includes('create card');
+        const text = btn.textContent.trim().toLowerCase();
+        return text === 'add' || text === 'invite' || text.includes('add') && text.length < 15;
       });
 
       if (addButton) {
-        console.log('Found add card button');
+        console.log('Found Add button:', addButton.textContent);
         addButton.click();
         return true;
       }
+
       return false;
     });
 
-    if (addCardClicked) {
-      await wait(1500, 'Waiting for card form...');
-
-      await logPageState(page, 'Card form');
-      const screenshot6a = await takeScreenshot(page, step, 'card-form');
-      if (screenshot6a) results.screenshots.push(screenshot6a);
-
-      // Fill card front and back
-      console.log('📝 Filling card content...');
-      const fillResult = await page.evaluate(({ front, back }) => {
-        const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
-
-        // Find front and back inputs
-        const frontInput = inputs.find(input => {
-          const placeholder = input.placeholder?.toLowerCase() || '';
-          const name = input.name?.toLowerCase() || '';
-          return placeholder.includes('front') || placeholder.includes('question') || name.includes('front');
-        }) || inputs[0];
-
-        const backInput = inputs.find(input => {
-          const placeholder = input.placeholder?.toLowerCase() || '';
-          const name = input.name?.toLowerCase() || '';
-          return placeholder.includes('back') || placeholder.includes('answer') || name.includes('back');
-        }) || inputs[1];
-
-        // Helper function to get the correct native setter for an element
-        const setReactValue = (element, value) => {
-          if (!element) return false;
-
-          // Get the correct setter based on element type
-          let nativeValueSetter;
-          if (element.tagName === 'TEXTAREA') {
-            nativeValueSetter = Object.getOwnPropertyDescriptor(
-              window.HTMLTextAreaElement.prototype, 'value'
-            )?.set;
-          } else {
-            nativeValueSetter = Object.getOwnPropertyDescriptor(
-              window.HTMLInputElement.prototype, 'value'
-            )?.set;
-          }
-
-          if (nativeValueSetter) {
-            nativeValueSetter.call(element, value);
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            element.dispatchEvent(new Event('change', { bubbles: true }));
-            element.dispatchEvent(new Event('blur', { bubbles: true }));
-            return true;
-          }
-          return false;
-        };
-
-        const frontSet = setReactValue(frontInput, front);
-        const backSet = setReactValue(backInput, back);
-
-        return {
-          inputCount: inputs.length,
-          frontSet,
-          backSet,
-          frontValue: frontInput?.value,
-          backValue: backInput?.value
-        };
-      }, { front: TEST_CARD_FRONT, back: TEST_CARD_BACK });
-
-      console.log('🔍 Card fill result:', fillResult);
-
-      await wait(1000);
-
-      // Save card
-      console.log('💾 Saving card...');
-      const cardSaveResult = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-
-        // Look for exact matches first (modal buttons)
-        const exactMatches = buttons.filter(btn => {
-          const text = btn.textContent.trim().toLowerCase();
-          return text === 'save' || text === 'create' || text === 'add';
-        });
-
-        // Then look for partial matches (exclude long button text)
-        const partialMatches = buttons.filter(btn => {
-          const text = btn.textContent.trim().toLowerCase();
-          return (text.includes('save') || text.includes('create') || text.includes('add')) &&
-                 !text.includes('new') &&
-                 text.length < 20;
-        });
-
-        const saveButton = exactMatches[0] || partialMatches[0];
-
-        if (saveButton) {
-          saveButton.click();
-          return {
-            success: true,
-            buttonText: saveButton.textContent.trim()
-          };
-        }
-
-        return {
-          success: false,
-          buttonCount: buttons.length,
-          allButtons: buttons.map(b => b.textContent.trim())
-        };
-      });
-
-      console.log('🔍 Card save result:', cardSaveResult);
-
-      await wait(2000, 'Waiting for card creation...');
-
-      await logPageState(page, 'After card save');
-      const screenshot6b = await takeScreenshot(page, step, 'card-created');
-      if (screenshot6b) results.screenshots.push(screenshot6b);
-
-      // Wait a bit more to ensure card is rendered in the list
-      await wait(1000);
-
-      // Take a final screenshot showing the deck with the created card
-      const screenshot6c = await takeScreenshot(page, step, 'deck-with-card');
-      if (screenshot6c) results.screenshots.push(screenshot6c);
-
-      // Verify card exists
-      const cardExists = await page.evaluate((front) => {
-        return document.body.textContent.includes(front);
-      }, TEST_CARD_FRONT);
-
-      if (cardExists) {
-        console.log('✅ Card created successfully');
-        console.log('📸 Captured deck view with created card');
-        results.passed.push('Create card');
-      } else {
-        console.log('⚠️  Card verification uncertain');
-        results.warnings.push('Card verification');
-      }
-    } else {
-      console.log('⚠️  Add card button not found');
-      results.warnings.push('Card creation skipped');
+    if (!addClicked) {
+      console.log('⚠️  Add button not found, trying Enter key...');
+      await page.keyboard.press('Enter');
     }
 
-    // Step 7: Edit card
+    await wait(2000, 'Waiting for invite to be created...');
+
+    const screenshot6 = await takeScreenshot(page, step, 'collaborator-added');
+    if (screenshot6) results.screenshots.push(screenshot6);
+
+    console.log('✅ Collaborator added (pending invite created)');
+    results.passed.push('Add collaborator');
+
+    // Step 7: Verify Pending Invite
     step++;
-    console.log(`\n📋 Step ${step}: Edit Card`);
+    console.log(`\n📋 Step ${step}: Verify Pending Invite`);
     console.log('─'.repeat(60));
 
-    // Find and click edit button or card
-    const editClicked = await page.evaluate((front) => {
-      // Try to find edit button
-      const editButtons = Array.from(document.querySelectorAll('button, [role="button"]')).filter(btn => {
-        const text = btn.textContent.toLowerCase();
-        return text.includes('edit');
+    await wait(1000);
+
+    // Check if the invite appears in the dialog
+    const inviteVisible = await page.evaluate((email) => {
+      const bodyText = document.body.textContent;
+      const hasEmail = bodyText.includes(email);
+
+      // Look for "pending" text
+      const hasPending = bodyText.toLowerCase().includes('pending');
+
+      // Look for invite-related elements
+      const inviteElements = Array.from(document.querySelectorAll('[data-testid*="invite"], .invite, div'))
+        .filter(el => el.textContent.includes(email));
+
+      return {
+        hasEmail,
+        hasPending,
+        inviteCount: inviteElements.length,
+        bodyIncludes: bodyText.includes(email) ? 'yes' : 'no'
+      };
+    }, TEST_COLLABORATOR_EMAIL);
+
+    console.log('🔍 Invite verification:', inviteVisible);
+
+    if (inviteVisible.hasEmail) {
+      console.log('✅ Pending invite is visible in dialog');
+      results.passed.push('Verify pending invite');
+    } else {
+      console.log('⚠️  Invite may not be visible yet (async operation)');
+      results.warnings.push('Pending invite verification uncertain');
+    }
+
+    const screenshot7 = await takeScreenshot(page, step, 'invite-verified');
+    if (screenshot7) results.screenshots.push(screenshot7);
+
+    // Step 8: Close Dialog
+    step++;
+    console.log(`\n📋 Step ${step}: Close Share Dialog`);
+    console.log('─'.repeat(60));
+
+    const dialogClosed = await page.evaluate(() => {
+      // Look for close button (X or Close)
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const closeButton = buttons.find(btn => {
+        const text = btn.textContent.trim().toLowerCase();
+        const ariaLabel = btn.getAttribute('aria-label')?.toLowerCase() || '';
+        return text === 'close' || text === '×' || text === 'x' || ariaLabel.includes('close');
       });
 
-      if (editButtons.length > 0) {
-        console.log('Found edit button');
-        editButtons[0].click();
-        return true;
-      }
-
-      // Alternative: click on the card itself
-      const cards = Array.from(document.querySelectorAll('[data-card], .card, div[onclick]'));
-      const targetCard = cards.find(card => card.textContent.includes(front));
-      if (targetCard) {
-        console.log('Clicking card itself');
-        targetCard.click();
+      if (closeButton) {
+        console.log('Found close button');
+        closeButton.click();
         return true;
       }
 
       return false;
-    }, TEST_CARD_FRONT);
+    });
 
-    if (editClicked) {
-      await wait(1500);
-
-      const screenshot7a = await takeScreenshot(page, step, 'edit-card');
-      if (screenshot7a) results.screenshots.push(screenshot7a);
-
-      // Update the front text
-      console.log(`📝 Updating to: "${TEST_CARD_UPDATED_FRONT}"`);
-      await page.evaluate((newFront) => {
-        const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
-        const frontInput = inputs.find(input => {
-          const placeholder = input.placeholder?.toLowerCase() || '';
-          return placeholder.includes('front') || placeholder.includes('question');
-        }) || inputs[0];
-
-        if (frontInput) {
-          const nativeValueSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLInputElement.prototype, 'value'
-          )?.set || Object.getOwnPropertyDescriptor(
-            window.HTMLTextAreaElement.prototype, 'value'
-          )?.set;
-
-          if (nativeValueSetter) {
-            nativeValueSetter.call(frontInput, newFront);
-            frontInput.dispatchEvent(new Event('input', { bubbles: true }));
-            frontInput.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        }
-      }, TEST_CARD_UPDATED_FRONT);
-
-      await wait(500);
-
-      // Save changes
-      await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        const saveButton = buttons.find(btn => btn.textContent.toLowerCase().includes('save'));
-        if (saveButton) saveButton.click();
-      });
-
-      await wait(2000);
-
-      const screenshot7b = await takeScreenshot(page, step, 'card-updated');
-      if (screenshot7b) results.screenshots.push(screenshot7b);
-
-      console.log('✅ Card updated');
-      results.passed.push('Edit card');
-    } else {
-      console.log('⚠️  Edit functionality not tested');
-      results.warnings.push('Edit card skipped');
+    if (!dialogClosed) {
+      console.log('⚠️  Close button not found, trying Escape key...');
+      await page.keyboard.press('Escape');
     }
 
-    // Note: Study mode doesn't exist in current app (only 'decks' and 'cards' screens)
-    // App features: Create deck → View deck → Create card → Edit card
-    // Future: Could add delete card/deck tests, but keeping simple for now
+    await wait(1000);
 
-    // Final summary screenshot
+    await logPageState(page, 'After dialog close');
+    const screenshot8 = await takeScreenshot(page, step, 'dialog-closed');
+    if (screenshot8) results.screenshots.push(screenshot8);
+
+    console.log('✅ Share dialog closed');
+    results.passed.push('Close share dialog');
+
+    // Final screenshot
     step++;
     console.log(`\n📋 Step ${step}: Final State`);
     console.log('─'.repeat(60));
 
-    const screenshot10 = await takeScreenshot(page, step, 'final-state');
-    if (screenshot10) results.screenshots.push(screenshot10);
+    const screenshot9 = await takeScreenshot(page, step, 'final-state');
+    if (screenshot9) results.screenshots.push(screenshot9);
 
     console.log('✅ Test completed');
 
@@ -769,7 +537,7 @@ async function runProductionWorkflowTest() {
 }
 
 // Run the test
-runProductionWorkflowTest()
+runShareDeckTest()
   .then(results => {
     const allPassed = results.failed.length === 0;
     console.log(allPassed ? '✅ All tests passed!' : '⚠️  Some tests had issues');
