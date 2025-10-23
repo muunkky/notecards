@@ -307,22 +307,32 @@ async function runShareDeckTest() {
     console.log('─'.repeat(60));
 
     // Find the deck we just created and click its Share button
+    // Note: Share button is rendered as a sibling of the deck item, not inside it
     const shareClicked = await page.evaluate((deckTitle) => {
-      // Find all deck items
-      const deckItems = document.querySelectorAll('[data-testid="deck-item"]');
-      console.log(`Found ${deckItems.length} deck items`);
+      // Find all deck items and their parent containers
+      const deckContainers = Array.from(document.querySelectorAll('[data-testid="deck-item"]'))
+        .map(item => item.closest('.animate-fadeIn') || item.parentElement);
+
+      console.log(`Found ${deckContainers.length} deck containers`);
 
       // Find the deck with matching title
-      for (const deckItem of deckItems) {
-        const h2 = deckItem.querySelector('h2');
+      for (const container of deckContainers) {
+        if (!container) continue;
+
+        const h2 = container.querySelector('h2');
         if (h2 && h2.textContent.includes(deckTitle)) {
           console.log('Found matching deck, looking for Share button...');
 
-          // Find Share button within this deck item
-          const buttons = Array.from(deckItem.querySelectorAll('button'));
+          // Share button is a sibling div after the deck item
+          // Look for buttons in the container (including siblings)
+          const buttons = Array.from(container.querySelectorAll('button'));
+          console.log(`Found ${buttons.length} buttons in container`);
+
           const shareButton = buttons.find(btn => {
             const text = btn.textContent.trim();
-            return text === 'Share' || text.toLowerCase().includes('share');
+            const ariaLabel = btn.getAttribute('aria-label') || '';
+            console.log(`  Button: "${text}" (aria-label: "${ariaLabel}")`);
+            return text === 'Share' || ariaLabel === 'Share';
           });
 
           if (shareButton) {
@@ -330,8 +340,7 @@ async function runShareDeckTest() {
             shareButton.click();
             return true;
           } else {
-            console.log('Share button not found in this deck item');
-            console.log('Available buttons:', buttons.map(b => b.textContent.trim()));
+            console.log('Share button not found in container');
           }
         }
       }
