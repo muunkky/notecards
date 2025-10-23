@@ -21,13 +21,13 @@ Files to include:
 - tsconfig.tests.json
 - vite.config.ts
 - package.json
-- docs/Production-Smoke-Test-Checklist.md
-- docs/Deck-Sharing-Merge-Guidance.md
+- docs/production-smoke-test-checklist.md
+- docs/deck-sharing-merge-guidance.md
 
 Commands:
 ```powershell
 git add tsconfig.json tsconfig.tests.json vite.config.ts package.json `
-  docs/Production-Smoke-Test-Checklist.md docs/Deck-Sharing-Merge-Guidance.md
+  docs/production-smoke-test-checklist.md docs/deck-sharing-merge-guidance.md
 
 git commit -m "chore(build): add firebase chunk split and test tsconfig" \
             -m "docs(sharing): smoke checklist & merge guidance"
@@ -63,7 +63,7 @@ Title:
 ```
 feat(sharing): deck collaboration (owner/editor/viewer) with hardened security rules
 ```
-Body: use sections from Deck-Sharing-Merge-Guidance.md.
+Body: use sections from deck-sharing-merge-guidance.md.
 
 ## 6. Merge & Cleanup
 After PR merge:

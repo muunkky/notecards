@@ -321,7 +321,7 @@ This implementation is from the **notecards** project:
 - **Repository**: `muunkky/notecards`  
 - **Current Branch**: `feature/deck-sharing`
 - **Main Branch**: `main` (stable implementation)
-- **Full Documentation**: [`docs/Test-Output-Logging-Instructions.md`](https://github.com/muunkky/notecards/blob/main/docs/Test-Output-Logging-Instructions.md)
+- **Full Documentation**: [`docs/test-output-logging-instructions.md`](https://github.com/muunkky/notecards/blob/main/docs/test-output-logging-instructions.md)
 
 ### Key Files to Reference:
 - [`scripts/run-tests-log.mjs`](https://github.com/muunkky/notecards/blob/main/scripts/run-tests-log.mjs) - Unit test runner

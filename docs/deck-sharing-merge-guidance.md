@@ -6,7 +6,7 @@ Release Components: Firestore Rules (already deployed), Hosting (built & deploye
 
 ## 1. Preconditions
 - [ ] Firestore rules deployed (verify `firebase deploy --only firestore:rules` recent timestamp in console / history).
-- [ ] Hosting deployment done and smoke tests passed (see `Production-Smoke-Test-Checklist.md`).
+- [ ] Hosting deployment done and smoke tests passed (see `production-smoke-test-checklist.md`).
 - [ ] All critical issues resolved or tracked as follow-up tickets.
 - [ ] Version file / CHANGELOG updated if semantic versioning is in use.
 

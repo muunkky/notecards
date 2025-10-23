@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "default_mode": "advisory",
+  "rules": {
+    "checkbox_completion": {
+      "enabled": true,
+      "mode": "strict",
+      "per_type": {
+        "docs": "strict"
+      }
+    },
+    "prerequisites": {
+      "enabled": true,
+      "mode": "advisory",
+      "per_type": {}
+    }
+  }
+}

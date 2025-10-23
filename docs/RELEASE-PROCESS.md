@@ -500,7 +500,7 @@ git status  # Should show no changes in dry-run mode
 - [VERSION.md](../VERSION.md) - Version history and rollback points
 - [CHANGELOG.md](../CHANGELOG.md) - Auto-generated release notes
 - [Git Workflow](./GIT-WORKFLOW-AND-PRACTICES.md) - Git branching strategy
-- [Deployment Guide](./Deployment-Improvements.md) - CI/CD configuration
+- [Deployment Guide](./deployment-improvements.md) - CI/CD configuration
 
 ## Quick Reference
 

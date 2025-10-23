@@ -200,7 +200,7 @@ $env:NO_COLOR=1; npm run test > test-results-$(Get-Date -Format 'yyyy-MM-dd-HH-m
 ### Documentation
 - `docs/` - Complete product and engineering docs
 - `src/test/TEST-GUIDE.md` - Testing best practices
-- `Test-Output-Logging-Instructions.md` - Test logging protocols
+- `test-output-logging-instructions.md` - Test logging protocols
 
 ---
 

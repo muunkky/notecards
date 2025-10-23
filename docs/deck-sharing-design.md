@@ -1,6 +1,6 @@
 # Deck Sharing & Invitation System - Unified Design
 
-Status: ACTIVE DESIGN (supersedes `Sharing-Short-Term-Behavior.md` and `Invitation-System-Design.md`)
+Status: ACTIVE DESIGN (supersedes `sharing-short-term-behavior.md` and `invitation-system-design.md`)
 Owner: TBD
 Last Updated: 2025-09-23
 Branch: `feature/deck-sharing`
@@ -293,8 +293,8 @@ If production instability:
 ---
 ## 21. Deprecations
 The following documents are superseded by this file:
-- `Sharing-Short-Term-Behavior.md`
-- `Invitation-System-Design.md`
+- `sharing-short-term-behavior.md`
+- `invitation-system-design.md`
 They will remain temporarily with a deprecation banner until feature branch merge.
 ---
 ## 22. Appendix: Example Accept Invite Sequence

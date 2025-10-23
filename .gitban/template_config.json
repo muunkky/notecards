@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "default_mode": "advisory",
+  "rules": {
+    "template_usage": {
+      "enabled": true,
+      "mode": "advisory",
+      "per_type": {
+        "feature": "none",
+        "bug": "none",
+        "docs": "none",
+        "test": "none",
+        "chore": "none",
+        "refactor": "none",
+        "style": "none",
+        "perf": "none",
+        "ci": "none",
+        "build": "none"
+      }
+    }
+  }
+}

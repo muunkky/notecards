@@ -30,12 +30,12 @@ Complete documentation for the Notecards production application. All documentati
 
 ### System Architecture
 - **[Services Architecture](./SERVICES-ARCHITECTURE.md)** - Overall service layer design
-- **[Browser Service Architecture](./Browser-Service-Architecture.md)** - Browser automation design
+- **[Browser Service Architecture](./browser-service-architecture.md)** - Browser automation design
 - **[Services Overview](./services/README.md)** - Service directory and standards
 
 ### API Documentation
 - **[Browser Service API](./api/browser-service.md)** - Complete API reference for browser automation
-- **[Accept Invite API](./Accept-Invite-API.md)** - Invitation acceptance endpoint documentation
+- **[Accept Invite API](./accept-invite-api.md)** - Invitation acceptance endpoint documentation
 
 ---
 
@@ -47,10 +47,10 @@ Complete documentation for the deck sharing system with role-based access contro
 - **[User Guide](./sharing/user-guide-sharing-collaboration.md)** - How to share decks and collaborate
 - **[Developer Guide](./sharing/developer-guide-sharing-system.md)** - Architecture and integration
 - **[Troubleshooting Guide](./sharing/troubleshooting-guide-sharing-system.md)** - Issue resolution
-- **[Design Specification](./sharing/Deck-Sharing-and-Collaboration.md)** - Original design doc
-- **[Invitation System Design](./Invitation-System-Design.md)** - Invitation flow architecture
-- **[Short-Term Behavior](./Sharing-Short-Term-Behavior.md)** - Current implementation notes
-- **[Merge Guidance](./Deck-Sharing-Merge-Guidance.md)** - Integration instructions
+- **[Design Specification](./sharing/deck-sharing-and-collaboration.md)** - Original design doc
+- **[Invitation System Design](./invitation-system-design.md)** - Invitation flow architecture
+- **[Short-Term Behavior](./sharing-short-term-behavior.md)** - Current implementation notes
+- **[Merge Guidance](./deck-sharing-merge-guidance.md)** - Integration instructions
 
 ---
 
@@ -60,14 +60,14 @@ Complete documentation for the deck sharing system with role-based access contro
 - **[Testing Best Practices](./testing/TESTING-BEST-PRACTICES.md)** - Standards and patterns
 - **[Modern Test Patterns](./testing/MODERN-TEST-PATTERNS.md)** - Updated testing approaches
 - **[Infrastructure Modernization Summary](./testing/INFRASTRUCTURE-MODERNIZATION-SUMMARY.md)** - Vitest 3.2.4 migration
-- **[Test Output Logging Instructions](./Test-Output-Logging-Instructions.md)** - Structured logging system
+- **[Test Output Logging Instructions](./test-output-logging-instructions.md)** - Structured logging system
 
 ### Specialized Testing
 - **[E2E User Journey Testing](./testing/E2E-USER-JOURNEY-TESTING.md)** - End-to-end test patterns
 - **[Service Account Authentication](./testing/SERVICE-ACCOUNT-AUTHENTICATION.md)** - Firebase service account setup
-- **[Firestore Rules Testing](./Firestore-Rules-Testing.md)** - Security rules verification
+- **[Firestore Rules Testing](./firestore-rules-testing.md)** - Security rules verification
 - **[Test Cleanup Report](./testing/TEST-CLEANUP-REPORT.md)** - Historical test maintenance
-- **[Test Backlog](./Test-Backlog.md)** - Pending test work
+- **[Test Backlog](./test-backlog.md)** - Pending test work
 
 ---
 
@@ -75,22 +75,22 @@ Complete documentation for the deck sharing system with role-based access contro
 
 ### Release Management
 - **[Release Process](./RELEASE-PROCESS.md)** - Version bumping and deployment workflow
-- **[Production Smoke Test Checklist](./Production-Smoke-Test-Checklist.md)** - Pre-deployment verification
+- **[Production Smoke Test Checklist](./production-smoke-test-checklist.md)** - Pre-deployment verification
 
 ### Deployment
-- **[Deployment Improvements](./Deployment-Improvements.md)** - CI/CD enhancements and optimizations
-- **[Branch Finalization Instructions](./Branch-Finalization-Instructions.md)** - Branch cleanup workflow
+- **[Deployment Improvements](./deployment-improvements.md)** - CI/CD enhancements and optimizations
+- **[Branch Finalization Instructions](./branch-finalization-instructions.md)** - Branch cleanup workflow
 
 ---
 
 ## 📚 Development Guides
 
 ### Browser Automation
-- **[Browser Automation Final Summary](./Browser-Automation-Final-Summary.md)** - Complete implementation overview
+- **[Browser Automation Final Summary](./browser-automation-final-summary.md)** - Complete implementation overview
 - **[Browser Service API](./api/browser-service.md)** - API reference
 
 ### UI Development
-- **[UI Improvement Implementation Summary](./UI-Improvement-Implementation-Summary.md)** - UI enhancement history
+- **[UI Improvement Implementation Summary](./ui-improvement-implementation-summary.md)** - UI enhancement history
 
 ---
 
@@ -157,8 +157,8 @@ See [CHANGELOG.md](../CHANGELOG.md) for detailed version history.
 ### By Audience
 - **Product/Business:** [PRD](./Notecard%20App%20-%20Product%20Requirements%20Document.md), [History](./HISTORY.md)
 - **Engineers:** [EDD](./Notecard%20App%20-%20Engineering%20Design%20Document.md), [Architecture](./SERVICES-ARCHITECTURE.md)
-- **QA/Testing:** [testing/](./testing/), [Smoke Test Checklist](./Production-Smoke-Test-Checklist.md)
-- **DevOps:** [Release Process](./RELEASE-PROCESS.md), [Deployment](./Deployment-Improvements.md)
+- **QA/Testing:** [testing/](./testing/), [Smoke Test Checklist](./production-smoke-test-checklist.md)
+- **DevOps:** [Release Process](./RELEASE-PROCESS.md), [Deployment](./deployment-improvements.md)
 - **End Users:** [Sharing User Guide](./sharing/user-guide-sharing-collaboration.md)
 
 ---

@@ -4,7 +4,7 @@ _Last updated: 2025-09-21 (later increment)_
 
 Status: Phase 1 Nearly Complete (model + helpers + subscription + UI + security rules + emulator tests implemented)
 Owner: (assign engineer)  
-Related Docs: `Notecard App - Product Requirements Document.md`, `Deployment-Improvements.md`
+Related Docs: `Notecard App - Product Requirements Document.md`, `deployment-improvements.md`
 
 ## 1. Problem & Goals
 Current system restricts every deck to a single `ownerId`. Users want to share study materials or brainstorming decks without cloning data. We need a minimally invasive extension enabling multiple authenticated users to access the same deck with defined capability boundaries.
