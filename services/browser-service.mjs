@@ -190,6 +190,32 @@ class BrowserService {
     const pages = await this.browser.pages();
     this.page = pages[0] || await this.browser.newPage();
 
+    // Set up browser console logging
+    this.page.on('console', msg => {
+      const type = msg.type();
+      const text = msg.text();
+      const prefix = {
+        'log': '📋',
+        'info': 'ℹ️',
+        'warn': '⚠️',
+        'error': '❌',
+        'debug': '🐛'
+      }[type] || '📄';
+      console.log(`${prefix} [Browser ${type}] ${text}`);
+    });
+
+    // Set up page error logging
+    this.page.on('pageerror', error => {
+      console.log(`❌ [Browser Error] ${error.message}`);
+    });
+
+    // Set up request failure logging
+    this.page.on('requestfailed', request => {
+      const failure = request.failure();
+      const errorText = failure ? failure.errorText : 'Unknown error';
+      console.log(`🌐 [Request Failed] ${request.url()} - ${errorText}`);
+    });
+
     // Enhanced stealth configuration for the page
     console.log('🥷 Applying enhanced stealth configuration...');
     
