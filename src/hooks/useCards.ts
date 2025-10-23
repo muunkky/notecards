@@ -73,8 +73,9 @@ export const useCards = (deckId: string): UseCardsResult => {
           q,
           (snapshot) => {
             try {
+              console.log('useCards: Snapshot received!', { numDocs: snapshot.docs.length, deckId })
               const cardData: Card[] = []
-              
+
               snapshot.docs.forEach((doc) => {
                 const data = doc.data()
                 
@@ -94,6 +95,7 @@ export const useCards = (deckId: string): UseCardsResult => {
                 }
               })
 
+              console.log('useCards: Setting cards state', { numCards: cardData.length, cardTitles: cardData.map(c => c.title) })
               setCards(cardData)
               setLoading(false)
               setError(null)
