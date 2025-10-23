@@ -1,6 +1,6 @@
 # DESIGNSYS Sprint - Final Completion Summary
 
-**Sprint Name:** DESIGNSYS-2024-Q4-complete-foundation-infrastructure
+**Sprint Name:** DESIGNSYS-2025-Q4-complete-foundation-infrastructure
 **Completion Date:** October 17, 2025
 **Sprint Duration:** ~2 weeks
 **Cards Completed:** 12/28 (43% - strategic completion, 57% moved to backlog for Phase 2)
@@ -363,7 +363,7 @@ The DESIGNSYS sprint delivered a **production-ready, management change-proof des
 ---
 
 **Sprint Status:** ✅ Complete
-**Archive Location:** `.gitban/cards/archive/sprints/sprint-designsys-2024-q4-complete-foundation-infrastructure-20251017/`
+**Archive Location:** `.gitban/cards/archive/sprints/sprint-designsys-2025-q4-complete-foundation-infrastructure-20251017/`
 **Documentation Root:** `src/design-system/`
 **Next Sprint:** Phase 2 enhancements or SHARING system completion
 
