@@ -19,11 +19,8 @@ export const useCards = (deckId: string): UseCardsResult => {
   const { user } = useAuth()
 
   useEffect(() => {
-    console.log('useCards: Effect triggered', { user: !!user, deckId, userId: user?.uid })
-    
     // If no user or deckId, return empty state
     if (!user || !deckId) {
-      console.log('useCards: Missing user or deckId', { user: !!user, deckId })
       setLoading(false)
       setCards([])
       setError(null)
@@ -31,52 +28,42 @@ export const useCards = (deckId: string): UseCardsResult => {
     }
 
     // User exists and deckId provided, start loading
-    console.log('useCards: Starting to load cards', { deckId, userId: user.uid })
     setLoading(true)
 
     const checkDeckAndSetupSubscription = async () => {
       try {
         // First, verify deck ownership
-        console.log('useCards: Checking deck ownership for deck:', deckId)
         const deckRef = doc(db, 'decks', deckId)
         const deckDoc = await getDoc(deckRef)
-        
+
         if (!deckDoc.exists()) {
           console.error('useCards: Deck does not exist:', deckId)
           setError('Deck not found')
           setLoading(false)
           return
         }
-        
+
         const deckData = deckDoc.data()
-        console.log('useCards: Deck data:', { ownerId: deckData.ownerId, currentUser: user.uid })
-        
+
         if (deckData.ownerId !== user.uid) {
           console.error('useCards: User does not own this deck', { ownerId: deckData.ownerId, userId: user.uid })
           setError('You do not have permission to access this deck')
           setLoading(false)
           return
         }
-        
-        console.log('useCards: Deck ownership verified, proceeding to load cards')
 
         // Set up Firestore query for deck's cards (subcollection)
-        console.log('useCards: Setting up Firestore query for path:', `decks/${deckId}/cards`)
         const cardsRef = collection(db, 'decks', deckId, 'cards')
-        console.log('useCards: cardsRef created successfully')
         const q = query(
           cardsRef,
           orderBy('orderIndex', 'asc')
         )
-        console.log('useCards: query created successfully')
 
         // Subscribe to real-time updates
-        console.log('useCards: About to call onSnapshot...')
         const unsubscribe = onSnapshot(
           q,
           (snapshot) => {
             try {
-              console.log('useCards: Snapshot received!', { numDocs: snapshot.docs.length, deckId })
               const cardData: Card[] = []
 
               snapshot.docs.forEach((doc) => {
@@ -98,7 +85,6 @@ export const useCards = (deckId: string): UseCardsResult => {
                 }
               })
 
-              console.log('useCards: Setting cards state', { numCards: cardData.length, cardTitles: cardData.map(c => c.title) })
               setCards(cardData)
               setLoading(false)
               setError(null)
@@ -116,8 +102,6 @@ export const useCards = (deckId: string): UseCardsResult => {
             setCards([])
           }
         )
-
-        console.log('useCards: onSnapshot registered, unsubscribe function obtained:', typeof unsubscribe)
 
         // Return cleanup function
         return unsubscribe
@@ -143,7 +127,6 @@ export const useCards = (deckId: string): UseCardsResult => {
     // Return cleanup function that calls the stored unsubscribe
     return () => {
       if (unsubscribeFn) {
-        console.log('useCards: Cleaning up subscription')
         unsubscribeFn()
       }
     }
