@@ -683,40 +683,9 @@ async function runProductionWorkflowTest() {
       results.warnings.push('Edit card skipped');
     }
 
-    // Step 8: Delete card (optional, commented out for now)
-    // Keeping the card for study session test
-
-    // Step 9: Study session
-    step++;
-    console.log(`\n📋 Step ${step}: Study Session`);
-    console.log('─'.repeat(60));
-
-    // Look for study button
-    const studyClicked = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
-      const studyButton = buttons.find(btn => btn.textContent.toLowerCase().includes('study'));
-
-      if (studyButton) {
-        console.log('Found study button');
-        studyButton.click();
-        return true;
-      }
-      return false;
-    });
-
-    if (studyClicked) {
-      await wait(2000, 'Starting study session...');
-
-      await logPageState(page, 'Study session');
-      const screenshot9 = await takeScreenshot(page, step, 'study-session');
-      if (screenshot9) results.screenshots.push(screenshot9);
-
-      console.log('✅ Study session started');
-      results.passed.push('Study session');
-    } else {
-      console.log('⚠️  Study button not found');
-      results.warnings.push('Study session skipped');
-    }
+    // Note: Study mode doesn't exist in current app (only 'decks' and 'cards' screens)
+    // App features: Create deck → View deck → Create card → Edit card
+    // Future: Could add delete card/deck tests, but keeping simple for now
 
     // Final summary screenshot
     step++;
