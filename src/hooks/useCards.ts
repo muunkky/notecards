@@ -63,10 +63,12 @@ export const useCards = (deckId: string): UseCardsResult => {
         // Set up Firestore query for deck's cards (subcollection)
         console.log('useCards: Setting up Firestore query for path:', `decks/${deckId}/cards`)
         const cardsRef = collection(db, 'decks', deckId, 'cards')
+        console.log('useCards: cardsRef created successfully')
         const q = query(
           cardsRef,
           orderBy('orderIndex', 'asc')
         )
+        console.log('useCards: query created successfully')
 
         // Subscribe to real-time updates
         console.log('useCards: About to call onSnapshot...')
