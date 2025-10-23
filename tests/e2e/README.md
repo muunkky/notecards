@@ -384,9 +384,12 @@ await fs.mkdir(SCREENSHOT_DIR, { recursive: true });
 |---------|--------|----------|-------------|-------|
 | 01: Create Deck and Add Card | ✅ Working | ~30s | 9 | Fully tested and verified |
 | 02: Edit and Delete Card | ⚠️ Needs Work | ~34s | 9 | Template only (needs edit/delete impl) |
-| 03: Share Deck | ✅ Complete | ~37s | 10 | Share dialog opens, collaborator add tested |
+| 03: Share Deck | ✅ UI Test | ~60s | 10 | Validates share workflow UI; backend blocked by Firestore rules |
 | 04: Bulk Card Creation | ✅ Working | ~45s | 9 | Creates 5 cards (1/5 verified) |
 | 05: Deck Management | ⚠️ Partial | ~25s | 5 | Deck verification failed |
 
 **Working Journeys**: 5/5 (all running and producing screenshots)
-**Known Issues**: Journey 04 only verifies 1/5 cards, Journey 05 deck creation fails
+**Known Issues**:
+- Journey 03: UI-only test (backend sharing blocked by Firestore security rules in production)
+- Journey 04: Only verifies 1/5 cards created
+- Journey 05: Deck creation verification fails
