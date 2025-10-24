@@ -52,7 +52,7 @@ import { resolve } from 'path';
 // Configuration
 const JOURNEY_NAME = '03-share-deck';
 const E2E_TARGET = process.env.E2E_TARGET || 'local'; // 'local' or 'production'
-const LOCAL_URL = 'http://localhost:5173';
+const LOCAL_URL = process.env.LOCAL_URL || 'http://localhost:5173';
 const PRODUCTION_URL = 'https://notecards-1b054.web.app';
 const TARGET_URL = E2E_TARGET === 'production' ? PRODUCTION_URL : LOCAL_URL;
 const TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
@@ -153,8 +153,10 @@ async function runShareDeckTest() {
     console.log(`\n📋 Step ${step}: Navigate to ${E2E_TARGET === 'production' ? 'Production' : 'Local Dev Server'}`);
     console.log('─'.repeat(60));
 
-    await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await wait(2000, 'Stabilizing...');
+    // Local dev with emulators may take longer to initialize Firebase connections
+    const navTimeout = E2E_TARGET === 'local' ? 60000 : 30000;
+    await page.goto(TARGET_URL, { waitUntil: 'load', timeout: navTimeout });
+    await wait(E2E_TARGET === 'local' ? 5000 : 2000, 'Stabilizing...');
 
     await logPageState(page, 'After navigation');
     const screenshot2 = await takeScreenshot(page, step, 'site-loads');
