@@ -46,6 +46,7 @@
  */
 
 import browserService from '../../../services/browser-service.mjs';
+import { signInWithEmulator } from '../support/emulator-auth.mjs';
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
 
@@ -170,39 +171,55 @@ async function runShareDeckTest() {
     console.log(`\n📋 Step ${step}: Authentication`);
     console.log('─'.repeat(60));
 
-    const isAuthenticated = await browserService.checkAuthenticationStatus();
+    if (E2E_TARGET === 'local') {
+      // Local mode: Use Firebase Auth emulator with email/password
+      console.log('🔐 Authenticating with Firebase Auth emulator...');
+      const testEmail = 'test@example.com';
+      const testPassword = 'test123456';
 
-    if (!isAuthenticated) {
-      console.log('🔐 Manual authentication required');
-      console.log('   1. Click "Sign in with Google"');
-      console.log('   2. Complete authentication');
-      console.log('   3. Wait for home page to load');
-      console.log('');
-      console.log('⏳ Waiting up to 60 seconds...');
+      const authSuccess = await signInWithEmulator(page, testEmail, testPassword);
 
-      let authAttempts = 0;
-      const maxAuthAttempts = 12;
-
-      while (authAttempts < maxAuthAttempts) {
-        await wait(5000);
-        authAttempts++;
-
-        const authStatus = await browserService.checkAuthenticationStatus();
-        console.log(`🔍 Auth check ${authAttempts}/${maxAuthAttempts}...`);
-
-        if (authStatus) {
-          console.log('✅ Authentication successful!');
-          await browserService.saveSession();
-          break;
-        }
+      if (!authSuccess) {
+        throw new Error('Emulator authentication failed');
       }
 
-      const finalAuthStatus = await browserService.checkAuthenticationStatus();
-      if (!finalAuthStatus) {
-        throw new Error('Authentication timeout');
-      }
+      console.log('✅ Authentication successful');
     } else {
-      console.log('✅ Already authenticated');
+      // Production mode: Manual Google OAuth
+      const isAuthenticated = await browserService.checkAuthenticationStatus();
+
+      if (!isAuthenticated) {
+        console.log('🔐 Manual authentication required');
+        console.log('   1. Click "Sign in with Google"');
+        console.log('   2. Complete authentication');
+        console.log('   3. Wait for home page to load');
+        console.log('');
+        console.log('⏳ Waiting up to 60 seconds...');
+
+        let authAttempts = 0;
+        const maxAuthAttempts = 12;
+
+        while (authAttempts < maxAuthAttempts) {
+          await wait(5000);
+          authAttempts++;
+
+          const authStatus = await browserService.checkAuthenticationStatus();
+          console.log(`🔍 Auth check ${authAttempts}/${maxAuthAttempts}...`);
+
+          if (authStatus) {
+            console.log('✅ Authentication successful!');
+            await browserService.saveSession();
+            break;
+          }
+        }
+
+        const finalAuthStatus = await browserService.checkAuthenticationStatus();
+        if (!finalAuthStatus) {
+          throw new Error('Authentication timeout');
+        }
+      } else {
+        console.log('✅ Already authenticated');
+      }
     }
 
     await logPageState(page, 'After auth');
