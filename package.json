@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "dev:emulators": "VITE_USE_EMULATORS=true vite",
+    "dev:emulators": "cross-env VITE_USE_EMULATORS=true vite",
     "emulators:start": "firebase emulators:start --only auth,firestore --import=./.emulator-data --export-on-exit=./.emulator-data",
     "emulators:exec": "firebase emulators:exec --only auth,firestore",
     "emulators:export": "firebase emulators:export ./.emulator-data",
