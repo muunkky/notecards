@@ -1,17 +1,17 @@
 /**
- * User Journey E2E Test: Share Deck UI Workflow
+ * User Journey E2E Test: Share Deck Workflow
  *
  * User Story:
- * As a deck owner, I want to access the share deck interface
- * so I can invite collaborators to work on flashcards together.
+ * As a deck owner, I want to share my deck with collaborators
+ * so they can help me create and manage flashcards.
  *
  * Journey Steps:
- * 1. Load production site
+ * 1. Load application (local or production)
  * 2. Authenticate with Google
  * 3. Create a new deck
  * 4. Click Share button to open share dialog
- * 5. Attempt to add collaborator email
- * 6. Verify UI workflow (dialog, form, error handling)
+ * 5. Add collaborator email
+ * 6. Verify invite created successfully
  * 7. Close dialog
  *
  * Success Criteria:
@@ -19,18 +19,30 @@
  * - Share button found and clicked
  * - Share dialog opens with invite form
  * - Email input works correctly
- * - Add button triggers invite creation attempt
- * - UI properly handles success or permission errors
+ * - Add button triggers invite creation
+ * - Pending invite appears in dialog (local) OR permission error shown (production)
  * - All interactions captured with screenshots
  *
- * Notes:
- * - This is a UI workflow test, not an end-to-end integration test
- * - In production, invite creation fails due to Firestore security rules
- * - Test validates UI elements and user flow, not backend functionality
- * - For full integration testing, use a test environment with relaxed rules
+ * Testing Modes:
+ *
+ * LOCAL (default):
+ *   - Tests against localhost:5173 (Vite dev server)
+ *   - Requires Firebase emulators running (npm run emulators:start)
+ *   - Uses permissive firestore.rules.test
+ *   - Full end-to-end integration test - sharing SHOULD work
+ *
+ * PRODUCTION:
+ *   - Tests against https://notecards-1b054.web.app
+ *   - UI workflow validation only
+ *   - Backend operations blocked by Firestore security rules (missing deckInvites rules)
+ *   - Expected to fail at invite creation step
  *
  * Usage:
+ *   # Local dev (default) - requires emulators running
  *   node tests/e2e/user-journeys/03-share-deck.mjs
+ *
+ *   # Production smoke test
+ *   E2E_TARGET=production node tests/e2e/user-journeys/03-share-deck.mjs
  */
 
 import browserService from '../../../services/browser-service.mjs';
@@ -39,7 +51,10 @@ import { resolve } from 'path';
 
 // Configuration
 const JOURNEY_NAME = '03-share-deck';
+const E2E_TARGET = process.env.E2E_TARGET || 'local'; // 'local' or 'production'
+const LOCAL_URL = 'http://localhost:5173';
 const PRODUCTION_URL = 'https://notecards-1b054.web.app';
+const TARGET_URL = E2E_TARGET === 'production' ? PRODUCTION_URL : LOCAL_URL;
 const TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
 const RUN_TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19); // YYYY-MM-DDTHH-MM-SS
 const SCREENSHOT_DIR = resolve(process.cwd(), 'tests/e2e/screenshots', JOURNEY_NAME, RUN_TIMESTAMP);
@@ -97,9 +112,16 @@ async function logPageState(page, label = '') {
 async function runShareDeckTest() {
   console.log('🎬 User Journey E2E Test: Share Deck with Collaborators');
   console.log('═══════════════════════════════════════════════════');
-  console.log(`📍 Target: ${PRODUCTION_URL}`);
+  console.log(`📍 Target: ${TARGET_URL} (${E2E_TARGET} mode)`);
   console.log(`📁 Screenshots: ${SCREENSHOT_DIR}`);
   console.log(`👤 User Story: Deck owner shares deck with collaborators`);
+  if (E2E_TARGET === 'local') {
+    console.log(`⚡ Local mode: Full E2E test with Firebase emulators`);
+    console.log(`   Expects: Sharing SHOULD work (permissive test rules)`);
+  } else {
+    console.log(`🌐 Production mode: UI workflow validation only`);
+    console.log(`   Expects: Backend blocked by missing Firestore rules`);
+  }
   console.log('');
 
   // Ensure screenshot directory exists
@@ -126,12 +148,12 @@ async function runShareDeckTest() {
     console.log('✅ Browser initialized');
     results.passed.push('Browser initialization');
 
-    // Step 2: Navigate to production
+    // Step 2: Navigate to target URL
     step++;
-    console.log(`\n📋 Step ${step}: Navigate to Production`);
+    console.log(`\n📋 Step ${step}: Navigate to ${E2E_TARGET === 'production' ? 'Production' : 'Local Dev Server'}`);
     console.log('─'.repeat(60));
 
-    await page.goto(PRODUCTION_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await wait(2000, 'Stabilizing...');
 
     await logPageState(page, 'After navigation');

@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// PERMISSIVE TEST RULES FOR LOCAL EMULATOR DEVELOPMENT
+// WARNING: These rules are intentionally insecure for testing purposes.
+// DO NOT deploy these rules to production. Use firestore.rules instead.
+//
+// Purpose: Allow E2E tests to run locally without hitting Firestore security restrictions.
+// These rules grant full access to authenticated users for rapid development and testing.
+
+service cloud.firestore {
+  function isSignedIn() { return request.auth != null; }
+
+  match /databases/{database}/documents {
+    // User profiles - full access when authenticated
+    match /users/{userId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Decks - full access when authenticated
+    match /decks/{deckId} {
+      allow read, write: if isSignedIn();
+
+      // Cards subcollection - full access when authenticated
+      match /cards/{cardId} {
+        allow read, write: if isSignedIn();
+      }
+
+      // Order snapshots subcollection - full access when authenticated
+      match /orderSnapshots/{snapshotId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // Deck invites - full access when authenticated (MISSING in production rules!)
+    // This collection is used by invitationService.ts for sharing functionality
+    match /deckInvites/{inviteId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Catch-all for any other collections - full access when authenticated
+    match /{document=**} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}

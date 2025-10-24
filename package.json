@@ -8,6 +8,11 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:emulators": "VITE_USE_EMULATORS=true vite",
+    "emulators:start": "firebase emulators:start --only auth,firestore --import=./.emulator-data --export-on-exit=./.emulator-data",
+    "emulators:exec": "firebase emulators:exec --only auth,firestore",
+    "emulators:export": "firebase emulators:export ./.emulator-data",
+    "emulators:clear": "rm -rf ./.emulator-data",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix",

@@ -94,6 +94,8 @@ Desktop.ini
 .firebase/
 firebase-debug.log
 firestore-debug.log
+.emulator-data/
+ui-debug.log
 
 # Temporary files
 temp/

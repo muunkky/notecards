@@ -24,17 +24,21 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const analytics = getAnalytics(app);
 
-// Connect to emulators in development (TEMPORARILY DISABLED - testing with production)
-if (false) {
+// Connect to emulators in development
+// Check for VITE_USE_EMULATORS env var or import.meta.env.DEV for Vite dev mode
+const useEmulators = import.meta.env.VITE_USE_EMULATORS === 'true' ||
+                      (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS !== 'false');
+
+if (useEmulators) {
   console.log('🔧 Connecting to Firebase emulators for local development')
-  
+
   // Only connect if not already connected
   try {
     connectFirestoreEmulator(db, 'localhost', 8080);
-    console.log('✅ Connected to Firestore emulator');
-    
-    connectAuthEmulator(auth, 'http://localhost:9099');
-    console.log('✅ Connected to Auth emulator');
+    console.log('✅ Connected to Firestore emulator on localhost:8080');
+
+    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    console.log('✅ Connected to Auth emulator on localhost:9099');
   } catch (error) {
     console.log('⚠️ Emulators already connected or connection failed:', error);
   }
