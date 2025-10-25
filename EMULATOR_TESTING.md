@@ -32,6 +32,36 @@ LOCAL_URL=http://localhost:5173 node tests/e2e/user-journeys/03-share-deck.mjs
   - Check: `java -version`
   - Install (Ubuntu/WSL): `sudo apt-get update && sudo apt-get install -y default-jre`
 
+## Automatic Pre-flight Checks
+
+E2E tests now automatically verify that all required services are running before starting:
+
+**What's checked:**
+- Dev server (port 5173 or custom LOCAL_URL)
+- Firebase Auth emulator (port 9099)
+- Firebase Firestore emulator (port 8080)
+
+**Fast-fail behavior:**
+If any required service is not running, the test immediately exits with a clear error message showing which service(s) to start.
+
+**Example output:**
+```
+🚀 Pre-flight Checks
+════════════════════════════════════════════════════════════
+
+✅ Dev server is running
+✅ Firebase Auth emulator is running
+✅ Firebase Firestore emulator is running
+
+────────────────────────────────────────────────────────────
+✅ All pre-flight checks passed
+```
+
+**Testing the checks independently:**
+```bash
+node tests/e2e/support/test-preflight.mjs
+```
+
 ## Emulator Features
 
 ### Permissive Test Rules

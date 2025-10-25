@@ -47,6 +47,7 @@
 
 import browserService from '../../../services/browser-service.mjs';
 import { signInWithEmulator } from '../support/emulator-auth.mjs';
+import { runPreflightChecks, isLocalMode } from '../support/preflight-checks.mjs';
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
 
@@ -124,6 +125,31 @@ async function runShareDeckTest() {
     console.log(`   Expects: Backend blocked by missing Firestore rules`);
   }
   console.log('');
+
+  // Pre-flight checks: Verify prerequisites are met
+  if (E2E_TARGET === 'local') {
+    const preflightResult = await runPreflightChecks({
+      devServerUrl: LOCAL_URL,
+      requireEmulators: true,
+      emulatorHost: 'localhost'
+    });
+
+    if (!preflightResult.success) {
+      console.error('❌ Pre-flight checks failed. Cannot proceed with test.');
+      process.exit(1);
+    }
+  } else {
+    // Production mode: Only check if the production site is accessible
+    const preflightResult = await runPreflightChecks({
+      devServerUrl: PRODUCTION_URL,
+      requireEmulators: false
+    });
+
+    if (!preflightResult.success) {
+      console.error('❌ Production site is not accessible. Cannot proceed with test.');
+      process.exit(1);
+    }
+  }
 
   // Ensure screenshot directory exists
   await fs.mkdir(SCREENSHOT_DIR, { recursive: true });
