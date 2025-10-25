@@ -20,13 +20,14 @@ import * as React from 'react';
 import { useState } from 'react';
 import { Card } from '../design-system/components/Card';
 import { Button } from '../design-system/components/Button';
+import { CategoryValue } from '../domain/categories';
 
 // Card data structure
 export interface NoteCard {
   id: string;
   title: string;
   content: string;
-  category: 'conflict' | 'character' | 'location' | 'theme' | 'action' | 'dialogue';
+  category: CategoryValue;
 }
 
 export interface CardListScreenProps {

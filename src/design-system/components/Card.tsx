@@ -16,23 +16,14 @@
 
 import * as React from 'react';
 import { useState } from 'react';
-
-// Category color mapping - 6 types
-const CATEGORY_COLORS: Record<string, string> = {
-  conflict: '#e11d48',   // Rose red
-  character: '#3b82f6',  // Blue
-  location: '#f59e0b',   // Amber
-  theme: '#8b5cf6',      // Purple
-  action: '#f97316',     // Orange
-  dialogue: '#ec4899',   // Pink
-};
+import { CategoryValue, getCategoryColor } from '../../domain/categories';
 
 export interface CardProps extends React.HTMLAttributes<HTMLElement> {
   /** Card title text */
   title: string;
 
   /** Category type - determines decorator strip color */
-  category?: 'conflict' | 'character' | 'location' | 'theme' | 'action' | 'dialogue';
+  category?: CategoryValue;
 
   /** Card content */
   children: React.ReactNode;
@@ -100,8 +91,8 @@ export const Card = React.forwardRef<HTMLElement, CardProps>(
       onKeyDown?.(e);
     };
 
-    // Decorator color
-    const decoratorColor = category ? CATEGORY_COLORS[category] : 'rgb(163, 163, 163)'; // gray-400
+    // Decorator color (uses centralized category system)
+    const decoratorColor = getCategoryColor(category);
 
     // Card styles
     const cardStyles: React.CSSProperties = {

@@ -20,18 +20,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Input } from '../design-system/components/Input';
 import { Button } from '../design-system/components/Button';
-
-// Category options with colors
-const CATEGORY_OPTIONS = [
-  { value: 'conflict', label: 'Conflict', color: '#e11d48' },
-  { value: 'character', label: 'Character', color: '#3b82f6' },
-  { value: 'location', label: 'Location', color: '#f59e0b' },
-  { value: 'theme', label: 'Theme', color: '#8b5cf6' },
-  { value: 'action', label: 'Action', color: '#f97316' },
-  { value: 'dialogue', label: 'Dialogue', color: '#ec4899' },
-] as const;
-
-type CategoryValue = typeof CATEGORY_OPTIONS[number]['value'];
+import { CATEGORIES, CategoryValue, getCategoryColor } from '../domain/categories';
 
 export interface CardEditorScreenProps {
   /** Initial title (for editing existing card) */
@@ -153,7 +142,7 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
   };
 
   // Category preview (colored square)
-  const selectedColor = CATEGORY_OPTIONS.find((opt) => opt.value === category)?.color || '#000';
+  const selectedColor = getCategoryColor(category);
   const categoryPreviewStyles: React.CSSProperties = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -212,9 +201,9 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
               onChange={(e) => setCategory(e.target.value as CategoryValue)}
               style={selectStyles}
             >
-              {CATEGORY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {CATEGORIES.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
                 </option>
               ))}
             </select>
@@ -228,7 +217,7 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
                   color: 'var(--primitive-gray-600)',
                 }}
               >
-                {CATEGORY_OPTIONS.find((opt) => opt.value === category)?.label}
+                {CATEGORIES.find((cat) => cat.value === category)?.label}
               </span>
             </div>
           </div>
