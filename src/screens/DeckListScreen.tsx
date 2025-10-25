@@ -16,6 +16,7 @@
  */
 
 import * as React from 'react';
+import { useState } from 'react';
 import { Card } from '../design-system/components/Card';
 import { Button } from '../design-system/components/Button';
 
@@ -37,6 +38,9 @@ export interface DeckListScreenProps {
   /** Callback when add deck button is clicked */
   onAddDeck?: () => void;
 
+  /** Callback when deck is renamed */
+  onRenameDeck?: (deckId: string, newTitle: string) => void;
+
   /** Callback when deck is deleted */
   onDeleteDeck?: (deckId: string) => void;
 }
@@ -45,8 +49,40 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
   decks,
   onSelectDeck,
   onAddDeck,
+  onRenameDeck,
   onDeleteDeck,
 }) => {
+  // Track which deck's menu is open
+  const [openMenuDeckId, setOpenMenuDeckId] = useState<string | null>(null);
+
+  // Toggle menu for a deck
+  const toggleMenu = (deckId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent deck selection
+    setOpenMenuDeckId(openMenuDeckId === deckId ? null : deckId);
+  };
+
+  // Handle rename deck
+  const handleRenameDeck = (deck: Deck, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newTitle = prompt('Enter new deck name:', deck.title);
+    if (newTitle && newTitle.trim() && newTitle.trim() !== deck.title) {
+      onRenameDeck?.(deck.id, newTitle.trim());
+    }
+    setOpenMenuDeckId(null);
+  };
+
+  // Handle delete deck
+  const handleDeleteDeck = (deck: Deck, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const confirmed = confirm(
+      `Delete "${deck.title}"?\n\nThis will permanently delete the deck and all ${deck.cardCount} ${deck.cardCount === 1 ? 'card' : 'cards'}.`
+    );
+    if (confirmed) {
+      onDeleteDeck?.(deck.id);
+    }
+    setOpenMenuDeckId(null);
+  };
+
   // Format last updated time
   const formatLastUpdated = (date: Date): string => {
     const now = new Date();
@@ -102,6 +138,7 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
 
   // Deck card styles
   const deckCardStyles: React.CSSProperties = {
+    position: 'relative', // For absolute positioned menu button
     padding: 'var(--semantic-spacing-md)', // 16px
     background: 'var(--primitive-white)',
     border: '1px solid var(--primitive-black)',
@@ -125,6 +162,49 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
     color: 'var(--primitive-gray-600)',
   };
 
+  // Deck menu button (three dots on each deck card)
+  const deckMenuButtonStyles: React.CSSProperties = {
+    position: 'absolute',
+    top: 'var(--semantic-spacing-sm)', // 12px
+    right: 'var(--semantic-spacing-sm)', // 12px
+    fontSize: '20px',
+    cursor: 'pointer',
+    padding: 'var(--semantic-spacing-xs)', // 8px
+    userSelect: 'none',
+    fontWeight: 600,
+    background: 'transparent',
+    border: 'none',
+    color: 'var(--primitive-gray-600)',
+  };
+
+  // Deck menu container (dropdown menu)
+  const deckMenuStyles: React.CSSProperties = {
+    position: 'absolute',
+    top: '40px',
+    right: 'var(--semantic-spacing-sm)', // 12px
+    background: 'var(--primitive-white)',
+    border: '1px solid var(--primitive-black)',
+    borderRadius: 'var(--primitive-radii-none)', // 0px
+    minWidth: '120px',
+    zIndex: 10,
+  };
+
+  // Menu option styles
+  const menuOptionStyles: React.CSSProperties = {
+    padding: 'var(--semantic-spacing-sm) var(--semantic-spacing-md)', // 12px 16px
+    cursor: 'pointer',
+    fontFamily: 'var(--semantic-typography-font-primary)',
+    fontSize: 'var(--semantic-typography-font-size-md)', // 16px
+    borderBottom: '1px solid var(--primitive-gray-200)',
+    transition: 'var(--primitive-transitions-none)', // 0ms
+  };
+
+  const menuOptionDeleteStyles: React.CSSProperties = {
+    ...menuOptionStyles,
+    color: 'var(--primitive-red-600)',
+    borderBottom: 'none',
+  };
+
   // Add button (square, top right)
   const addButtonStyles: React.CSSProperties = {
     minWidth: '44px',
@@ -139,13 +219,19 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
 
   return (
     <>
-      {/* Inject hover styles for deck cards */}
+      {/* Inject hover styles for deck cards and menu options */}
       <style>{`
         .deck-card:hover {
           background: var(--primitive-gray-50) !important;
         }
         .deck-card:active {
           background: var(--primitive-gray-100) !important;
+        }
+        .menu-option:hover {
+          background: var(--primitive-gray-100) !important;
+        }
+        .menu-option-delete:hover {
+          background: var(--primitive-red-50) !important;
         }
       `}</style>
 
@@ -200,6 +286,36 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
                   }
                 }}
               >
+                {/* Menu button (three dots) */}
+                <button
+                  style={deckMenuButtonStyles}
+                  onClick={(e) => toggleMenu(deck.id, e)}
+                  aria-label="Deck options"
+                  title="Deck options"
+                >
+                  ⋯
+                </button>
+
+                {/* Deck menu dropdown */}
+                {openMenuDeckId === deck.id && (
+                  <div style={deckMenuStyles}>
+                    <div
+                      className="menu-option"
+                      style={menuOptionStyles}
+                      onClick={(e) => handleRenameDeck(deck, e)}
+                    >
+                      Rename
+                    </div>
+                    <div
+                      className="menu-option-delete"
+                      style={menuOptionDeleteStyles}
+                      onClick={(e) => handleDeleteDeck(deck, e)}
+                    >
+                      Delete
+                    </div>
+                  </div>
+                )}
+
                 <div style={deckTitleStyles}>{deck.title}</div>
                 <div style={deckMetaStyles}>
                   {deck.cardCount} {deck.cardCount === 1 ? 'card' : 'cards'} · Updated{' '}

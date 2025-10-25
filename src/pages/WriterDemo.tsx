@@ -67,6 +67,31 @@ export const WriterDemo: React.FC = () => {
     }
   };
 
+  const handleRenameDeck = (deckId: string, newTitle: string) => {
+    setDecks((prev) =>
+      prev.map((d) =>
+        d.id === deckId
+          ? { ...d, title: newTitle, lastUpdated: new Date() }
+          : d
+      )
+    );
+  };
+
+  const handleDeleteDeck = (deckId: string) => {
+    // Remove deck
+    setDecks((prev) => prev.filter((d) => d.id !== deckId));
+    // Remove cards for this deck
+    setCardsByDeckState((prev) => {
+      const { [deckId]: _, ...rest } = prev;
+      return rest;
+    });
+    // If we're currently viewing this deck, go back to deck list
+    if (selectedDeckId === deckId) {
+      setSelectedDeckId(null);
+      setCurrentScreen('decks');
+    }
+  };
+
   const handleBackToDecks = () => {
     setSelectedDeckId(null);
     setCurrentScreen('decks');
@@ -188,6 +213,8 @@ export const WriterDemo: React.FC = () => {
       decks={decks}
       onSelectDeck={handleSelectDeck}
       onAddDeck={handleAddDeck}
+      onRenameDeck={handleRenameDeck}
+      onDeleteDeck={handleDeleteDeck}
     />
   );
 };
