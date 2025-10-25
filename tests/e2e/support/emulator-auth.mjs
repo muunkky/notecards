@@ -3,6 +3,55 @@
  * @description Provides authentication methods for E2E tests using Firebase Auth emulator
  */
 
+import { readFileSync } from 'fs';
+import { existsSync } from 'fs';
+
+/**
+ * Detect if running in WSL environment
+ * @returns {boolean} True if running in WSL
+ */
+function isWSL() {
+  try {
+    if (existsSync('/proc/version')) {
+      const procVersion = readFileSync('/proc/version', 'utf8');
+      return procVersion.toLowerCase().includes('microsoft') ||
+             procVersion.toLowerCase().includes('wsl');
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+/**
+ * Get Windows host IP from WSL
+ * @returns {string|null} Windows host IP or null if not in WSL
+ */
+function getWindowsHostIP() {
+  try {
+    if (existsSync('/etc/resolv.conf')) {
+      const resolvConf = readFileSync('/etc/resolv.conf', 'utf8');
+      const match = resolvConf.match(/nameserver\s+(\d+\.\d+\.\d+\.\d+)/);
+      if (match) {
+        return match[1];
+      }
+    }
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Get the emulator host URL (handles WSL/Windows network isolation)
+ * @returns {string} Emulator host (always localhost when emulators run in WSL)
+ */
+function getEmulatorHost() {
+  // When emulators are running in WSL (which they are), always use localhost
+  // WSL's network forwarding makes localhost work from both WSL and Windows
+  return 'localhost';
+}
+
 /**
  * Sign in with email/password using Firebase Auth emulator REST API
  * @param {import('puppeteer').Page} page - Puppeteer page instance
@@ -19,8 +68,11 @@ export async function signInWithEmulator(page, email, password, options = {}) {
     console.log(`🔐 Authenticating with Firebase Auth emulator...`);
     console.log(`📧 Email: ${email}`);
 
+    // Get emulator host (handles WSL/Windows isolation)
+    const emulatorHost = getEmulatorHost();
+
     // First, create the user via emulator REST API
-    const createResult = await createEmulatorTestUser(email, password, 'Test User');
+    const createResult = await createEmulatorTestUser(email, password, 'Test User', emulatorHost);
 
     // If user already exists, that's fine - we'll sign in below
     if (createResult.success) {
@@ -30,6 +82,7 @@ export async function signInWithEmulator(page, email, password, options = {}) {
     }
 
     // Now sign in via the page's Firebase SDK
+    // Note: Browser uses Windows network stack, so it uses localhost (not Windows host IP)
     const authResult = await page.evaluate(async ({ email, password, apiKey }) => {
       try {
         // Sign in using fetch to emulator REST API
@@ -100,7 +153,7 @@ export async function signInWithEmulator(page, email, password, options = {}) {
 
     // Wait for page to reload and auth state to propagate
     await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: timeoutMs });
-    await page.waitForTimeout(2000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     return true;
   } catch (error) {
@@ -114,11 +167,16 @@ export async function signInWithEmulator(page, email, password, options = {}) {
  * @param {string} email - User email
  * @param {string} password - User password
  * @param {string} displayName - User display name
+ * @param {string} emulatorHost - Emulator host (default: auto-detect)
  * @returns {Promise<Object>} User creation result
  */
-export async function createEmulatorTestUser(email, password, displayName = 'Test User') {
+export async function createEmulatorTestUser(email, password, displayName = 'Test User', emulatorHost = null) {
+  // Auto-detect emulator host if not provided
+  const host = emulatorHost || getEmulatorHost();
+  const emulatorUrl = `http://${host}:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`;
+
   try {
-    const response = await fetch('http://localhost:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key', {
+    const response = await fetch(emulatorUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
