@@ -42,6 +42,7 @@ We are building a tool that:
 2. **Gets out of the way** - The work is what matters, not the tool
 3. **Feels like infrastructure** - Solid, reliable, honest about what it is
 4. **Preserves flow state** - No interruptions, no decoration, no navigation
+5. **Mobile-only** - Designed for one context, not trying to be everything to everyone
 
 ---
 
@@ -60,9 +61,10 @@ We are building a tool that:
 
 **Translation to Notecards:**
 - List of cards = terminal output (chronological, scannable)
-- Card actions = command palette style (overlay, keyboard shortcuts)
+- Card actions = overlay menu (touch-optimized, no keyboard)
 - Color used only for categorization (card type decorators)
 - Typography hierarchy through size/weight only, not color variation
+- Touch-first interaction (tap, long-press, swipe)
 
 ### Secondary Inspirations
 
@@ -183,24 +185,27 @@ interaction.overlay.menu.border: '1px solid #000000'    // Sharp, defined
 interaction.overlay.menu.shadow: 'none'                 // Brutalist (no soft shadows)
 interaction.overlay.animation: '120ms ease-out'         // Fast, not playful
 interaction.overlay.blur: 'none'                        // Sharp edges, no blur
+interaction.touchTarget.minHeight: '44px'               // Apple HIG minimum
+interaction.touchTarget.minWidth: '44px'                // Thumb-friendly
 ```
 
-### Principle 2: Keyboard-First, Touch-Compatible
+### Principle 2: Touch-Only Interface (Mobile-First and Only)
 
-**Primary Interface: Keyboard**
-- `Cmd+K` → Command palette (global actions)
-- `N` → New card
-- `E` → Edit focused card
-- `Cmd+↑/↓` → Reorder
-- `Cmd+D` → Duplicate
-- `/` → Filter/search
-- `Esc` → Cancel/close
+**Platform: Mobile Only**
+This is a mobile application. No desktop version, no keyboard shortcuts, no responsive design complexity. One target platform = simpler, faster, more focused.
 
-**Secondary Interface: Touch/Mouse**
-- Tap title → Expand/collapse
-- Tap "···" → Context menu overlay
-- Long press → Drag to reorder (mobile)
-- Swipe left → Quick delete (optional, with undo)
+**Touch Gestures:**
+- **Tap card** → Expand/collapse
+- **Tap "···"** → Context menu overlay (edit, duplicate, delete, change type)
+- **Long press card** → Enter reorder mode (drag handles appear)
+- **Swipe left** → Quick delete (with undo toast)
+- **Pull down** → Refresh/sync
+- **Swipe right on delete** → Undo
+
+**Touch Target Minimums:**
+- All interactive elements: 44px minimum (Apple HIG standard)
+- Card tap area: Full width of card
+- Menu items: 48px height (comfortable thumb reach)
 
 ### Principle 3: Zero Chrome, Maximum Content
 
@@ -507,35 +512,36 @@ overlay: {
 }
 ```
 
-### Pattern 3: Command Palette (Global Actions)
+### Pattern 3: Bottom Sheet Actions (Mobile-Native)
 
-**Trigger:** `Cmd+K` or `/`
+**Trigger:** Tap floating "+" button or deck menu icon
 
-**Interface:**
+**Interface (Slides up from bottom):**
 ```
 ╔═════════════════════════════════════════╗
 ║                                         ║
-║  ┌─────────────────────────────────┐   ║
-║  │ > search or command_          │   ║ ← Monospace input
-║  └─────────────────────────────────┘   ║
+║        [Content stays visible]          ║
 ║                                         ║
-║  New Card                         ⌘N   ║
-║  Collapse All                     ⌘⇧C  ║
-║  Expand All                       ⌘⇧E  ║
-║  Shuffle Cards                    ⌘⇧S  ║
-║  ───────────────────────────────────   ║
-║  Filter: Conflict Scenes          /c   ║
-║  Filter: Character Moments        /ch  ║
-║  Filter: All Cards                /a   ║
-║                                         ║
+║ ┌───────────────────────────────────┐  ║
+║ │ ─                                  │  ║ ← Handle (swipe to dismiss)
+║ │                                    │  ║
+║ │  New Card                          │  ║ ← 48px height (touch target)
+║ │  ──────────────────────────────    │  ║
+║ │  Collapse All                      │  ║
+║ │  Expand All                        │  ║
+║ │  Shuffle                           │  ║
+║ │  ──────────────────────────────    │  ║
+║ │  Filter by Type                 ▸  │  ║
+║ │                                    │  ║
+║ └───────────────────────────────────┘  ║
 ╚═════════════════════════════════════════╝
 ```
 
 **Behavior:**
-- Fuzzy search (type `nw` → matches "New Card")
-- Keyboard navigation only (↑/↓ to select, Enter to execute)
-- Recent actions at top (learning behavior)
-- Esc or Cmd+K again to dismiss
+- Slides up from bottom (iOS/Android native pattern)
+- Swipe down on handle or tap outside to dismiss
+- Touch-friendly 48px tap targets
+- No keyboard navigation (mobile-only)
 
 ---
 
@@ -551,24 +557,25 @@ overlay: {
 - Generous 24px section breaks for act/sequence divisions
 - Expand on demand (tap or keyboard) without losing context
 
-### Challenge: Mobile vs. Desktop Interaction
+### Challenge: Mobile-Only Constraints
 
-**Problem:** Desktop users want keyboard shortcuts, mobile users need touch gestures.
+**Constraint:** No keyboard, no mouse, no desktop - only mobile touch interface.
 
-**Solution: Device-Aware Defaults**
+**Design Benefits:**
+- **Simpler codebase** - No responsive breakpoints, no device detection
+- **Faster development** - One target platform, test on one set of devices
+- **Better UX** - Optimized for one interaction model, not compromised for multiple
+- **Smaller bundle** - No desktop-specific code
+
+**Touch Optimizations:**
 ```typescript
-// Desktop: Keyboard-first
-- Cmd+K for command palette
-- Arrow keys for navigation
-- Tab for focus management
-
-// Mobile: Touch-optimized
-- Tap to expand (large hit area)
-- Swipe left for quick delete (with undo)
-- Long press for drag-to-reorder
-- Pull-down to refresh (sync)
-
-// Both: Context menu overlay works everywhere
+// All interactions are touch-first
+- Large tap areas (44px minimum)
+- Swipe gestures for common actions
+- Long press for mode switches (reorder mode)
+- Pull-down for refresh
+- Bottom sheets instead of dropdowns (thumb-friendly)
+- Inline undo toasts (no confirmation dialogs)
 ```
 
 ### Challenge: Color Accessibility
@@ -608,10 +615,10 @@ overlay: {
 - [ ] Keyboard shortcuts infrastructure
 
 ### Phase 3: Advanced Patterns
-- [ ] Command palette (Cmd+K)
+- [ ] Bottom sheet actions (mobile-native)
 - [ ] Collapse/expand all
 - [ ] Card type filtering
-- [ ] Keyboard-first navigation
+- [ ] Swipe gestures (delete, undo)
 
 ### Phase 4: Polish
 - [ ] Dark mode optimization
@@ -650,6 +657,7 @@ overlay: {
    - First paint: < 1 second
    - Interaction latency: < 100ms
    - Works on 3-year-old iPhone/Android
+   - Touch targets: 100% meet 44px minimum (Apple HIG compliance)
 
 ---
 
