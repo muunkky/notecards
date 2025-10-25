@@ -42,21 +42,19 @@
  *   node tests/e2e/user-journeys/03-share-deck.mjs
  *
  *   # Production smoke test
- *   E2E_TARGET=production node tests/e2e/user-journeys/03-share-deck.mjs
+ *   E2E_MODE=production node tests/e2e/dev/journeys/03-share-deck.mjs
  */
 
-import browserService from '../../../services/browser-service.mjs';
-import { signInWithEmulator } from '../support/emulator-auth.mjs';
-import { runPreflightChecks, isLocalMode } from '../support/preflight-checks.mjs';
+import browserService from '../../../../services/browser-service.mjs';
+import { signInWithEmulator } from '../../support/emulator-auth.mjs';
+import { getTestConfig, runTestPreflightChecks } from '../../support/test-config.mjs';
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
 
 // Configuration
 const JOURNEY_NAME = '03-share-deck';
-const E2E_TARGET = process.env.E2E_TARGET || 'local'; // 'local' or 'production'
-const LOCAL_URL = process.env.LOCAL_URL || 'http://localhost:5173';
-const PRODUCTION_URL = 'https://notecards-1b054.web.app';
-const TARGET_URL = E2E_TARGET === 'production' ? PRODUCTION_URL : LOCAL_URL;
+const testConfig = getTestConfig();
+const TARGET_URL = testConfig.url;
 const TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
 const RUN_TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19); // YYYY-MM-DDTHH-MM-SS
 const SCREENSHOT_DIR = resolve(process.cwd(), 'tests/e2e/screenshots', JOURNEY_NAME, RUN_TIMESTAMP);
@@ -114,10 +112,10 @@ async function logPageState(page, label = '') {
 async function runShareDeckTest() {
   console.log('🎬 User Journey E2E Test: Share Deck with Collaborators');
   console.log('═══════════════════════════════════════════════════');
-  console.log(`📍 Target: ${TARGET_URL} (${E2E_TARGET} mode)`);
+  console.log(`📍 Target: ${TARGET_URL} (${testConfig.mode} mode)`);
   console.log(`📁 Screenshots: ${SCREENSHOT_DIR}`);
   console.log(`👤 User Story: Deck owner shares deck with collaborators`);
-  if (E2E_TARGET === 'local') {
+  if (testConfig.isLocal) {
     console.log(`⚡ Local mode: Full E2E test with Firebase emulators`);
     console.log(`   Expects: Sharing SHOULD work (permissive test rules)`);
   } else {
@@ -127,28 +125,11 @@ async function runShareDeckTest() {
   console.log('');
 
   // Pre-flight checks: Verify prerequisites are met
-  if (E2E_TARGET === 'local') {
-    const preflightResult = await runPreflightChecks({
-      devServerUrl: LOCAL_URL,
-      requireEmulators: true,
-      emulatorHost: 'localhost'
-    });
+  const preflightResult = await runTestPreflightChecks();
 
-    if (!preflightResult.success) {
-      console.error('❌ Pre-flight checks failed. Cannot proceed with test.');
-      process.exit(1);
-    }
-  } else {
-    // Production mode: Only check if the production site is accessible
-    const preflightResult = await runPreflightChecks({
-      devServerUrl: PRODUCTION_URL,
-      requireEmulators: false
-    });
-
-    if (!preflightResult.success) {
-      console.error('❌ Production site is not accessible. Cannot proceed with test.');
-      process.exit(1);
-    }
+  if (!preflightResult.success) {
+    console.error('❌ Pre-flight checks failed. Cannot proceed with test.');
+    process.exit(1);
   }
 
   // Ensure screenshot directory exists
@@ -177,13 +158,13 @@ async function runShareDeckTest() {
 
     // Step 2: Navigate to target URL
     step++;
-    console.log(`\n📋 Step ${step}: Navigate to ${E2E_TARGET === 'production' ? 'Production' : 'Local Dev Server'}`);
+    console.log(`\n📋 Step ${step}: Navigate to ${testConfig.isLocal ? 'Local Dev Server' : 'Production'}`);
     console.log('─'.repeat(60));
 
     // Local dev with emulators may take longer to initialize Firebase connections
-    const navTimeout = E2E_TARGET === 'local' ? 60000 : 30000;
+    const navTimeout = testConfig.isLocal ? 60000 : 30000;
     await page.goto(TARGET_URL, { waitUntil: 'load', timeout: navTimeout });
-    await wait(E2E_TARGET === 'local' ? 5000 : 2000, 'Stabilizing...');
+    await wait(testConfig.isLocal ? 5000 : 2000, 'Stabilizing...');
 
     await logPageState(page, 'After navigation');
     const screenshot2 = await takeScreenshot(page, step, 'site-loads');
@@ -197,7 +178,7 @@ async function runShareDeckTest() {
     console.log(`\n📋 Step ${step}: Authentication`);
     console.log('─'.repeat(60));
 
-    if (E2E_TARGET === 'local') {
+    if (testConfig.isLocal) {
       // Local mode: Use Firebase Auth emulator with email/password
       console.log('🔐 Authenticating with Firebase Auth emulator...');
       const testEmail = 'test@example.com';
