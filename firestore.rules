@@ -91,5 +91,34 @@ service cloud.firestore {
         allow delete: if deckOwner() || deckRole(request.auth.uid) == 'editor';
       }
     }
+
+    // Deck invitations for sharing
+    match /deckInvites/{inviteId} {
+      // Helper functions to check deck ownership
+      function inviteDeckId() { return resource.data.deckId; }
+      function requestDeckId() { return request.resource.data.deckId; }
+      function deckDoc(deckId) { return get(/databases/(default)/documents/decks/$(deckId)); }
+      function deckExists(deckId) { return exists(/databases/(default)/documents/decks/$(deckId)); }
+      function isDeckOwner(deckId) { return deckExists(deckId) && deckDoc(deckId).data.ownerId == request.auth.uid; }
+      function userEmail() { return request.auth.token.email; }
+      function emailMatches() { return resource.data.emailLower == userEmail().lower(); }
+
+      // Create: Only deck owner can create invites for their deck
+      allow create: if isSignedIn()
+        && ('deckId' in request.resource.data)
+        && isDeckOwner(requestDeckId())
+        && ('inviterId' in request.resource.data) && request.resource.data.inviterId == request.auth.uid
+        && ('emailLower' in request.resource.data) && request.resource.data.emailLower is string
+        && ('roleRequested' in request.resource.data) && request.resource.data.roleRequested in ['viewer', 'editor']
+        && ('status' in request.resource.data) && request.resource.data.status == 'pending'
+        && ('createdAt' in request.resource.data) && request.resource.data.createdAt is timestamp
+        && ('updatedAt' in request.resource.data) && request.resource.data.updatedAt is timestamp;
+
+      // Read: Deck owner can see all invites for their decks, OR users can see invites for their email
+      allow read: if isSignedIn() && (isDeckOwner(inviteDeckId()) || emailMatches());
+
+      // Update/Delete: Only deck owner can update or revoke invites
+      allow update, delete: if isSignedIn() && isDeckOwner(inviteDeckId());
+    }
   }
 }
