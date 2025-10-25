@@ -1,12 +1,12 @@
-# Implement Journey 02 Edit And Delete Card E2E Test
+# Build Export Functionality Export Deck As Text Pdf
 
-**Type:** Chore
+**Type:** Feature
 **Priority:** P1
-**Status:** todo
+**Status:** backlog
 **Created:** Generated via MCP
 
 ## Description
-Implement Journey 02: Edit and Delete Card E2E test
+Build export functionality - export deck as text/PDF
 
 ## Tasks
 - [ ] Task 1

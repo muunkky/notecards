@@ -1,0 +1,16 @@
+# Add Accessibility Features Screen Reader Support High Contrast
+
+**Type:** Feature
+**Priority:** P1
+**Status:** backlog
+**Created:** Generated via MCP
+
+## Description
+Add accessibility features - screen reader support, high contrast
+
+## Tasks
+- [ ] Task 1
+- [ ] Task 2
+
+## Notes
+*Add any relevant notes here*

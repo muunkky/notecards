@@ -1,12 +1,12 @@
-# Implement Journey 05 Deck Management E2E Test
+# Implement Offline Support Local First With Sync
 
-**Type:** Chore
+**Type:** Feature
 **Priority:** P1
-**Status:** todo
+**Status:** backlog
 **Created:** Generated via MCP
 
 ## Description
-Implement Journey 05: Deck Management E2E test
+Implement offline support - local-first with sync
 
 ## Tasks
 - [ ] Task 1

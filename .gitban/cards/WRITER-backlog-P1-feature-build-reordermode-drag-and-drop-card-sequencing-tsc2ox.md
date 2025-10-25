@@ -1,0 +1,16 @@
+# Build Reordermode Drag And Drop Card Sequencing
+
+**Type:** Feature
+**Priority:** P1
+**Status:** backlog
+**Created:** Generated via MCP
+
+## Description
+Build ReorderMode - drag-and-drop card sequencing
+
+## Tasks
+- [ ] Task 1
+- [ ] Task 2
+
+## Notes
+*Add any relevant notes here*
