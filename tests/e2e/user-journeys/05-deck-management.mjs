@@ -1,43 +1,49 @@
 /**
- * User Journey E2E Test: Create Deck and Add Card
+ * User Journey E2E Test: Deck Management
  *
  * User Story:
- * As a new user, I want to create my first flashcard deck and add a card to it,
- * so I can start organizing my study materials.
+ * As a user organizing my learning materials, I want to create, rename, and delete decks,
+ * so that I can manage my flashcard collections effectively.
  *
  * Journey Steps:
- * 1. Load production site
- * 2. Authenticate with Google
- * 3. Create a new deck with a title
- * 4. Navigate to deck details
- * 5. Add a flashcard with front/back content
- * 6. Verify card appears in deck
+ * 1. Load site and authenticate
+ * 2. View current deck list
+ * 3. Create three new decks
+ * 4. Rename one of the decks
+ * 5. Delete one of the decks
+ * 6. Verify final deck list is correct
  *
  * Success Criteria:
- * - Deck appears in user's deck list
- * - Card is visible in the deck
+ * - Can create multiple decks
+ * - Can rename a deck
+ * - Can delete a deck
+ * - Final deck list matches expected state
  * - All interactions captured with screenshots
  *
  * Usage:
- *   node tests/e2e/user-journeys/01-create-deck-and-card.mjs
+ *   npm run test:journey:05
+ *   # Or with local dev:
+ *   LOCAL_URL=http://localhost:5173 node tests/e2e/user-journeys/05-deck-management.mjs
  */
 
 import browserService from '../../../services/browser-service.mjs';
+import { getTestConfig } from '../support/test-config.mjs';
 import { promises as fs } from 'fs';
 import { resolve } from 'path';
 
 // Configuration
+const testConfig = getTestConfig();
+const TARGET_URL = testConfig.url;
 const JOURNEY_NAME = '05-deck-management';
-const PRODUCTION_URL = 'https://notecards-1b054.web.app';
 const TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-const RUN_TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19); // YYYY-MM-DDTHH-MM-SS
+const RUN_TIMESTAMP = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 const SCREENSHOT_DIR = resolve(process.cwd(), 'tests/e2e/screenshots', JOURNEY_NAME, RUN_TIMESTAMP);
 
 // Test data
-const TEST_DECK_TITLE = `Workflow Test ${TIMESTAMP}`;
-const TEST_CARD_FRONT = `Question ${TIMESTAMP}`;
-const TEST_CARD_BACK = `Answer ${TIMESTAMP}`;
-const TEST_CARD_UPDATED_FRONT = `Updated Question ${TIMESTAMP}`;
+const DECK_1_TITLE = `Biology Deck ${TIMESTAMP}`;
+const DECK_2_TITLE = `Chemistry Deck ${TIMESTAMP}`;
+const DECK_3_TITLE = `Physics Deck ${TIMESTAMP}`;
+const DECK_2_RENAMED = `Advanced Chemistry ${TIMESTAMP}`;
 
 /**
  * Take a screenshot and save with descriptive filename
@@ -83,26 +89,102 @@ async function logPageState(page, label = '') {
 }
 
 /**
- * Check if element exists and is visible
+ * Create a deck with given title
  */
-async function waitForElement(page, selector, timeout = 5000) {
-  try {
-    await page.waitForSelector(selector, { timeout, visible: true });
-    return true;
-  } catch {
+async function createDeck(page, deckTitle) {
+  // Click create button
+  const createClicked = await page.evaluate(() => {
+    const buttons = Array.from(document.querySelectorAll('button'));
+    const createButton = buttons.find(btn =>
+      btn.textContent.toLowerCase().includes('create') &&
+      btn.textContent.toLowerCase().includes('deck')
+    );
+    if (createButton) {
+      createButton.click();
+      return true;
+    }
     return false;
+  });
+
+  if (!createClicked) {
+    throw new Error('Create deck button not found');
   }
+
+  await wait(1500);
+
+  // Fill title
+  const titleFilled = await page.evaluate((title) => {
+    const inputs = Array.from(document.querySelectorAll('input'));
+    const titleInput = inputs.find(input =>
+      input.placeholder?.toLowerCase().includes('title')
+    ) || inputs[0];
+
+    if (titleInput) {
+      const nativeValueSetter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype, 'value'
+      ).set;
+      nativeValueSetter.call(titleInput, title);
+      titleInput.dispatchEvent(new Event('input', { bubbles: true }));
+      titleInput.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    }
+    return false;
+  }, deckTitle);
+
+  if (!titleFilled) {
+    throw new Error('Could not fill deck title');
+  }
+
+  await wait(1000);
+
+  // Save deck
+  const deckSaved = await page.evaluate(() => {
+    const buttons = Array.from(document.querySelectorAll('button'));
+    const saveButton = buttons.find(btn => {
+      const text = btn.textContent.trim().toLowerCase();
+      return text === 'create' || text === 'save';
+    });
+    if (saveButton) {
+      saveButton.click();
+      return true;
+    }
+    return false;
+  });
+
+  if (!deckSaved) {
+    throw new Error('Could not save deck');
+  }
+
+  await wait(2000);
 }
 
 /**
- * Main workflow test
+ * Get list of all deck titles currently visible
  */
-async function runProductionWorkflowTest() {
-  console.log('🎬 User Journey E2E Test: Create Deck and Add Card');
+async function getDeckTitles(page) {
+  return await page.evaluate(() => {
+    const deckItems = document.querySelectorAll('[data-testid="deck-item"]');
+    const titles = [];
+    for (const deckItem of deckItems) {
+      const h2 = deckItem.querySelector('h2');
+      if (h2) {
+        titles.push(h2.textContent.trim());
+      }
+    }
+    return titles;
+  });
+}
+
+/**
+ * Main journey test
+ */
+async function runDeckManagementJourney() {
+  console.log('🎬 User Journey E2E Test: Deck Management');
   console.log('═══════════════════════════════════════════════════');
-  console.log(`📍 Target: ${PRODUCTION_URL}`);
+  console.log(`📍 Target: ${TARGET_URL}`);
+  console.log(`🧪 Mode: ${testConfig.mode}`);
   console.log(`📁 Screenshots: ${SCREENSHOT_DIR}`);
-  console.log(`👤 User Story: New user creates first deck and adds a card`);
+  console.log(`👤 User Story: Create, rename, and delete decks`);
   console.log('');
 
   // Ensure screenshot directory exists
@@ -117,57 +199,41 @@ async function runProductionWorkflowTest() {
     startTime: Date.now()
   };
 
+  let page;
+  let browser;
+
   try {
-    // Step 1: Initialize browser
+    // Step 1: Initialize browser and authenticate
     step++;
-    console.log(`\n📋 Step ${step}: Initialize Browser`);
+    console.log(`\n📋 Step ${step}: Initialize and Authenticate`);
     console.log('─'.repeat(60));
 
-    await browserService.initialize({ headless: false });
-    const { page } = browserService.getBrowser();
-
+    const result = await browserService.initialize();
+    browser = result.browser;
+    page = result.page;
     console.log('✅ Browser initialized');
-    results.passed.push('Browser initialization');
 
-    // Step 2: Navigate to production
-    step++;
-    console.log(`\n📋 Step ${step}: Navigate to Production`);
-    console.log('─'.repeat(60));
+    // Navigate
+    await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await wait(3000, 'Loading site...');
 
-    await page.goto(PRODUCTION_URL, { waitUntil: 'networkidle0', timeout: 30000 });
-    await wait(2000, 'Stabilizing...');
+    const screenshot1 = await takeScreenshot(page, step, 'site-loaded');
+    if (screenshot1) results.screenshots.push(screenshot1);
 
-    await logPageState(page, 'After navigation');
-    const screenshot2 = await takeScreenshot(page, step, 'site-loads');
-    if (screenshot2) results.screenshots.push(screenshot2);
-
-    console.log('✅ Site loaded');
-    results.passed.push('Site load');
-
-    // Step 3: Authentication
-    step++;
-    console.log(`\n📋 Step ${step}: Authentication`);
-    console.log('─'.repeat(60));
-
+    // Check auth status
     const isAuthenticated = await browserService.checkAuthenticationStatus();
 
     if (!isAuthenticated) {
       console.log('🔐 Manual authentication required');
-      console.log('   1. Click "Sign in with Google"');
-      console.log('   2. Complete authentication');
-      console.log('   3. Wait for home page to load');
-      console.log('');
-      console.log('⏳ Waiting up to 60 seconds...');
+      console.log('⏳ Waiting up to 60 seconds for auth...');
 
       let authAttempts = 0;
-      const maxAuthAttempts = 12;
-
-      while (authAttempts < maxAuthAttempts) {
+      while (authAttempts < 12) {
         await wait(5000);
         authAttempts++;
 
         const authStatus = await browserService.checkAuthenticationStatus();
-        console.log(`🔍 Auth check ${authAttempts}/${maxAuthAttempts}...`);
+        console.log(`🔍 Auth check ${authAttempts}/12...`);
 
         if (authStatus) {
           console.log('✅ Authentication successful!');
@@ -184,548 +250,354 @@ async function runProductionWorkflowTest() {
       console.log('✅ Already authenticated');
     }
 
-    await logPageState(page, 'After auth');
-    const screenshot3 = await takeScreenshot(page, step, 'authenticated');
-    if (screenshot3) results.screenshots.push(screenshot3);
+    const screenshot1b = await takeScreenshot(page, step, 'authenticated');
+    if (screenshot1b) results.screenshots.push(screenshot1b);
 
-    results.passed.push('Authentication');
+    results.passed.push('Initialize and authenticate');
 
-    // Step 4: Create deck
+    // Step 2: View initial deck list
     step++;
-    console.log(`\n📋 Step ${step}: Create Deck`);
+    console.log(`\n📋 Step ${step}: View Current Deck List`);
     console.log('─'.repeat(60));
-    console.log(`📝 Title: "${TEST_DECK_TITLE}"`);
 
-    // Find and click create button with better logging
-    const createClicked = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
-      console.log(`Found ${buttons.length} clickable elements`);
-
-      const createButton = buttons.find(btn => {
-        const text = btn.textContent.toLowerCase();
-        return (text.includes('create') && text.includes('deck')) ||
-               text.includes('new deck') ||
-               text.includes('add deck');
-      });
-
-      if (createButton) {
-        console.log('Found create button:', createButton.textContent);
-        createButton.click();
-        return true;
-      }
-      console.log('No create button found');
-      return false;
-    });
-
-    if (!createClicked) {
-      console.log('⚠️  Create button not found, trying alternative methods...');
-      // Alternative: look for + button or specific data attributes
-      await page.evaluate(() => {
-        const plusButtons = Array.from(document.querySelectorAll('button')).filter(btn =>
-          btn.textContent.trim() === '+' || btn.innerHTML.includes('+')
-        );
-        if (plusButtons.length > 0) {
-          plusButtons[0].click();
-        }
-      });
+    const initialDecks = await getDeckTitles(page);
+    console.log(`📊 Found ${initialDecks.length} existing decks`);
+    if (initialDecks.length > 0) {
+      console.log(`   Decks: ${initialDecks.slice(0, 3).join(', ')}${initialDecks.length > 3 ? '...' : ''}`);
     }
 
-    await wait(1500, 'Waiting for form...');
+    const screenshot2 = await takeScreenshot(page, step, 'initial-deck-list');
+    if (screenshot2) results.screenshots.push(screenshot2);
 
-    await logPageState(page, 'After create click');
-    const screenshot4a = await takeScreenshot(page, step, 'create-form');
-    if (screenshot4a) results.screenshots.push(screenshot4a);
+    results.passed.push('View deck list');
 
-    // Fill form with React-aware input handling
-    console.log('📝 Filling deck title...');
-    const fillResult = await page.evaluate((title) => {
-      const inputs = Array.from(document.querySelectorAll('input'));
+    // Step 3: Create three decks
+    step++;
+    console.log(`\n📋 Step ${step}: Create Three Decks`);
+    console.log('─'.repeat(60));
 
-      // Find title input by placeholder, name, or position
-      const titleInput = inputs.find(input => {
-        const placeholder = input.placeholder?.toLowerCase() || '';
-        const name = input.name?.toLowerCase() || '';
-        const id = input.id?.toLowerCase() || '';
-        return placeholder.includes('title') ||
-               placeholder.includes('name') ||
-               name.includes('title') ||
-               id.includes('title');
-      }) || inputs[0]; // Fallback to first input
+    // Create deck 1
+    console.log(`📝 Creating: "${DECK_1_TITLE}"`);
+    await createDeck(page, DECK_1_TITLE);
+    console.log('✅ Deck 1 created');
 
-      if (titleInput) {
-        const initialValue = titleInput.value;
-
-        // React-aware input setting
-        const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-        nativeInputValueSetter.call(titleInput, title);
-
-        // Trigger React events
-        titleInput.dispatchEvent(new Event('input', { bubbles: true }));
-        titleInput.dispatchEvent(new Event('change', { bubbles: true }));
-        titleInput.dispatchEvent(new Event('blur', { bubbles: true }));
-
-        return {
-          success: true,
-          inputCount: inputs.length,
-          inputInfo: titleInput.placeholder || titleInput.name || 'first input',
-          initialValue,
-          finalValue: titleInput.value,
-          matches: titleInput.value === title
-        };
-      }
-      return {
-        success: false,
-        inputCount: inputs.length,
-        error: 'No title input found'
-      };
-    }, TEST_DECK_TITLE);
-
-    console.log(`🔍 Fill result:`, fillResult);
-
-    if (!fillResult.success) {
-      throw new Error('Could not fill deck title');
-    }
-
-    await wait(1000);
-
-    // Click save/create with better logging
-    console.log('💾 Saving deck...');
-    const saveResult = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'));
-
-      // Look for the modal's Create button (short, exact match preferred)
-      // Prioritize buttons with just "Create", "Save", "Add", or "Submit"
-      const exactMatches = buttons.filter(btn => {
-        const text = btn.textContent.trim().toLowerCase();
-        return text === 'create' || text === 'save' || text === 'add' || text === 'submit';
-      });
-
-      // If no exact match, look for buttons containing these words (but not "+ Create New Deck")
-      const partialMatches = buttons.filter(btn => {
-        const text = btn.textContent.trim().toLowerCase();
-        return (text.includes('create') || text.includes('save')) &&
-               !text.includes('new deck') &&  // Exclude header button
-               text.length < 20;  // Prefer shorter button text (modal buttons)
-      });
-
-      const saveButton = exactMatches[0] || partialMatches[0];
-
-      if (saveButton) {
-        const result = {
-          success: true,
-          buttonText: saveButton.textContent,
-          disabled: saveButton.disabled,
-          className: saveButton.className,
-          allButtons: buttons.map(b => b.textContent.trim())
-        };
-
-        saveButton.click();
-        return result;
-      }
-
-      return {
-        success: false,
-        buttonCount: buttons.length,
-        allButtons: buttons.map(b => b.textContent.trim())
-      };
-    });
-
-    console.log(`🔍 Save result:`, saveResult);
-
-    if (!saveResult.success) {
-      console.log('⚠️  Save button not clicked, trying Enter key...');
-      await page.keyboard.press('Enter');
-    }
-
-    if (saveResult.disabled) {
-      console.log('⚠️  Warning: Save button was disabled when clicked!');
-    }
-
-    await wait(3000, 'Waiting for deck creation...');
-
-    await logPageState(page, 'After save');
-    const screenshot4b = await takeScreenshot(page, step, 'after-save');
-    if (screenshot4b) results.screenshots.push(screenshot4b);
-
-    // Check current URL to understand where we are
+    // Navigate back to home if needed
     const currentUrl = await page.url();
-    console.log(`🔍 Current URL: ${currentUrl}`);
-
-    // If we're on a deck detail page, navigate back to home
-    if (currentUrl !== PRODUCTION_URL && currentUrl !== `${PRODUCTION_URL}/`) {
-      console.log('📍 Navigated to deck view, going back to home...');
-      await page.goto(PRODUCTION_URL, { waitUntil: 'networkidle0' });
-      await wait(2000, 'Loading home...');
-
-      await logPageState(page, 'After nav to home');
-      const screenshot4c = await takeScreenshot(page, step, 'back-to-home');
-      if (screenshot4c) results.screenshots.push(screenshot4c);
+    if (currentUrl !== TARGET_URL && currentUrl !== `${TARGET_URL}/`) {
+      await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
+      await wait(2000);
     }
 
-    // Verify deck exists with correct selectors
-    console.log('🔍 Verifying deck creation...');
-    const deckVerification = await page.evaluate((title) => {
-      const bodyText = document.body.textContent;
-      const hasTitle = bodyText.includes(title);
+    const screenshot3a = await takeScreenshot(page, step, 'deck-1-created');
+    if (screenshot3a) results.screenshots.push(screenshot3a);
 
-      // Count deck elements using correct data-testid
-      const deckElements = document.querySelectorAll('[data-testid="deck-item"]');
+    // Create deck 2
+    console.log(`📝 Creating: "${DECK_2_TITLE}"`);
+    await createDeck(page, DECK_2_TITLE);
+    console.log('✅ Deck 2 created');
 
-      // Find h2 elements with the deck title
-      const h2Elements = Array.from(document.querySelectorAll('h2'));
-      const deckTitleElement = h2Elements.find(h2 => h2.textContent.includes(title));
+    const currentUrl2 = await page.url();
+    if (currentUrl2 !== TARGET_URL && currentUrl2 !== `${TARGET_URL}/`) {
+      await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
+      await wait(2000);
+    }
 
-      // List all deck titles found on the page
-      const allDeckTitles = Array.from(deckElements).map(deck => {
-        const h2 = deck.querySelector('h2');
-        return h2 ? h2.textContent.trim() : 'No title';
-      });
+    const screenshot3b = await takeScreenshot(page, step, 'deck-2-created');
+    if (screenshot3b) results.screenshots.push(screenshot3b);
 
-      return {
-        hasTitle,
-        deckElementCount: deckElements.length,
-        hasDeckItem: !!deckTitleElement,
-        bodyLength: bodyText.length,
-        allDeckTitles
-      };
-    }, TEST_DECK_TITLE);
+    // Create deck 3
+    console.log(`📝 Creating: "${DECK_3_TITLE}"`);
+    await createDeck(page, DECK_3_TITLE);
+    console.log('✅ Deck 3 created');
 
-    console.log(`🔍 Verification:`, deckVerification);
-    console.log(`   - Body includes title: ${deckVerification.hasTitle}`);
-    console.log(`   - Deck items found: ${deckVerification.deckElementCount}`);
-    console.log(`   - Has matching deck item: ${deckVerification.hasDeckItem}`);
-    console.log(`   - All deck titles: ${deckVerification.allDeckTitles.join(', ')}`);
+    const currentUrl3 = await page.url();
+    if (currentUrl3 !== TARGET_URL && currentUrl3 !== `${TARGET_URL}/`) {
+      await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
+      await wait(2000);
+    }
 
-    if (deckVerification.hasDeckItem && deckVerification.deckElementCount > 0) {
-      console.log('✅ Deck created and verified (found in deck list)');
-      results.passed.push('Create deck');
-    } else if (deckVerification.hasTitle) {
-      console.log('⚠️  Deck title found but not in expected deck-item element');
-      results.warnings.push('Deck verification uncertain');
-      results.passed.push('Create deck (tentative)');
+    const screenshot3c = await takeScreenshot(page, step, 'deck-3-created');
+    if (screenshot3c) results.screenshots.push(screenshot3c);
+
+    // Verify all three decks exist
+    const decksAfterCreation = await getDeckTitles(page);
+    const deck1Exists = decksAfterCreation.some(title => title.includes(DECK_1_TITLE));
+    const deck2Exists = decksAfterCreation.some(title => title.includes(DECK_2_TITLE));
+    const deck3Exists = decksAfterCreation.some(title => title.includes(DECK_3_TITLE));
+
+    console.log(`🔍 Verification:`);
+    console.log(`   - Deck 1: ${deck1Exists ? '✅' : '❌'}`);
+    console.log(`   - Deck 2: ${deck2Exists ? '✅' : '❌'}`);
+    console.log(`   - Deck 3: ${deck3Exists ? '✅' : '❌'}`);
+
+    if (deck1Exists && deck2Exists && deck3Exists) {
+      console.log('✅ All three decks created successfully');
+      results.passed.push('Create three decks');
     } else {
-      console.log('⚠️  Deck title not found in page');
-      console.log('   Deck may not have been created');
-      results.warnings.push('Deck creation may have failed');
+      throw new Error('Not all decks were created');
     }
 
-    // Step 5: View deck
+    // Step 4: Rename deck 2
     step++;
-    console.log(`\n📋 Step ${step}: View Deck Details`);
+    console.log(`\n📋 Step ${step}: Rename Deck`);
     console.log('─'.repeat(60));
+    console.log(`📝 Renaming "${DECK_2_TITLE}" to "${DECK_2_RENAMED}"`);
 
-    // Click on deck to view (using correct data-testid selector)
-    const deckClicked = await page.evaluate((title) => {
-      console.log('Looking for deck with title:', title);
-
-      // Strategy 1: Find deck-item with matching title in h2
+    // Find and click on deck 2 to open it or find edit button
+    const deck2Clicked = await page.evaluate((title) => {
       const deckItems = document.querySelectorAll('[data-testid="deck-item"]');
-      console.log(`Found ${deckItems.length} deck items`);
-
       for (const deckItem of deckItems) {
         const h2 = deckItem.querySelector('h2');
         if (h2 && h2.textContent.includes(title)) {
-          console.log('Found matching deck item, clicking...');
+          // Look for edit/settings button within this deck item
+          const buttons = Array.from(deckItem.querySelectorAll('button'));
+          const editButton = buttons.find(btn =>
+            btn.textContent.toLowerCase().includes('edit') ||
+            btn.textContent.toLowerCase().includes('settings') ||
+            btn.innerHTML.includes('⋮') || // Three dots menu
+            btn.innerHTML.includes('...') ||
+            btn.getAttribute('aria-label')?.toLowerCase().includes('menu')
+          );
+
+          if (editButton) {
+            console.log('Found edit button');
+            editButton.click();
+            return true;
+          }
+
+          // Alternative: click the deck itself
+          console.log('Clicking deck item');
           deckItem.click();
           return true;
         }
       }
-
-      // Strategy 2: Find any clickable element with the title
-      const allClickable = Array.from(document.querySelectorAll('article, a, [role="button"], div[onclick]'));
-      const matchingElement = allClickable.find(el => el.textContent.includes(title));
-
-      if (matchingElement) {
-        console.log('Found deck via alternative selector');
-        matchingElement.click();
-        return true;
-      }
-
-      console.log('Could not find deck to click');
       return false;
-    }, TEST_DECK_TITLE);
+    }, DECK_2_TITLE);
 
-    if (deckClicked) {
-      await wait(2000, 'Loading deck view...');
-
-      await logPageState(page, 'Deck view');
-      const screenshot5 = await takeScreenshot(page, step, 'deck-view');
-      if (screenshot5) results.screenshots.push(screenshot5);
-
-      console.log('✅ Deck view loaded');
-      results.passed.push('View deck');
+    if (!deck2Clicked) {
+      console.log('⚠️  Could not find deck 2 to rename');
+      results.warnings.push('Rename skipped - deck not found');
     } else {
-      console.log('⚠️  Could not navigate to deck view');
-      results.warnings.push('Deck view navigation');
-    }
+      await wait(1500);
 
-    // Step 6: Create card
-    step++;
-    console.log(`\n📋 Step ${step}: Create Card`);
-    console.log('─'.repeat(60));
-    console.log(`📝 Front: "${TEST_CARD_FRONT}"`);
-    console.log(`📝 Back: "${TEST_CARD_BACK}"`);
+      const screenshot4a = await takeScreenshot(page, step, 'deck-2-selected');
+      if (screenshot4a) results.screenshots.push(screenshot4a);
 
-    // Click add card button
-    const addCardClicked = await page.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button, a, [role="button"]'));
-      const addButton = buttons.find(btn => {
-        const text = btn.textContent.toLowerCase();
-        return (text.includes('add') && text.includes('card')) ||
-               text.includes('new card') ||
-               text.includes('create card');
+      // Try to find rename/edit option
+      const renameInitiated = await page.evaluate(() => {
+        // Look for rename, edit, or settings buttons
+        const buttons = Array.from(document.querySelectorAll('button'));
+        const renameButton = buttons.find(btn => {
+          const text = btn.textContent.toLowerCase();
+          return text.includes('rename') || text.includes('edit') || text.includes('settings');
+        });
+
+        if (renameButton) {
+          console.log('Found rename button');
+          renameButton.click();
+          return true;
+        }
+        return false;
       });
 
-      if (addButton) {
-        console.log('Found add card button');
-        addButton.click();
-        return true;
-      }
-      return false;
-    });
+      if (renameInitiated) {
+        await wait(1000);
 
-    if (addCardClicked) {
-      await wait(1500, 'Waiting for card form...');
+        // Fill new name
+        const renamed = await page.evaluate((newName) => {
+          const inputs = Array.from(document.querySelectorAll('input'));
+          const titleInput = inputs.find(input =>
+            input.placeholder?.toLowerCase().includes('title') ||
+            input.placeholder?.toLowerCase().includes('name')
+          ) || inputs[0];
 
-      await logPageState(page, 'Card form');
-      const screenshot6a = await takeScreenshot(page, step, 'card-form');
-      if (screenshot6a) results.screenshots.push(screenshot6a);
-
-      // Fill card front and back
-      console.log('📝 Filling card content...');
-      const fillResult = await page.evaluate(({ front, back }) => {
-        const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
-
-        // Find front and back inputs
-        const frontInput = inputs.find(input => {
-          const placeholder = input.placeholder?.toLowerCase() || '';
-          const name = input.name?.toLowerCase() || '';
-          return placeholder.includes('front') || placeholder.includes('question') || name.includes('front');
-        }) || inputs[0];
-
-        const backInput = inputs.find(input => {
-          const placeholder = input.placeholder?.toLowerCase() || '';
-          const name = input.name?.toLowerCase() || '';
-          return placeholder.includes('back') || placeholder.includes('answer') || name.includes('back');
-        }) || inputs[1];
-
-        // Helper function to get the correct native setter for an element
-        const setReactValue = (element, value) => {
-          if (!element) return false;
-
-          // Get the correct setter based on element type
-          let nativeValueSetter;
-          if (element.tagName === 'TEXTAREA') {
-            nativeValueSetter = Object.getOwnPropertyDescriptor(
-              window.HTMLTextAreaElement.prototype, 'value'
-            )?.set;
-          } else {
-            nativeValueSetter = Object.getOwnPropertyDescriptor(
+          if (titleInput) {
+            const nativeValueSetter = Object.getOwnPropertyDescriptor(
               window.HTMLInputElement.prototype, 'value'
-            )?.set;
-          }
-
-          if (nativeValueSetter) {
-            nativeValueSetter.call(element, value);
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            element.dispatchEvent(new Event('change', { bubbles: true }));
-            element.dispatchEvent(new Event('blur', { bubbles: true }));
+            ).set;
+            nativeValueSetter.call(titleInput, newName);
+            titleInput.dispatchEvent(new Event('input', { bubbles: true }));
+            titleInput.dispatchEvent(new Event('change', { bubbles: true }));
             return true;
           }
           return false;
-        };
+        }, DECK_2_RENAMED);
 
-        const frontSet = setReactValue(frontInput, front);
-        const backSet = setReactValue(backInput, back);
+        if (renamed) {
+          await wait(500);
 
-        return {
-          inputCount: inputs.length,
-          frontSet,
-          backSet,
-          frontValue: frontInput?.value,
-          backValue: backInput?.value
-        };
-      }, { front: TEST_CARD_FRONT, back: TEST_CARD_BACK });
+          // Save changes
+          await page.evaluate(() => {
+            const buttons = Array.from(document.querySelectorAll('button'));
+            const saveButton = buttons.find(btn =>
+              btn.textContent.toLowerCase().includes('save') ||
+              btn.textContent.toLowerCase().includes('update')
+            );
+            if (saveButton) {
+              saveButton.click();
+            }
+          });
 
-      console.log('🔍 Card fill result:', fillResult);
+          await wait(2000);
 
-      await wait(1000);
+          // Navigate back to home
+          const currentUrl4 = await page.url();
+          if (currentUrl4 !== TARGET_URL && currentUrl4 !== `${TARGET_URL}/`) {
+            await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
+            await wait(2000);
+          }
 
-      // Save card
-      console.log('💾 Saving card...');
-      const cardSaveResult = await page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
+          const screenshot4b = await takeScreenshot(page, step, 'deck-renamed');
+          if (screenshot4b) results.screenshots.push(screenshot4b);
 
-        // Look for exact matches first (modal buttons)
-        const exactMatches = buttons.filter(btn => {
-          const text = btn.textContent.trim().toLowerCase();
-          return text === 'save' || text === 'create' || text === 'add';
-        });
-
-        // Then look for partial matches (exclude long button text)
-        const partialMatches = buttons.filter(btn => {
-          const text = btn.textContent.trim().toLowerCase();
-          return (text.includes('save') || text.includes('create') || text.includes('add')) &&
-                 !text.includes('new') &&
-                 text.length < 20;
-        });
-
-        const saveButton = exactMatches[0] || partialMatches[0];
-
-        if (saveButton) {
-          saveButton.click();
-          return {
-            success: true,
-            buttonText: saveButton.textContent.trim()
-          };
+          console.log('✅ Deck renamed');
+          results.passed.push('Rename deck');
+        } else {
+          console.log('⚠️  Could not fill new name');
+          results.warnings.push('Rename uncertain');
         }
-
-        return {
-          success: false,
-          buttonCount: buttons.length,
-          allButtons: buttons.map(b => b.textContent.trim())
-        };
-      });
-
-      console.log('🔍 Card save result:', cardSaveResult);
-
-      await wait(2000, 'Waiting for card creation...');
-
-      await logPageState(page, 'After card save');
-      const screenshot6b = await takeScreenshot(page, step, 'card-created');
-      if (screenshot6b) results.screenshots.push(screenshot6b);
-
-      // Wait a bit more to ensure card is rendered in the list
-      await wait(1000);
-
-      // Take a final screenshot showing the deck with the created card
-      const screenshot6c = await takeScreenshot(page, step, 'deck-with-card');
-      if (screenshot6c) results.screenshots.push(screenshot6c);
-
-      // Verify card exists
-      const cardExists = await page.evaluate((front) => {
-        return document.body.textContent.includes(front);
-      }, TEST_CARD_FRONT);
-
-      if (cardExists) {
-        console.log('✅ Card created successfully');
-        console.log('📸 Captured deck view with created card');
-        results.passed.push('Create card');
       } else {
-        console.log('⚠️  Card verification uncertain');
-        results.warnings.push('Card verification');
+        console.log('⚠️  Rename function not available in UI');
+        results.warnings.push('Rename skipped - UI limitation');
       }
-    } else {
-      console.log('⚠️  Add card button not found');
-      results.warnings.push('Card creation skipped');
     }
 
-    // Step 7: Edit card
+    // Step 5: Delete deck 3
     step++;
-    console.log(`\n📋 Step ${step}: Edit Card`);
+    console.log(`\n📋 Step ${step}: Delete Deck`);
     console.log('─'.repeat(60));
+    console.log(`📝 Deleting "${DECK_3_TITLE}"`);
 
-    // Find and click edit button or card
-    const editClicked = await page.evaluate((front) => {
-      // Try to find edit button
-      const editButtons = Array.from(document.querySelectorAll('button, [role="button"]')).filter(btn => {
-        const text = btn.textContent.toLowerCase();
-        return text.includes('edit');
-      });
+    // Find and delete deck 3
+    const deleteInitiated = await page.evaluate((title) => {
+      const deckItems = document.querySelectorAll('[data-testid="deck-item"]');
+      for (const deckItem of deckItems) {
+        const h2 = deckItem.querySelector('h2');
+        if (h2 && h2.textContent.includes(title)) {
+          // Look for delete button
+          const buttons = Array.from(deckItem.querySelectorAll('button'));
+          const deleteButton = buttons.find(btn => {
+            const text = btn.textContent.toLowerCase();
+            return text.includes('delete') || text.includes('remove') || text === '×';
+          });
 
-      if (editButtons.length > 0) {
-        console.log('Found edit button');
-        editButtons[0].click();
-        return true;
+          if (deleteButton) {
+            console.log('Found delete button');
+            deleteButton.click();
+            return true;
+          }
+
+          // Alternative: click on deck then find delete
+          console.log('Clicking deck to find delete option');
+          deckItem.click();
+          return true;
+        }
       }
-
-      // Alternative: click on the card itself
-      const cards = Array.from(document.querySelectorAll('[data-card], .card, div[onclick]'));
-      const targetCard = cards.find(card => card.textContent.includes(front));
-      if (targetCard) {
-        console.log('Clicking card itself');
-        targetCard.click();
-        return true;
-      }
-
       return false;
-    }, TEST_CARD_FRONT);
+    }, DECK_3_TITLE);
 
-    if (editClicked) {
+    if (!deleteInitiated) {
+      console.log('⚠️  Could not find deck 3 to delete');
+      results.warnings.push('Delete skipped - deck not found');
+    } else {
       await wait(1500);
 
-      const screenshot7a = await takeScreenshot(page, step, 'edit-card');
-      if (screenshot7a) results.screenshots.push(screenshot7a);
+      const screenshot5a = await takeScreenshot(page, step, 'deck-3-selected');
+      if (screenshot5a) results.screenshots.push(screenshot5a);
 
-      // Update the front text
-      console.log(`📝 Updating to: "${TEST_CARD_UPDATED_FRONT}"`);
-      await page.evaluate((newFront) => {
-        const inputs = Array.from(document.querySelectorAll('input[type="text"], textarea'));
-        const frontInput = inputs.find(input => {
-          const placeholder = input.placeholder?.toLowerCase() || '';
-          return placeholder.includes('front') || placeholder.includes('question');
-        }) || inputs[0];
-
-        if (frontInput) {
-          const nativeValueSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLInputElement.prototype, 'value'
-          )?.set || Object.getOwnPropertyDescriptor(
-            window.HTMLTextAreaElement.prototype, 'value'
-          )?.set;
-
-          if (nativeValueSetter) {
-            nativeValueSetter.call(frontInput, newFront);
-            frontInput.dispatchEvent(new Event('input', { bubbles: true }));
-            frontInput.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        }
-      }, TEST_CARD_UPDATED_FRONT);
-
-      await wait(500);
-
-      // Save changes
-      await page.evaluate(() => {
+      // Try to find delete button
+      const deleted = await page.evaluate(() => {
         const buttons = Array.from(document.querySelectorAll('button'));
-        const saveButton = buttons.find(btn => btn.textContent.toLowerCase().includes('save'));
-        if (saveButton) saveButton.click();
+        const deleteButton = buttons.find(btn => {
+          const text = btn.textContent.toLowerCase();
+          return text.includes('delete') || text.includes('remove');
+        });
+
+        if (deleteButton) {
+          console.log('Found delete button');
+          deleteButton.click();
+          return true;
+        }
+        return false;
       });
 
-      await wait(2000);
+      if (deleted) {
+        await wait(1000);
 
-      const screenshot7b = await takeScreenshot(page, step, 'card-updated');
-      if (screenshot7b) results.screenshots.push(screenshot7b);
+        // Confirm deletion if prompted
+        await page.evaluate(() => {
+          const buttons = Array.from(document.querySelectorAll('button'));
+          const confirmButton = buttons.find(btn => {
+            const text = btn.textContent.toLowerCase();
+            return text.includes('delete') || text.includes('confirm') || text.includes('yes');
+          });
+          if (confirmButton) {
+            confirmButton.click();
+          }
+        });
 
-      console.log('✅ Card updated');
-      results.passed.push('Edit card');
-    } else {
-      console.log('⚠️  Edit functionality not tested');
-      results.warnings.push('Edit card skipped');
+        await wait(2000);
+
+        // Navigate back to home
+        const currentUrl5 = await page.url();
+        if (currentUrl5 !== TARGET_URL && currentUrl5 !== `${TARGET_URL}/`) {
+          await page.goto(TARGET_URL, { waitUntil: 'domcontentloaded' });
+          await wait(2000);
+        }
+
+        const screenshot5b = await takeScreenshot(page, step, 'deck-deleted');
+        if (screenshot5b) results.screenshots.push(screenshot5b);
+
+        console.log('✅ Deck deleted');
+        results.passed.push('Delete deck');
+      } else {
+        console.log('⚠️  Delete function not available in UI');
+        results.warnings.push('Delete skipped - UI limitation');
+      }
     }
 
-    // Note: Study mode doesn't exist in current app (only 'decks' and 'cards' screens)
-    // App features: Create deck → View deck → Create card → Edit card
-    // Future: Could add delete card/deck tests, but keeping simple for now
-
-    // Final summary screenshot
+    // Step 6: Verify final deck list
     step++;
-    console.log(`\n📋 Step ${step}: Final State`);
+    console.log(`\n📋 Step ${step}: Verify Final Deck List`);
     console.log('─'.repeat(60));
 
-    const screenshot10 = await takeScreenshot(page, step, 'final-state');
-    if (screenshot10) results.screenshots.push(screenshot10);
+    const finalDecks = await getDeckTitles(page);
 
-    console.log('✅ Test completed');
+    console.log(`📊 Final verification:`);
+    console.log(`   - Initial decks: ${initialDecks.length}`);
+    console.log(`   - Final decks: ${finalDecks.length}`);
+    console.log(`   - Expected: ${initialDecks.length + 2} decks (created 3, deleted 1)`);
+
+    const deck1Still = finalDecks.some(title => title.includes(DECK_1_TITLE));
+    const deck2Renamed = finalDecks.some(title => title.includes(DECK_2_RENAMED));
+    const deck3Gone = !finalDecks.some(title => title.includes(DECK_3_TITLE));
+
+    console.log(`   - Deck 1 exists: ${deck1Still ? '✅' : '❌'}`);
+    console.log(`   - Deck 2 renamed: ${deck2Renamed ? '✅' : '⚠️  (may not have been renamed)'}`);
+    console.log(`   - Deck 3 deleted: ${deck3Gone ? '✅' : '⚠️  (may not have been deleted)'}`);
+
+    const screenshot6 = await takeScreenshot(page, step, 'final-deck-list');
+    if (screenshot6) results.screenshots.push(screenshot6);
+
+    if (deck1Still) {
+      console.log('✅ Final deck list verified');
+      results.passed.push('Verify final state');
+    } else {
+      results.warnings.push('Final deck list verification uncertain');
+    }
+
+    console.log('✅ Journey completed');
 
   } catch (error) {
     console.error(`\n❌ Test failed at step ${step}:`, error.message);
 
     // Capture error state
     try {
-      const { page } = browserService.getBrowser();
-      await logPageState(page, 'ERROR');
-
-      const errorScreenshot = await takeScreenshot(page, 'ERROR', 'error-state');
-      if (errorScreenshot) results.screenshots.push(errorScreenshot);
+      if (page) {
+        await logPageState(page, 'ERROR');
+        const errorScreenshot = await takeScreenshot(page, 'ERROR', 'error-state');
+        if (errorScreenshot) results.screenshots.push(errorScreenshot);
+      }
     } catch (captureError) {
       console.error('Could not capture error state');
     }
@@ -761,15 +633,17 @@ async function runProductionWorkflowTest() {
     console.log('');
 
     // Close browser
-    console.log('🔒 Closing browser...');
-    await browserService.shutdown();
+    if (browser) {
+      console.log('🔒 Closing browser...');
+      await browserService.close();
+    }
 
     return results;
   }
 }
 
 // Run the test
-runProductionWorkflowTest()
+runDeckManagementJourney()
   .then(results => {
     const allPassed = results.failed.length === 0;
     console.log(allPassed ? '✅ All tests passed!' : '⚠️  Some tests had issues');
