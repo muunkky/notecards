@@ -35,6 +35,7 @@ export interface Card {
   updatedAt: Date;
   favorite?: boolean; // Optional favorite flag
   archived?: boolean; // Soft-delete/archive flag
+  category?: string; // Optional category for Writer's Tool (conflict, character, location, etc.)
 }
 
 // Order Snapshot model - stores saved card orderings
@@ -86,6 +87,7 @@ export interface CardData {
   updatedAt: Date;
   favorite?: boolean;
   archived?: boolean;
+  category?: string; // Optional category for Writer's Tool
 }
 
 export interface OrderSnapshotData {
