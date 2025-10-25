@@ -1,10 +1,67 @@
-# End-to-End User Journey Tests
+# End-to-End Testing
 
-Visual regression and functional testing for critical user journeys in production.
+Comprehensive E2E testing for both development and production environments.
 
 ## Overview
 
-E2E user journey tests simulate real user workflows from start to finish, capturing screenshot evidence at each step. These tests verify that critical paths work correctly in the production environment.
+E2E tests simulate real user workflows from start to finish, verifying that critical paths work correctly. Tests are organized by environment:
+- **Dev Tests**: Comprehensive journey tests against local emulators
+- **Smoke Tests**: Quick validation tests against production
+
+## Test Modes
+
+### Development Mode (`dev`)
+- **Target**: Local dev server with Firebase emulators
+- **Purpose**: Comprehensive testing during development
+- **Features**: Full authentication, complete workflows, detailed screenshots
+- **Runtime**: Variable (30s - 2min per journey)
+- **When to use**: During feature development and pre-deployment validation
+
+### Smoke Test Mode (`smoke`)
+- **Target**: Production site (https://notecards-1b054.web.app)
+- **Purpose**: Quick validation that site is functional
+- **Features**: Basic checks (site loads, React app initializes, auth UI present)
+- **Runtime**: < 30 seconds
+- **When to use**: Post-deployment validation, CI/CD health checks
+
+### Production Mode (`production`)
+- **Target**: Production site
+- **Purpose**: Full E2E testing against live environment
+- **Features**: Complete user journeys on production
+- **Runtime**: Variable
+- **When to use**: Periodic comprehensive validation
+
+## Environment Variables
+
+Tests automatically detect the target environment using these variables:
+
+### E2E_MODE (Recommended)
+Explicitly sets the test mode:
+```bash
+E2E_MODE=smoke    # Run smoke tests against production
+E2E_MODE=dev      # Run dev tests with emulators
+E2E_MODE=production  # Run full tests against production
+```
+
+### E2E_TARGET (Legacy)
+Alternative mode detection:
+```bash
+E2E_TARGET=local   # Same as E2E_MODE=dev
+E2E_TARGET=smoke   # Same as E2E_MODE=smoke
+E2E_TARGET=production  # Same as E2E_MODE=production
+```
+
+### LOCAL_URL
+Override the test URL:
+```bash
+LOCAL_URL=http://localhost:5173  # Test against custom local URL
+```
+
+### Priority Order
+1. `LOCAL_URL` (if set, forces URL)
+2. `E2E_MODE` (if set, determines mode)
+3. `E2E_TARGET` (if set, determines mode)
+4. Default: `production` mode
 
 ## Test Philosophy
 
@@ -12,7 +69,7 @@ E2E user journey tests simulate real user workflows from start to finish, captur
 
 **Visual Evidence**: Every step captures a screenshot showing the actual UI state.
 
-**Production Testing**: Tests run against the live production site to verify real-world behavior.
+**Environment Aware**: Tests adapt behavior based on target environment.
 
 **Long Journeys**: Tests should cover realistic multi-step workflows, not isolated actions.
 
@@ -21,20 +78,26 @@ E2E user journey tests simulate real user workflows from start to finish, captur
 ```
 tests/e2e/
 ├── README.md                          # This file
-├── user-journeys/                     # Journey test scripts
-│   ├── 01-create-deck-and-card.mjs   # Basic deck creation
-│   ├── 02-edit-and-delete-card.mjs   # Card management (future)
-│   ├── 03-share-deck.mjs             # Sharing workflow (future)
-│   └── ...                            # Additional journeys
-├── screenshots/                       # Captured evidence
-│   ├── 01-create-deck-and-card/
-│   │   └── 2025-10-23T17-40-35/      # Timestamped run
-│   │       ├── 02-site-loads.png
-│   │       ├── 03-authenticated.png
-│   │       ├── 04-create-form.png
-│   │       └── ...
-│   └── ...
-└── run-journeys.sh                    # Test runner (future)
+├── support/                           # Shared utilities and config
+│   ├── test-config.mjs               # Environment detection and URL management
+│   ├── preflight-checks.mjs          # Pre-test validation
+│   └── test-preflight.mjs            # Preflight execution
+├── dev/                              # Development tests (with emulators)
+│   └── journeys/                     # Comprehensive user journeys
+│       ├── 01-create-deck-and-card.mjs
+│       └── 03-share-deck.mjs
+├── smoke/                            # Quick production validation
+│   └── 01-auth-and-create.mjs       # Basic site health check (< 30s)
+├── user-journeys/                    # Legacy journey tests (being migrated)
+│   ├── 02-edit-and-delete-card.mjs
+│   ├── 04-bulk-card-creation.mjs
+│   └── 05-deck-management.mjs
+└── screenshots/                      # Captured evidence
+    ├── 01-create-deck-and-card/
+    │   └── 2025-10-23T17-40-35/     # Timestamped run
+    │       ├── 02-site-loads.png
+    │       └── ...
+    └── ...
 ```
 
 ## Current Journeys
@@ -169,8 +232,13 @@ Break down into discrete steps:
 
 Copy an existing journey as a template:
 ```bash
-cp tests/e2e/user-journeys/01-create-deck-and-card.mjs \
-   tests/e2e/user-journeys/XX-your-journey.mjs
+# For dev tests (with emulators)
+cp tests/e2e/dev/journeys/01-create-deck-and-card.mjs \
+   tests/e2e/dev/journeys/XX-your-journey.mjs
+
+# For smoke tests (quick production checks)
+cp tests/e2e/smoke/01-auth-and-create.mjs \
+   tests/e2e/smoke/XX-your-smoke-test.mjs
 ```
 
 Update:
@@ -235,16 +303,24 @@ await takeScreenshot(page, step, 'after-deck-creation');
 await takeScreenshot(page, step, 'mouse-hover-button');
 ```
 
-### Use Real Production
+### Choose the Right Test Mode
 
-✅ **DO**: Test against live production site
+✅ **DO**: Use dev mode for comprehensive testing during development
 ```javascript
-const PRODUCTION_URL = 'https://notecards-1b054.web.app';
+// Dev tests with emulators (full authentication and workflows)
+LOCAL_URL=http://localhost:5173 npm run test:journey:01
 ```
 
-❌ **DON'T**: Test against localhost or staging
+✅ **DO**: Use smoke tests for quick production validation
 ```javascript
-const LOCALHOST_URL = 'http://localhost:3000'; // No!
+// Quick production health check after deployment
+npm run test:e2e:smoke
+```
+
+❌ **DON'T**: Run comprehensive journey tests against production unnecessarily
+```javascript
+// Avoid this - use dev mode with emulators instead
+E2E_MODE=production npm run test:journey:01
 ```
 
 ### Write Clear Documentation
@@ -265,16 +341,60 @@ const LOCALHOST_URL = 'http://localhost:3000'; // No!
 
 ## Running Tests
 
-### Single Journey
+### Smoke Tests (Production Validation)
 
+Quick production health checks (< 30s):
 ```bash
-node tests/e2e/user-journeys/01-create-deck-and-card.mjs
+# Recommended: Use npm script
+npm run test:e2e:smoke
+
+# Or directly with E2E_MODE
+E2E_MODE=smoke node tests/e2e/smoke/01-auth-and-create.mjs
 ```
 
-### All Journeys (Future)
+### Dev Journey Tests (Local Emulators)
+
+Comprehensive tests against local environment:
+```bash
+# Run specific journey
+npm run test:journey:01  # Create deck and card
+npm run test:journey:03  # Share deck
+
+# Or directly with LOCAL_URL
+LOCAL_URL=http://localhost:5173 node tests/e2e/dev/journeys/01-create-deck-and-card.mjs
+```
+
+### Production Journey Tests
+
+Full user journeys against production:
+```bash
+# Set E2E_MODE to production
+E2E_MODE=production node tests/e2e/dev/journeys/01-create-deck-and-card.mjs
+```
+
+### Legacy Journey Tests
+
+Old location (being migrated):
+```bash
+npm run test:journey:02  # Edit and delete
+npm run test:journey:04  # Bulk creation
+npm run test:journey:05  # Deck management
+```
+
+### Examples
 
 ```bash
-npm run test:e2e:journeys
+# Quick production check after deployment
+npm run test:e2e:smoke
+
+# Test against local dev server
+LOCAL_URL=http://localhost:5173 npm run test:journey
+
+# Test specific journey with custom URL
+LOCAL_URL=http://localhost:5174 npm run test:journey:03
+
+# Force production mode
+E2E_MODE=production npm run test:journey:01
 ```
 
 ### View Results
@@ -376,20 +496,21 @@ await fs.mkdir(SCREENSHOT_DIR, { recursive: true });
 
 ---
 
-**Last Updated**: October 23, 2025
+**Last Updated**: October 25, 2025
 **Maintainer**: Development Team
-**Test Coverage**: 5 journeys
+**Test Coverage**: 6 tests (5 journeys + 1 smoke test)
 
-| Journey | Status | Duration | Screenshots | Notes |
-|---------|--------|----------|-------------|-------|
-| 01: Create Deck and Add Card | ✅ Working | ~30s | 9 | Fully tested and verified |
-| 02: Edit and Delete Card | ⚠️ Needs Work | ~34s | 9 | Template only (needs edit/delete impl) |
-| 03: Share Deck | ✅ UI Test | ~60s | 10 | Validates share workflow UI; backend blocked by Firestore rules |
-| 04: Bulk Card Creation | ✅ Working | ~45s | 9 | Creates 5 cards (1/5 verified) |
-| 05: Deck Management | ⚠️ Partial | ~25s | 5 | Deck verification failed |
+| Journey | Status | Duration | Location | Notes |
+|---------|--------|----------|----------|-------|
+| Smoke: Auth & Create | ✅ Working | < 30s | `smoke/` | Quick production health check |
+| 01: Create Deck and Add Card | ✅ Working | ~30s | `dev/journeys/` | Fully tested and verified |
+| 02: Edit and Delete Card | ⚠️ Needs Work | ~34s | `user-journeys/` (legacy) | Template only (needs edit/delete impl) |
+| 03: Share Deck | ✅ UI Test | ~60s | `dev/journeys/` | Validates share workflow UI |
+| 04: Bulk Card Creation | ✅ Working | ~45s | `user-journeys/` (legacy) | Creates 5 cards (1/5 verified) |
+| 05: Deck Management | ⚠️ Partial | ~25s | `user-journeys/` (legacy) | Deck verification failed |
 
-**Working Journeys**: 5/5 (all running and producing screenshots)
+**Working Tests**: 6/6 (all running and producing screenshots)
 **Known Issues**:
-- Journey 03: UI-only test (backend sharing blocked by Firestore security rules in production)
-- Journey 04: Only verifies 1/5 cards created
-- Journey 05: Deck creation verification fails
+- Journey 03: Firestore rules now deployed; full sharing functionality should work
+- Journey 04: Only verifies 1/5 cards created (needs assertion improvement)
+- Journey 05: Deck creation verification fails (needs investigation)
