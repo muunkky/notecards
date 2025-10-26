@@ -22,6 +22,7 @@ import { useState, useEffect } from 'react';
 import { DeckListScreen, Deck } from '../screens/DeckListScreen';
 import { CardListScreen, NoteCard } from '../screens/CardListScreen';
 import { CardEditorScreen } from '../screens/CardEditorScreen';
+import { BottomSheet } from '../design-system/components/BottomSheet';
 import { sampleDecks, cardsByDeck } from '../data/sampleDecks';
 import { themeManager } from '../design-system/theme/theme-manager';
 
@@ -33,6 +34,7 @@ export const WriterDemo: React.FC = () => {
   const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
   const [cardsByDeckState, setCardsByDeckState] = useState<Record<string, NoteCard[]>>(cardsByDeck);
   const [editingCard, setEditingCard] = useState<NoteCard | null>(null);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState<boolean>(false);
 
   // Ensure Writer theme is active
   useEffect(() => {
@@ -207,15 +209,71 @@ export const WriterDemo: React.FC = () => {
     );
   }
 
+  // Demo button styles (fixed bottom-left corner)
+  const demoButtonStyles: React.CSSProperties = {
+    position: 'fixed',
+    bottom: '20px',
+    left: '20px',
+    background: 'var(--primitive-black)',
+    color: 'var(--primitive-white)',
+    border: '2px solid var(--primitive-black)',
+    borderRadius: 'var(--primitive-radii-none)', // 0px
+    padding: '12px 20px',
+    fontSize: '14px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    zIndex: 999,
+    fontFamily: 'var(--semantic-typography-font-primary)',
+    transition: 'var(--primitive-transitions-none)', // 0ms
+  };
+
   // Default: show deck list
   return (
-    <DeckListScreen
-      decks={decks}
-      onSelectDeck={handleSelectDeck}
-      onAddDeck={handleAddDeck}
-      onRenameDeck={handleRenameDeck}
-      onDeleteDeck={handleDeleteDeck}
-    />
+    <>
+      <DeckListScreen
+        decks={decks}
+        onSelectDeck={handleSelectDeck}
+        onAddDeck={handleAddDeck}
+        onRenameDeck={handleRenameDeck}
+        onDeleteDeck={handleDeleteDeck}
+      />
+
+      {/* Demo button to test BottomSheet */}
+      <button
+        style={demoButtonStyles}
+        onClick={() => setIsBottomSheetOpen(true)}
+        aria-label="Open BottomSheet Demo"
+      >
+        🎨 BottomSheet Demo
+      </button>
+
+      {/* BottomSheet Demo */}
+      <BottomSheet
+        isOpen={isBottomSheetOpen}
+        onClose={() => setIsBottomSheetOpen(false)}
+        title="BottomSheet Component"
+      >
+        <div style={{ fontFamily: 'var(--semantic-typography-font-primary)' }}>
+          <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>
+            Mobile-Native Action Sheet
+          </h3>
+          <p style={{ marginBottom: '16px', lineHeight: 1.6 }}>
+            This is a BottomSheet component following the Writer theme brutalist design philosophy:
+          </p>
+          <ul style={{ marginBottom: '16px', lineHeight: 1.8 }}>
+            <li>Zero animations (instant appear/disappear)</li>
+            <li>Sharp edges (0px border radius)</li>
+            <li>75% black scrim backdrop</li>
+            <li>Dismissible via backdrop tap, ESC key, or close button</li>
+            <li>Full-width mobile design</li>
+            <li>Accessible (ARIA labels, focus management)</li>
+          </ul>
+          <p style={{ color: 'var(--primitive-gray-600)', fontSize: '14px', marginBottom: 0 }}>
+            Try tapping the backdrop or pressing ESC to dismiss.
+          </p>
+        </div>
+      </BottomSheet>
+    </>
   );
 };
 

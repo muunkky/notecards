@@ -1,0 +1,1189 @@
+# ============================================================================
+# Data Platform Project Roadmap
+# ============================================================================
+# Purpose:
+#   This document serves as the single source of truth for the data platform's
+#   strategic roadmap, providing a hierarchical view of versions, milestones,
+#   features, and projects. It is designed to be human-readable and parsable.
+#
+# Scope:
+#   This roadmap captures the long-term strategic plan at the milestone and
+#   feature level. It is intentionally separated from day-to-day task tracking,
+#   which is managed in the .gitban/cards/ directory using the Kanban MCP system.
+#
+# Structure:
+#   versions -> milestones -> features -> projects
+#
+#   Each level has:
+#     - id: Semantic identifier (kebab-case, prefixed for clarity)
+#     - title: Short, descriptive name
+#     - description: Detailed explanation of purpose and scope
+#     - status: Current state (todo | in_progress | done)
+#     - Additional metadata as appropriate for the level
+#
+# Relationship to Kanban Cards:
+#   - Kanban cards (in .gitban/cards/) represent the ephemeral, day-to-day work
+#   - Project IDs in this roadmap can reference Kanban sprint tags for coordination
+#   - This roadmap provides the "why" and "what"; Kanban cards track the "how" and "when"
+#   - When planning a sprint, reference the feature/project IDs from this document
+#
+# When to Update:
+#   - Adding/removing features or milestones
+#   - Changing milestone due dates or priorities
+#   - Updating major status changes (milestone completion, version progression)
+#   - DO NOT update for individual project task status changes (use Kanban for that)
+#
+# How to Use:
+#   1. Review this document during sprint planning to understand strategic context
+#   2. Create Kanban cards for specific projects, optionally tagging with feature IDs
+#   3. Reference milestone due dates when setting sprint goals
+#   4. Update this document when strategic priorities shift or milestones complete
+#   5. Keep project-level TDD specs and docs_ref current as understanding evolves
+#
+# See Also:
+#   - docs/guides/roadmap-usage.md - Detailed guide on using this document
+#   - .gitban/cards/ - Day-to-day task tracking
+#   - docs/architecture/overview.md - Technical architecture reference
+#   - docs/adrs/ - Architecture decision records
+# ============================================================================
+
+schema_version: "1.1"
+document_version: "2.1.0"
+last_updated: "2025-10-22"
+
+changelog:
+  - version: "2.1.0"
+    date: "2025-10-22"
+    changes:
+      - "Completed Sprint 003-004: Airbyte IaC postmortem and ShowMojo integration"
+      - "Updated M1 ingestion-sources feature status to in_progress"
+      - "Marked airbyte-deployment project as done (Airbyte deployed via abctl)"
+      - "Marked secrets-management project as in_progress (Secret Manager integration ongoing)"
+      - "Marked showmojo-integration project as done (custom connector deployed)"
+      - "Created comprehensive postmortem documentation covering infrastructure, deployment, and lessons learned"
+  - version: "2.0.0"
+    date: "2025-10-18"
+    changes:
+      - "Restructured M1 to include data-discovery phase after ingestion"
+      - "Added data-profiling, backfill-strategy, and schema-documentation projects"
+      - "Reorganized M2 with clearer dependencies: foundation → models → testing → orchestration"
+      - "Split CI/CD into separate linting, testing, and deployment projects"
+      - "Added dbt-packages project for standardizing dbt dependencies"
+      - "Clarified project descriptions with specific tool choices and implementation details"
+      - "Updated success criteria to reflect complete end-to-end data flow"
+  - version: "1.0.0"
+    date: "2025-10-17"
+    changes:
+      - "Initial roadmap structure"
+
+versions:
+  v1:
+    id: "v1"
+    title: "V1: Foundational Data Platform"
+    description: |
+      Establish the complete end-to-end data platform infrastructure including
+      ingestion, transformation, orchestration, and activation capabilities.
+      Prove the value of the hub-and-spoke model by delivering a working system
+      that ingests data from critical sources, transforms it into analytics-ready
+      models, and activates insights back into operational systems.
+    status: "in_progress"
+    start_date: "2025-09-22"
+    target_completion: "2026-02-28"
+
+    milestones:
+      m1:
+        id: "m1"
+        title: "M1: Core Infrastructure & First Ingestion"
+        description: |
+          Deploy all necessary GCP infrastructure using Infrastructure as Code,
+          successfully ingest raw data from key source systems into BigQuery,
+          and establish understanding of source data schemas and quality.
+          This milestone completes when we have real data flowing end-to-end
+          and documented understanding of what that data looks like.
+        status: "in_progress"
+        due_date: "2025-11-15"
+        success_criteria:
+          - "Terraform successfully deploys all infrastructure to GCP"
+          - "Airbyte instance running and accessible on GCE"
+          - "HubSpot, Buildium, and SnapInspect all syncing successfully"
+          - "Raw data visible and queryable in BigQuery datasets"
+          - "Source schemas documented with column descriptions and data types"
+          - "Data quality issues identified and documented"
+          - "Backfill strategy decided and initial historical sync complete"
+
+        features:
+          infra-core:
+            id: "infra-core"
+            title: "Core GCP Infrastructure via Terraform"
+            description: |
+              Provision all foundational cloud resources including BigQuery datasets,
+              service accounts, IAM permissions, GCE instance, and networking using
+              Infrastructure as Code (Terraform). Establish repeatable, version-controlled
+              infrastructure deployment.
+            priority: "critical"
+            status: "done"
+
+            projects:
+              terraform-setup:
+                id: "terraform-setup"
+                title: "Setup Terraform Cloud & GCP Provider"
+                description: |
+                  Configure Terraform Cloud workspace, remote state backend, and
+                  GCP provider authentication. Create initial provider configuration
+                  and verify connectivity to target GCP project.
+                owner: ""
+                tdd_spec: "terraform plan runs successfully and outputs expected resource plan"
+                docs_ref: "docs/setup/terraform-setup.md"
+                sequence: 1
+                status: "done"
+
+              bigquery-datasets:
+                id: "bigquery-datasets"
+                title: "Define BigQuery Dataset Structure"
+                description: |
+                  Create Terraform modules for BigQuery datasets following the
+                  three-tier architecture: raw (landing zone for source data),
+                  staging (intermediate transformations), and prod (analytics-ready models).
+                owner: ""
+                tdd_spec: |
+                  terraform apply creates three datasets with correct naming convention
+                  and IAM bindings grant appropriate access to service accounts
+                docs_ref: "docs/architecture/overview.md#data-warehouse"
+                sequence: 2
+                status: "done"
+
+              service-accounts:
+                id: "service-accounts"
+                title: "Create Service Accounts for Tools"
+                description: |
+                  Define dedicated service accounts for Airbyte (data ingestion),
+                  dbt (data transformation), and Prefect (orchestration) following
+                  principle of least privilege.
+                owner: ""
+                tdd_spec: "Service accounts created with correct naming and no unnecessary permissions"
+                docs_ref: "docs/operations/security.md"
+                sequence: 3
+                status: "done"
+
+              iam-permissions:
+                id: "iam-permissions"
+                title: "Configure IAM Permissions"
+                description: |
+                  Grant BigQuery Data Editor and Job User roles to service accounts.
+                  Configure least-privilege access patterns ensuring each tool can
+                  only access resources it needs.
+                owner: ""
+                tdd_spec: |
+                  Each service account has exactly the permissions needed:
+                  - Airbyte: write to raw dataset, read metadata
+                  - dbt: read raw, write staging/prod
+                  - Prefect: read all datasets, trigger jobs
+                docs_ref: "docs/operations/security.md#iam-roles"
+                sequence: 4
+                depends_on: ["service-accounts"]
+                status: "done"
+
+              gce-instance:
+                id: "gce-instance"
+                title: "Provision GCE Instance for Airbyte"
+                description: |
+                  Define GCE VM configuration (machine type, disk, network) to host
+                  self-hosted Airbyte instance. Include startup script for Docker installation.
+                  Machine type: e2-standard-4 (4 vCPU, 16 GB RAM).
+                owner: ""
+                tdd_spec: "GCE instance launches successfully, Docker installed, instance accessible via SSH"
+                docs_ref: "docs/operations/airbyte-deployment.md#infrastructure"
+                sequence: 5
+                status: "done"
+
+              firewall-rules:
+                id: "firewall-rules"
+                title: "Configure Firewall Rules"
+                description: |
+                  Create firewall rules allowing ingress traffic on ports 22 (SSH),
+                  8000 (Airbyte UI HTTP), and 443 (HTTPS for future load balancer).
+                  Implement IP allowlisting with deny-by-default security model.
+                owner: ""
+                tdd_spec: "Airbyte UI accessible from allowed IPs, blocked from public internet"
+                docs_ref: "docs/operations/security.md#network-security"
+                sequence: 6
+                depends_on: ["gce-instance"]
+                status: "done"
+
+          ingestion-sources:
+            id: "ingestion-sources"
+            title: "Deploy Airbyte & Connect Key Sources"
+            description: |
+              Deploy self-hosted Airbyte instance to GCE and establish connections
+              to critical source systems (HubSpot, Buildium, SnapInspect). Configure
+              sync schedules, backfill historical data, and verify data lands correctly
+              in BigQuery raw dataset.
+            priority: "critical"
+            depends_on: ["infra-core"]
+            status: "in_progress"
+
+            projects:
+              airbyte-deployment:
+                id: "airbyte-deployment"
+                title: "Deploy Airbyte via Docker Compose"
+                description: |
+                  Deploy Airbyte OSS to GCE using Docker Compose. Configure persistent
+                  volumes for configuration (/airbyte/config) and logs (/airbyte/logs).
+                  Verify all services healthy (server, webapp, worker, db, temporal).
+                  Access UI via SSH tunnel on port 8000.
+                owner: ""
+                tdd_spec: "Airbyte UI accessible at localhost:8000 via SSH tunnel, health check returns 200, can login with default credentials"
+                docs_ref: "docs/operations/airbyte-deployment.md"
+                sequence: 1
+                status: "done"
+
+              secrets-management:
+                id: "secrets-management"
+                title: "Configure Secrets for Source APIs"
+                description: |
+                  Store API keys and credentials for HubSpot (private app token),
+                  Buildium (API key), and SnapInspect (API key) in GCP Secret Manager.
+                  Configure Airbyte to retrieve secrets via environment variables or
+                  direct Secret Manager integration. Document rotation procedures.
+                owner: ""
+                tdd_spec: "Secrets stored in Secret Manager with appropriate IAM policies, Airbyte can retrieve and use them for connections"
+                docs_ref: "docs/operations/secrets-management.md"
+                sequence: 2
+                status: "in_progress"
+
+              backfill-strategy:
+                id: "backfill-strategy"
+                title: "Define Backfill Strategy"
+                description: |
+                  Decide historical data sync approach: how far back to sync for each source,
+                  whether to use full refresh or incremental, and expected data volumes.
+                  Recommendation: HubSpot (5 years history, ~50k contacts), Buildium (10 years,
+                  ~500 properties), SnapInspect (2 years, ~5k inspections). Document decision in ADR.
+                owner: ""
+                tdd_spec: "ADR created documenting backfill approach, estimated sync times, and rollback plan"
+                docs_ref: "docs/adrs/ADR-011-backfill-strategy.md"
+                sequence: 3
+
+              hubspot-connection:
+                id: "hubspot-connection"
+                title: "Connect HubSpot Source"
+                description: |
+                  Configure HubSpot connector in Airbyte using private app token.
+                  Select streams: contacts, companies, deals, deal_pipelines, deal_stages,
+                  owners, engagements. Run initial full sync and verify data in raw.hubspot_* tables.
+                owner: ""
+                tdd_spec: |
+                  Manual sync completes without errors,
+                  data appears in raw.hubspot_contacts, raw.hubspot_companies, raw.hubspot_deals,
+                  row counts match HubSpot portal (within 1% tolerance),
+                  schema includes custom properties
+                docs_ref: "docs/operations/airbyte-connectors.md#hubspot"
+                sequence: 4
+                depends_on: ["airbyte-deployment", "secrets-management", "backfill-strategy"]
+
+              buildium-connection:
+                id: "buildium-connection"
+                title: "Connect Buildium Source"
+                description: |
+                  Configure Buildium connector in Airbyte (may require custom connector
+                  or API source). Select streams: properties, units, tenants, leases,
+                  lease_transactions, work_orders. Run initial sync with historical data.
+                owner: ""
+                tdd_spec: |
+                  Manual sync completes successfully,
+                  data appears in raw.buildium_* tables,
+                  property count matches Buildium portal,
+                  tenant and lease data correctly extracted with relationships intact
+                docs_ref: "docs/operations/airbyte-connectors.md#buildium"
+                sequence: 5
+                depends_on: ["airbyte-deployment", "secrets-management", "backfill-strategy"]
+
+              snapinspect-connection:
+                id: "snapinspect-connection"
+                title: "Connect SnapInspect Source"
+                description: |
+                  Configure SnapInspect connector (custom API source if no official connector).
+                  Select streams: inspections, inspection_items, properties. Sync inspection
+                  history and property relationships.
+                owner: ""
+                tdd_spec: "Sync completes, inspection data appears in raw.snapinspect_* tables, property linkage verified"
+                docs_ref: "docs/operations/airbyte-connectors.md#snapinspect"
+                sequence: 6
+                depends_on: ["airbyte-deployment", "secrets-management", "backfill-strategy"]
+
+              sync-schedules:
+                id: "sync-schedules"
+                title: "Configure Sync Schedules"
+                description: |
+                  Set appropriate sync frequencies for each source based on data
+                  freshness requirements and API rate limits:
+                  - HubSpot: Every 6 hours (contacts/companies change frequently)
+                  - Buildium: Daily at 2 AM (lease data relatively stable)
+                  - SnapInspect: Daily at 3 AM (inspections added/updated daily)
+                owner: ""
+                tdd_spec: "Scheduled syncs run automatically at configured intervals, no rate limit errors"
+                docs_ref: "docs/operations/sync-schedules.md"
+                sequence: 7
+                depends_on: ["hubspot-connection", "buildium-connection", "snapinspect-connection"]
+
+          data-discovery:
+            id: "data-discovery"
+            title: "Data Discovery & Quality Assessment"
+            description: |
+              After initial syncs complete, explore and understand the actual data
+              in raw tables. Profile data quality, document schemas, identify issues,
+              and establish baseline understanding before building transformation models.
+              This phase is critical for informed dbt modeling decisions.
+            priority: "critical"
+            depends_on: ["ingestion-sources"]
+            status: "todo"
+
+            projects:
+              data-profiling:
+                id: "data-profiling"
+                title: "Profile Raw Data"
+                description: |
+                  Use SQL queries and data profiling tools (dbt-utils, pandas-profiling,
+                  or Great Expectations) to analyze raw tables:
+                  - Row counts, null rates, distinct value counts
+                  - Data type distributions, min/max values
+                  - Cardinality analysis (how many unique contacts, properties, deals)
+                  - Identify primary keys and foreign key relationships
+                  - Detect duplicate records and data quality issues
+                owner: ""
+                tdd_spec: "Profiling report generated for each raw table with statistics and recommendations"
+                docs_ref: "docs/data-quality/profiling-results.md"
+                sequence: 1
+
+              schema-documentation:
+                id: "schema-documentation"
+                title: "Document Source Schemas"
+                description: |
+                  Create comprehensive documentation of raw table schemas discovered
+                  from actual synced data (not just API docs):
+                  - Column names, data types, descriptions
+                  - Custom properties from HubSpot
+                  - Buildium-specific fields and their meanings
+                  - Foreign key relationships between tables
+                  - Known data quality issues (e.g., nulls in critical fields)
+                owner: ""
+                tdd_spec: "Schema documentation created in docs/schemas/ with examples and notes"
+                docs_ref: "docs/schemas/"
+                sequence: 2
+                depends_on: ["data-profiling"]
+
+              data-quality-baseline:
+                id: "data-quality-baseline"
+                title: "Establish Data Quality Baseline"
+                description: |
+                  Document current state of data quality issues to track improvements:
+                  - HubSpot contacts missing emails (% of records)
+                  - Buildium properties without addresses
+                  - Duplicate deal records
+                  - Orphaned records (deals without contacts, leases without properties)
+                  - Date range anomalies (future dates, year 1970 dates)
+                owner: ""
+                tdd_spec: "Data quality report created with baseline metrics and improvement targets"
+                docs_ref: "docs/data-quality/baseline-report.md"
+                sequence: 3
+                depends_on: ["data-profiling"]
+
+              business-rules-validation:
+                id: "business-rules-validation"
+                title: "Validate Business Rules with Stakeholders"
+                description: |
+                  Meet with business stakeholders to validate assumptions about the data:
+                  - Confirm property status definitions (active, inactive, sold)
+                  - Clarify HubSpot pipeline stages and their meanings
+                  - Understand lease lifecycle (signed → active → terminated)
+                  - Identify critical fields vs nice-to-have fields
+                  - Define SLAs for data freshness by entity type
+                owner: ""
+                tdd_spec: "Business rules documented with stakeholder sign-off, ambiguities resolved"
+                docs_ref: "docs/business-rules/validated-rules.md"
+                sequence: 4
+
+          security-foundation:
+            id: "security-foundation"
+            title: "Security & Access Control Foundation"
+            description: |
+              Implement security best practices including RBAC, secrets management,
+              and network security. Follow principle of least privilege for all access.
+              Note: This can run in parallel with ingestion-sources and data-discovery.
+            priority: "high"
+            depends_on: ["infra-core"]
+            status: "todo"
+
+            projects:
+              rbac-design:
+                id: "rbac-design"
+                title: "Design Role-Based Access Control"
+                description: |
+                  Define roles and permissions for BigQuery access:
+                  - analyst: dataViewer on prod, no access to raw/staging
+                  - data_engineer: dataEditor on staging/prod, dataViewer on raw
+                  - admin: owner on all datasets
+                  Document IAM strategy following least privilege principle.
+                owner: ""
+                tdd_spec: "RBAC design documented, roles mapped to GCP IAM roles"
+                docs_ref: "docs/operations/security.md#rbac"
+                sequence: 1
+
+              audit-logging:
+                id: "audit-logging"
+                title: "Enable Cloud Audit Logging"
+                description: |
+                  Enable Cloud Audit Logs for BigQuery (data access logs), GCE (admin logs),
+                  and IAM (policy changes). Configure log retention (90 days) and
+                  set up log sinks to export to Cloud Storage for long-term retention.
+                owner: ""
+                tdd_spec: "Audit logs enabled, test query logged and visible in Cloud Logging"
+                docs_ref: "docs/operations/security.md#auditing"
+                sequence: 2
+
+              network-hardening:
+                id: "network-hardening"
+                title: "Harden Network Security"
+                description: |
+                  Review and tighten network security:
+                  - Restrict firewall rules to minimum necessary IPs
+                  - Consider Cloud NAT for outbound connections
+                  - Evaluate VPN or Cloud IAP for SSH access (remove public SSH)
+                  - Document network architecture
+                owner: ""
+                tdd_spec: "Network security review complete, hardening recommendations implemented or documented as future work"
+                docs_ref: "docs/operations/security.md#network-hardening"
+                sequence: 3
+
+      m2:
+        id: "m2"
+        title: "M2: Transformation & Orchestration"
+        description: |
+          Build the transformation layer using dbt to convert raw data into
+          analytics-ready models. Implement orchestration using Prefect to
+          automate the end-to-end data pipeline. Establish testing and quality
+          assurance practices. This milestone requires M1 data-discovery to be
+          complete so we understand what we're transforming.
+        status: "todo"
+        due_date: "2025-12-31"
+        depends_on: ["m1"]
+        success_criteria:
+          - "dbt project deployed with staging and production models"
+          - "Core business entities modeled (properties, contacts, deals)"
+          - "dbt tests pass with >90% success rate"
+          - "Prefect flow runs end-to-end (Airbyte → dbt) automatically"
+          - "Data quality issues from M1 are resolved or documented as known issues"
+          - "CI pipeline validates all PRs before merge"
+
+        features:
+          dbt-foundation:
+            id: "dbt-foundation"
+            title: "dbt Project Foundation"
+            description: |
+              Set up dbt project structure, configure BigQuery connection,
+              install necessary packages, establish naming conventions and folder
+              organization. Document all raw sources discovered in M1 data-discovery.
+            priority: "critical"
+            status: "todo"
+
+            projects:
+              dbt-setup:
+                id: "dbt-setup"
+                title: "Initialize dbt Project"
+                description: |
+                  Create dbt project with standard structure:
+                  - models/staging/ (raw → staging transformations)
+                  - models/intermediate/ (reusable business logic)
+                  - models/marts/ (final dimensional models)
+                  - Configure profiles.yml with dev and prod targets
+                  - Dev: uses user credentials, writes to ripple_dev dataset
+                  - Prod: uses service account, writes to ripple_staging/ripple_prod
+                  Install dbt-bigquery adapter (v1.7+).
+                owner: ""
+                tdd_spec: "dbt debug succeeds for both dev and prod profiles, dbt run executes on empty project"
+                docs_ref: "docs/setup/dbt-setup.md"
+                sequence: 1
+
+              dbt-packages:
+                id: "dbt-packages"
+                title: "Install dbt Packages"
+                description: |
+                  Add essential dbt packages to packages.yml:
+                  - dbt-utils (v1.1+): Common macros and tests
+                  - dbt-expectations (v0.10+): Great Expectations-style tests
+                  - dbt-date (v0.9+): Date manipulation utilities
+                  - codegen (v0.11+): Code generation helpers
+                  Run dbt deps to install packages.
+                owner: ""
+                tdd_spec: "dbt deps succeeds, packages installed in dbt_packages/, can reference dbt_utils macros"
+                docs_ref: "docs/transformation/dbt-packages.md"
+                sequence: 2
+                depends_on: ["dbt-setup"]
+
+              dbt-sources:
+                id: "dbt-sources"
+                title: "Define dbt Source Configurations"
+                description: |
+                  Create source YAML files in models/staging/ documenting all raw tables:
+                  - sources/hubspot.yml: contacts, companies, deals, owners
+                  - sources/buildium.yml: properties, units, tenants, leases
+                  - sources/snapinspect.yml: inspections, inspection_items
+                  Include column descriptions from M1 schema documentation, freshness checks
+                  (HubSpot: 6 hours, Buildium/SnapInspect: 24 hours), and basic tests.
+                owner: ""
+                tdd_spec: "dbt source freshness passes, dbt docs generate includes all sources with descriptions"
+                docs_ref: "docs/transformation/sources.md"
+                sequence: 3
+                depends_on: ["dbt-setup"]
+
+              dbt-style-guide:
+                id: "dbt-style-guide"
+                title: "Establish dbt Style Guide"
+                description: |
+                  Document standards and conventions:
+                  - Naming: stg_[source]__[entity], int_[purpose], dim_[entity], fct_[event]
+                  - SQL formatting: Use SQLFluff with dbt template
+                  - Model materialization strategy (views vs tables vs incremental)
+                  - Testing requirements: every model needs uniqueness and not_null tests
+                  - Documentation requirements: every model needs description and column docs
+                  Create example models following the style guide.
+                owner: ""
+                tdd_spec: "Style guide documented with examples, SQLFluff config created"
+                docs_ref: "docs/transformation/style-guide.md"
+                sequence: 4
+                depends_on: ["dbt-setup"]
+
+          core-models:
+            id: "core-models"
+            title: "Core Business Entity Models"
+            description: |
+              Build staging and production dbt models for core business entities:
+              properties, contacts, deals, tenants. Implement dimensional modeling
+              approach with facts and dimensions. Build in sequence: staging first
+              (clean and standardize), then intermediate (business logic), then marts
+              (final dimensional models).
+            priority: "critical"
+            depends_on: ["dbt-foundation"]
+            status: "todo"
+
+            projects:
+              staging-hubspot:
+                id: "staging-hubspot"
+                title: "Staging Models - HubSpot (Contacts, Companies, Deals)"
+                description: |
+                  Create staging models for all HubSpot entities:
+                  - stg_hubspot__contacts: Standardize contact fields, parse custom properties
+                  - stg_hubspot__companies: Clean company data, handle nulls
+                  - stg_hubspot__deals: Parse deal stages, calculate deal age
+                  - stg_hubspot__owners: Clean owner/user data
+                  Handle data quality issues identified in M1 (missing emails, duplicates).
+                owner: ""
+                tdd_spec: |
+                  All models run successfully,
+                  unique test passes on primary keys,
+                  not_null tests pass on critical fields,
+                  row counts match sources within 1% tolerance
+                docs_ref: "docs/transformation/staging-models.md#hubspot"
+                sequence: 1
+
+              staging-buildium:
+                id: "staging-buildium"
+                title: "Staging Models - Buildium (Properties, Tenants, Leases)"
+                description: |
+                  Create staging models for Buildium entities:
+                  - stg_buildium__properties: Clean property data, standardize addresses
+                  - stg_buildium__units: Link units to properties
+                  - stg_buildium__tenants: Standardize tenant names, contact info
+                  - stg_buildium__leases: Parse lease dates, calculate terms
+                  - stg_buildium__lease_transactions: Clean financial data
+                owner: ""
+                tdd_spec: "All models run successfully, relationships between properties/units/tenants validated"
+                docs_ref: "docs/transformation/staging-models.md#buildium"
+                sequence: 2
+
+              staging-snapinspect:
+                id: "staging-snapinspect"
+                title: "Staging Models - SnapInspect"
+                description: |
+                  Create staging models for SnapInspect:
+                  - stg_snapinspect__inspections: Parse inspection dates, statuses
+                  - stg_snapinspect__inspection_items: Clean inspection findings
+                  Link inspections to Buildium properties via property identifiers.
+                owner: ""
+                tdd_spec: "Models run successfully, property linkage validated"
+                docs_ref: "docs/transformation/staging-models.md#snapinspect"
+                sequence: 3
+
+              intermediate-models:
+                id: "intermediate-models"
+                title: "Intermediate Models - Business Logic"
+                description: |
+                  Create intermediate models with reusable business logic:
+                  - int_contact_deduplication: Deduplicate contacts across sources
+                  - int_property_status: Calculate current property status from multiple signals
+                  - int_lease_history: Build lease lifecycle timeline
+                  - int_deal_funnel: Calculate deal progression metrics
+                  These models are building blocks for final marts.
+                owner: ""
+                tdd_spec: "Intermediate models produce expected results, tested with known examples"
+                docs_ref: "docs/transformation/intermediate-models.md"
+                sequence: 4
+                depends_on: ["staging-hubspot", "staging-buildium", "staging-snapinspect"]
+
+              dim-properties:
+                id: "dim-properties"
+                title: "Dimension - Properties"
+                description: |
+                  Create property dimension table combining Buildium and other sources:
+                  - Generate surrogate keys (property_key)
+                  - SCD Type 2 for tracking property status changes
+                  - Include current status, address, unit count, latest inspection date
+                  - Link to HubSpot companies for property owner relationship
+                owner: ""
+                tdd_spec: "dim_properties includes all active properties, surrogate keys unique, SCD tracking works correctly"
+                docs_ref: "docs/transformation/dimensional-models.md#dim-properties"
+                sequence: 5
+                depends_on: ["intermediate-models"]
+
+              dim-contacts:
+                id: "dim-contacts"
+                title: "Dimension - Contacts"
+                description: |
+                  Create master contact dimension deduplicating across sources:
+                  - Combine HubSpot contacts, Buildium tenants
+                  - Generate master contact_key
+                  - Include email, phone, name, source system identifiers
+                  - Track contact type (lead, tenant, owner)
+                owner: ""
+                tdd_spec: "dim_contacts deduplicates successfully, master IDs assigned, source linkage maintained"
+                docs_ref: "docs/transformation/dimensional-models.md#dim-contacts"
+                sequence: 6
+                depends_on: ["intermediate-models"]
+
+              fct-leases:
+                id: "fct-leases"
+                title: "Fact Table - Leases"
+                description: |
+                  Create lease fact table:
+                  - Grain: One row per lease
+                  - Foreign keys: property_key, tenant_contact_key
+                  - Measures: rent_amount, lease_term_months, security_deposit
+                  - Dates: signed_date, start_date, end_date
+                  - Include lease status, payment history flags
+                owner: ""
+                tdd_spec: "fct_leases includes all leases, foreign keys valid, measures non-null"
+                docs_ref: "docs/transformation/fact-tables.md#leases"
+                sequence: 7
+                depends_on: ["dim-properties", "dim-contacts"]
+
+              fct-deals:
+                id: "fct-deals"
+                title: "Fact Table - Deals"
+                description: |
+                  Create deal fact table for sales pipeline analysis:
+                  - Grain: One row per deal
+                  - Foreign keys: property_key (if deal relates to property), contact_key, owner_key
+                  - Measures: deal_amount, days_in_stage, close_probability
+                  - Track deal progression through stages
+                owner: ""
+                tdd_spec: "fct_deals includes all deals, stage progression trackable, metrics calculable"
+                docs_ref: "docs/transformation/fact-tables.md#deals"
+                sequence: 8
+                depends_on: ["dim-properties", "dim-contacts"]
+
+          testing-quality:
+            id: "testing-quality"
+            title: "Testing & Quality Assurance"
+            description: |
+              Implement comprehensive testing strategy including linting,
+              dbt tests, data quality checks, and CI automation. Split into
+              separate concerns for better organization.
+            priority: "high"
+            depends_on: ["core-models"]
+            status: "todo"
+
+            projects:
+              ci-linting:
+                id: "ci-linting"
+                title: "Configure Linting Pipeline"
+                description: |
+                  Set up automated linting in GitHub Actions:
+                  - SQLFluff for SQL formatting (runs on models/**/*.sql)
+                  - Ruff for Python formatting (runs on orchestration/**/*.py)
+                  - Pre-commit hooks for local development
+                  - Runs on every PR, blocks merge if linting fails
+                owner: ""
+                tdd_spec: "CI workflow runs on PR, fails if linting errors detected"
+                docs_ref: "docs/operations/ci-linting.md"
+                sequence: 1
+
+              dbt-tests:
+                id: "dbt-tests"
+                title: "Implement dbt Data Quality Tests"
+                description: |
+                  Add comprehensive tests to all models:
+                  - Generic tests: unique, not_null, accepted_values, relationships
+                  - dbt-expectations tests: expect_column_values_to_be_between, etc.
+                  - Custom tests for business rules (e.g., lease_end > lease_start)
+                  - Aim for >90% test pass rate (some known issues acceptable)
+                owner: ""
+                tdd_spec: "dbt test runs in CI, >90% tests pass, failures documented as known issues"
+                docs_ref: "docs/testing/dbt-tests.md"
+                sequence: 2
+
+              ci-dbt-pipeline:
+                id: "ci-dbt-pipeline"
+                title: "Configure dbt CI Pipeline"
+                description: |
+                  Set up dbt slim CI in GitHub Actions:
+                  - Run dbt on modified models only (using state:modified+)
+                  - Execute against dev dataset (ripple_dev)
+                  - Show test results in PR comments
+                  - Block merge if critical tests fail
+                owner: ""
+                tdd_spec: "dbt slim CI runs on PR, modified models tested, results visible in PR"
+                docs_ref: "docs/operations/ci-dbt-pipeline.md"
+                sequence: 3
+                depends_on: ["dbt-tests"]
+
+              cd-deployment:
+                id: "cd-deployment"
+                title: "Configure Continuous Deployment"
+                description: |
+                  Set up automated deployment on merge to main:
+                  - Run full dbt build in production (ripple_staging, ripple_prod)
+                  - Generate and deploy dbt docs
+                  - Notify Slack on success/failure
+                  - Create deployment artifact with run metadata
+                owner: ""
+                tdd_spec: "CD runs on merge to main, production models updated, team notified"
+                docs_ref: "docs/operations/cd-deployment.md"
+                sequence: 4
+
+          orchestration:
+            id: "orchestration"
+            title: "Prefect Orchestration Implementation"
+            description: |
+              Deploy Prefect for workflow orchestration. Create flows that
+              coordinate Airbyte syncs and dbt runs. Implement monitoring,
+              alerting, and error handling.
+            priority: "high"
+            depends_on: ["core-models", "testing-quality"]
+            status: "todo"
+
+            projects:
+              prefect-setup:
+                id: "prefect-setup"
+                title: "Deploy Prefect Agent"
+                description: |
+                  Install Prefect on GCE instance (same as Airbyte or separate VM):
+                  - Install Prefect 2.x via pip
+                  - Configure Prefect Cloud or self-hosted server connection
+                  - Set up work pools and deployments
+                  - Configure environment variables for API keys and credentials
+                owner: ""
+                tdd_spec: "Prefect agent running, can execute test flow, logs visible in Prefect UI"
+                docs_ref: "docs/operations/prefect-setup.md"
+                sequence: 1
+
+              flow-airbyte-trigger:
+                id: "flow-airbyte-trigger"
+                title: "Create Airbyte Sync Trigger Flow"
+                description: |
+                  Build Prefect flow to trigger Airbyte syncs via API:
+                  - Use airbyte-api-client library
+                  - Trigger syncs for HubSpot, Buildium, SnapInspect sequentially or parallel
+                  - Wait for completion, check for errors
+                  - Return sync status and row counts
+                owner: ""
+                tdd_spec: "Flow triggers Airbyte syncs successfully, waits for completion, returns status"
+                docs_ref: "docs/orchestration/airbyte-sync-flow.md"
+                sequence: 2
+                depends_on: ["prefect-setup"]
+
+              flow-dbt-run:
+                id: "flow-dbt-run"
+                title: "Create dbt Run Flow"
+                description: |
+                  Build Prefect flow to execute dbt:
+                  - Run dbt build (models + tests)
+                  - Parse and report test results
+                  - Generate dbt docs
+                  - Return success/failure status with details
+                owner: ""
+                tdd_spec: "Flow runs dbt successfully, test failures handled gracefully, results returned"
+                docs_ref: "docs/orchestration/dbt-run-flow.md"
+                sequence: 3
+                depends_on: ["prefect-setup"]
+
+              flow-daily-sync:
+                id: "flow-daily-sync"
+                title: "Create Daily Sync Orchestration Flow"
+                description: |
+                  Build main orchestration flow combining Airbyte and dbt:
+                  1. Trigger Airbyte syncs (all sources)
+                  2. Wait for completion
+                  3. Run dbt build (staging → marts)
+                  4. Check data quality
+                  5. Send Slack notification with summary
+                  Implement retry logic and error handling.
+                owner: ""
+                tdd_spec: |
+                  Flow runs end-to-end successfully,
+                  failures trigger retries and notifications,
+                  success notifications include row counts and test results
+                docs_ref: "docs/orchestration/daily-sync-flow.md"
+                sequence: 4
+                depends_on: ["flow-airbyte-trigger", "flow-dbt-run"]
+
+              flow-monitoring:
+                id: "flow-monitoring"
+                title: "Implement Flow Monitoring & Alerting"
+                description: |
+                  Set up comprehensive monitoring:
+                  - Prefect Cloud dashboards for flow execution
+                  - Slack alerts for failures (critical) and successes (summary)
+                  - Data freshness checks (alert if raw tables >24 hours old)
+                  - Email digest of daily pipeline status
+                owner: ""
+                tdd_spec: "Failed flows trigger Slack alerts within 5 minutes, daily digest emails sent"
+                docs_ref: "docs/operations/flow-monitoring.md"
+                sequence: 5
+                depends_on: ["flow-daily-sync"]
+
+              deployment-schedule:
+                id: "deployment-schedule"
+                title: "Configure Production Schedule"
+                description: |
+                  Deploy daily-sync flow to production with schedule:
+                  - Run daily at 2 AM US/Mountain (after Airbyte schedules)
+                  - Weekend schedule: reduced to once per day
+                  - Implement holiday skip logic if needed
+                  - Document runbook for manual triggering
+                owner: ""
+                tdd_spec: "Flow runs automatically on schedule, can be triggered manually via Prefect UI"
+                docs_ref: "docs/operations/deployment-schedule.md"
+                sequence: 6
+                depends_on: ["flow-monitoring"]
+
+      m3:
+        id: "m3"
+        title: "M3: Reverse ETL & Data Activation"
+        description: |
+          Close the loop by syncing transformed data from BigQuery back to
+          operational systems. Implement Reverse ETL to activate insights in
+          HubSpot and other tools, enabling data-driven operations.
+        status: "todo"
+        due_date: "2026-01-31"
+        depends_on: ["m2"]
+        success_criteria:
+          - "Hightouch or Census configured and connected to BigQuery"
+          - "At least one sync pushing enriched property data to HubSpot"
+          - "Sales team sees enriched contact/property data in HubSpot"
+          - "Operations team using activated data for decision-making"
+
+        features:
+          reverse-etl:
+            id: "reverse-etl"
+            title: "Reverse ETL Platform Setup"
+            description: |
+              Evaluate and implement Hightouch or Census for syncing data
+              from BigQuery to operational systems. Configure initial syncs.
+            priority: "high"
+
+            projects:
+              retl-evaluation:
+                id: "retl-evaluation"
+                title: "Evaluate Hightouch vs Census"
+                description: |
+                  Compare Hightouch and Census on:
+                  - Pricing (Hightouch: $700/mo starter, Census: $500/mo starter)
+                  - Connector support (both support HubSpot, Buildium custom)
+                  - Ease of use, UI/UX
+                  - BigQuery integration quality
+                  Make recommendation and document decision in ADR.
+                owner: ""
+                tdd_spec: "ADR created with clear recommendation and justification"
+                docs_ref: "docs/adrs/ADR-012-reverse-etl-selection.md"
+                sequence: 1
+
+              retl-setup:
+                id: "retl-setup"
+                title: "Configure Reverse ETL Platform"
+                description: |
+                  Set up chosen platform (assume Hightouch):
+                  - Create account and connect to BigQuery (ripple_prod dataset)
+                  - Configure HubSpot destination (OAuth or API key)
+                  - Set up service account with dataViewer permissions
+                  - Run test query to verify connectivity
+                owner: ""
+                tdd_spec: "Platform connected to BigQuery, test query runs successfully, HubSpot destination configured"
+                docs_ref: "docs/operations/reverse-etl-setup.md"
+                sequence: 2
+                depends_on: ["retl-evaluation"]
+
+              sync-property-enrichment:
+                id: "sync-property-enrichment"
+                title: "Sync Property Enrichment to HubSpot"
+                description: |
+                  Create sync from dim_properties to HubSpot companies:
+                  - Map property_key → HubSpot company ID
+                  - Sync: unit_count, property_status, last_inspection_date
+                  - Update HubSpot custom properties
+                  - Schedule: Daily after dbt run completes
+                owner: ""
+                tdd_spec: |
+                  Sync runs successfully,
+                  HubSpot companies updated with correct values,
+                  no duplicate records created,
+                  sales team confirms data visibility
+                docs_ref: "docs/activation/property-enrichment-sync.md"
+                sequence: 3
+                depends_on: ["retl-setup"]
+
+              sync-contact-scoring:
+                id: "sync-contact-scoring"
+                title: "Sync Lead Scoring to HubSpot"
+                description: |
+                  Create sync for calculated lead scores:
+                  - Query: Calculate lead score based on engagement, property ownership
+                  - Sync to HubSpot contact custom property "lead_score"
+                  - Enable sales prioritization based on score
+                owner: ""
+                tdd_spec: "Lead scores sync to HubSpot, sales team can filter/sort by score"
+                docs_ref: "docs/activation/lead-scoring-sync.md"
+                sequence: 4
+                depends_on: ["retl-setup"]
+
+      m4:
+        id: "m4"
+        title: "M4: BI & Self-Service Analytics"
+        description: |
+          Enable business users to access and analyze data through BI tools.
+          Build initial dashboards for key business metrics. Create documentation
+          and training for self-service analytics.
+        status: "todo"
+        due_date: "2026-02-28"
+        depends_on: ["m2"]
+        success_criteria:
+          - "BI tool connected to BigQuery production dataset"
+          - "At least 3 core dashboards deployed (property pipeline, financial metrics, operations)"
+          - "Non-technical users can access and interpret dashboards"
+          - "Self-service documentation created for analysts"
+
+        features:
+          bi-platform:
+            id: "bi-platform"
+            title: "BI Tool Selection & Setup"
+            description: |
+              Evaluate BI tools (Looker Studio, Metabase, Preset), select one,
+              and configure connection to BigQuery. Set up user access controls.
+            priority: "medium"
+
+            projects:
+              bi-evaluation:
+                id: "bi-evaluation"
+                title: "Evaluate BI Tools"
+                description: |
+                  Compare BI tools:
+                  - Looker Studio (free, Google-native, limited interactivity)
+                  - Metabase (open-source, $85/month hosted, good UX)
+                  - Preset (managed Superset, $20/user/month, most features)
+                  Consider cost, ease of use, BigQuery integration quality.
+                  Recommendation: Start with Looker Studio (free), migrate if needed.
+                owner: ""
+                tdd_spec: "ADR created with tool selection and rationale"
+                docs_ref: "docs/adrs/ADR-013-bi-tool-selection.md"
+                sequence: 1
+
+              bi-setup:
+                id: "bi-setup"
+                title: "Configure BI Platform"
+                description: |
+                  Set up chosen BI tool (assume Looker Studio):
+                  - Connect to BigQuery ripple_prod dataset
+                  - Configure sharing (organization-wide or specific users)
+                  - Set up folder structure for dashboards
+                  - Create test dashboard to verify connectivity
+                owner: ""
+                tdd_spec: "Users can login, run queries against production dataset, create charts"
+                docs_ref: "docs/operations/bi-platform-setup.md"
+                sequence: 2
+                depends_on: ["bi-evaluation"]
+
+          core-dashboards:
+            id: "core-dashboards"
+            title: "Core Business Dashboards"
+            description: |
+              Build initial set of dashboards for key stakeholders covering
+              property pipeline, financial performance, and operational metrics.
+            priority: "medium"
+            depends_on: ["bi-platform"]
+
+            projects:
+              dashboard-property-pipeline:
+                id: "dashboard-property-pipeline"
+                title: "Property Pipeline Dashboard"
+                description: |
+                  Build dashboard showing:
+                  - Property acquisition funnel (leads → under contract → closed)
+                  - Time-to-close metrics by stage
+                  - Conversion rates at each stage
+                  - Deal velocity (deals closed per week)
+                  - Pipeline value by stage
+                owner: ""
+                tdd_spec: "Dashboard loads <5 seconds, metrics match source data, stakeholders can interpret"
+                docs_ref: "docs/analytics/property-pipeline-dashboard.md"
+                sequence: 1
+
+              dashboard-financial:
+                id: "dashboard-financial"
+                title: "Financial Metrics Dashboard"
+                description: |
+                  Build dashboard showing:
+                  - Revenue by property, unit, month
+                  - Occupancy rates (current and trending)
+                  - Rent collection percentage
+                  - Outstanding balances
+                  - Operating expenses vs budget
+                owner: ""
+                tdd_spec: "Financial figures reconcile with Buildium reports (within 1%)"
+                docs_ref: "docs/analytics/financial-dashboard.md"
+                sequence: 2
+
+              dashboard-operations:
+                id: "dashboard-operations"
+                title: "Operations Dashboard"
+                description: |
+                  Build dashboard showing:
+                  - Maintenance requests (open, in-progress, closed)
+                  - Inspection status by property
+                  - Tenant satisfaction scores (if available)
+                  - Lease expirations (next 30/60/90 days)
+                  - Unit turnover metrics
+                owner: ""
+                tdd_spec: "Dashboard provides actionable insights, operations team uses weekly"
+                docs_ref: "docs/analytics/operations-dashboard.md"
+                sequence: 3
+
+              dashboard-documentation:
+                id: "dashboard-documentation"
+                title: "Dashboard User Documentation"
+                description: |
+                  Create user guide for dashboards:
+                  - How to access dashboards
+                  - How to interpret metrics
+                  - Common filters and drill-downs
+                  - How to export data
+                  - Who to contact for questions
+                owner: ""
+                tdd_spec: "Documentation published, training session conducted, feedback collected"
+                docs_ref: "docs/guides/dashboard-user-guide.md"
+                sequence: 4
+
+  v2:
+    id: "v2"
+    title: "V2: Advanced Analytics & Automation"
+    description: |
+      Expand capabilities with predictive analytics, advanced automation workflows,
+      and additional data sources. Implement machine learning models for forecasting
+      and optimization.
+    status: "todo"
+    start_date: "2026-03-01"
+    target_completion: "TBD"
+
+    milestones:
+      m5:
+        id: "m5"
+        title: "M5: Additional Data Sources"
+        description: |
+          Integrate remaining operational systems and external data sources.
+          Expand data coverage to support comprehensive analytics.
+        status: "todo"
+        due_date: "TBD"
+
+        features:
+          additional-sources:
+            id: "additional-sources"
+            title: "Additional Source Integrations"
+            description: |
+              Integrate remaining SaaS tools and external data sources to expand
+              data coverage. Add ShowMojo (showing/lead management), Aptly (property
+              management), and other operational systems identified during V1.
+            priority: "medium"
+
+            projects:
+              showmojo-integration:
+                id: "showmojo-integration"
+                title: "ShowMojo Integration"
+                description: |
+                  Connect ShowMojo for showing scheduling, lead tracking, and
+                  prospect engagement data. Sync showing history and lead conversion
+                  metrics to BigQuery.
+                owner: ""
+                tdd_spec: |
+                  ShowMojo connector configured in Airbyte,
+                  showing data syncs successfully,
+                  lead tracking data available for analysis
+                docs_ref: "docs/operations/airbyte-connectors.md#showmojo"
+                sequence: 1
+                status: "done"
+
+              aptly-integration:
+                id: "aptly-integration"
+                title: "Aptly Integration"
+                description: |
+                  Connect Aptly property management system for additional property
+                  and tenant data. Sync to BigQuery and join with existing property
+                  dimension models.
+                owner: ""
+                tdd_spec: |
+                  Aptly connector operational,
+                  property/tenant data syncs without conflicts,
+                  data merged successfully with existing models
+                docs_ref: "docs/operations/airbyte-connectors.md#aptly"
+                sequence: 2
+
+              external-data-sources:
+                id: "external-data-sources"
+                title: "External Data Sources"
+                description: |
+                  Integrate external data sources identified during V1 (market data,
+                  demographic data, public records). Evaluate APIs and data vendors.
+                owner: ""
+                tdd_spec: "At least one external data source integrated and queryable"
+                docs_ref: "docs/architecture/external-data.md"
+                sequence: 3
+
+      m6:
+        id: "m6"
+        title: "M6: Advanced Analytics & ML"
+        description: |
+          Implement predictive models for rent pricing, tenant churn prediction,
+          property valuation. Build advanced analytics capabilities.
+        status: "todo"
+        due_date: "TBD"
+
+        features:
+          ml-models:
+            id: "ml-models"
+            title: "Machine Learning Models"
+            description: "Predictive models for business optimization."
+            priority: "low"
+            projects: {}
+
+# ============================================================================
+# Document Metadata
+# ============================================================================
+metadata:
+  maintained_by: "Data Platform Team"
+  review_frequency: "Monthly"
+  related_docs:
+    - "docs/architecture/overview.md"
+    - "docs/guides/onboarding.md"
+    - "docs/proposals/2025-09-22-Initial-Data-Infrastructure-Plan.md"
+    - "docs/adrs/"
+  tools:
+    roadmap_tracking: "This YAML file"
+    task_tracking: ".gitban/cards/"
+    kanban_mcp: "https://github.com/muunkky/kanban"

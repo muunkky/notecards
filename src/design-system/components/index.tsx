@@ -595,18 +595,24 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input';
 
+// Export Writer theme components
+export { Button as WriterButton } from './Button';
+export { Card as WriterCard } from './Card';
+export { Input as WriterInput } from './Input';
+export { BottomSheet } from './BottomSheet';
+
 // Component composition helpers
 export const ComponentLibrary = {
   Button,
   Card,
   Input,
-  
+
   // Utility functions
   createStyledComponent,
-  
+
   // Design system integration
   tokens: tokenCSS,
-  
+
   // Version info
   version: '1.0.0'
 };
