@@ -602,6 +602,8 @@ export { Input as WriterInput } from './Input';
 export { BottomSheet } from './BottomSheet';
 export { CategoryPicker } from './CategoryPicker';
 export { AddCardButton } from './AddCardButton';
+export { OverlayMenu } from './OverlayMenu';
+export type { MenuItem } from './OverlayMenu';
 
 // Component composition helpers
 export const ComponentLibrary = {
