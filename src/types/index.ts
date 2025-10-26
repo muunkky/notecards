@@ -220,3 +220,20 @@ export type DeckRole = 'owner' | 'editor' | 'viewer';
 // Feature flag environment toggle (can later be sourced from runtime config)
 export const FEATURE_DECK_SHARING = true; // Set to false to disable sharing-related UI/logic
 
+// -------------------------
+// Export Types
+// -------------------------
+
+export interface ExportOptions {
+  includeArchived?: boolean;
+  format?: 'text' | 'pdf';
+}
+
+export interface ExportResult {
+  blob: Blob;
+  filename: string;
+  text: string;
+}
+
+export type ExportFormat = 'text' | 'pdf';
+
