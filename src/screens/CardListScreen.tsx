@@ -20,6 +20,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { Card } from '../design-system/components/Card';
 import { Button } from '../design-system/components/Button';
+import { AddCardButton } from '../design-system/components/AddCardButton';
 import { CategoryValue } from '../domain/categories';
 
 // Card data structure
@@ -100,27 +101,6 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
     paddingBottom: '80px', // Space for floating button
   };
 
-  // Floating action button styles
-  const fabStyles: React.CSSProperties = {
-    position: 'fixed',
-    bottom: 'var(--semantic-spacing-lg)', // 24px
-    right: 'var(--semantic-spacing-lg)', // 24px
-    width: '56px',
-    height: '56px',
-    borderRadius: 'var(--primitive-radii-none)', // 0px (brutalist)
-    background: 'var(--primitive-black)',
-    color: 'var(--primitive-white)',
-    border: 'none',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '24px',
-    fontWeight: 600,
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.3)', // Slight shadow for depth
-    zIndex: 5,
-  };
-
   // Back button (simple text button)
   const backButtonStyles: React.CSSProperties = {
     fontSize: '18px',
@@ -140,16 +120,6 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
 
   return (
     <>
-      {/* Inject hover styles for FAB */}
-      <style>{`
-        .fab-button:hover {
-          background: var(--primitive-gray-900) !important;
-        }
-        .fab-button:active {
-          background: var(--primitive-gray-800) !important;
-        }
-      `}</style>
-
       <div style={containerStyles}>
         {/* Sticky Header */}
         <header style={headerStyles}>
@@ -190,17 +160,10 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
           )}
         </div>
 
-        {/* Floating Action Button */}
-        <button
-          className="fab-button"
-          style={fabStyles}
-          onClick={onAddCard}
-          aria-label="Add card"
-          title="Add card"
-        >
-          +
-        </button>
       </div>
+
+      {/* Floating Action Button */}
+      <AddCardButton onClick={onAddCard} />
     </>
   );
 };

@@ -601,6 +601,7 @@ export { Card as WriterCard } from './Card';
 export { Input as WriterInput } from './Input';
 export { BottomSheet } from './BottomSheet';
 export { CategoryPicker } from './CategoryPicker';
+export { AddCardButton } from './AddCardButton';
 
 // Component composition helpers
 export const ComponentLibrary = {
