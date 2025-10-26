@@ -1,8 +1,0 @@
-# Debug screenshots - temporary files
-*.png
-*.jpg
-*.jpeg
-*.gif
-
-# Keep directory but ignore contents
-!.gitkeep
