@@ -67,7 +67,7 @@ function App() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
         <header role="banner" className="sr-only">
-          <h1>Notecards Study App</h1>
+          <h1>Notecards</h1>
         </header>
         <main role="main">
           <LoginScreen />

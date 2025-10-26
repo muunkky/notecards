@@ -39,7 +39,7 @@ describe('Real MCP Server Integration', () => {
     const navigationResult = {
       success: true,
       url: devServerUrl,
-      title: 'Notecards - Study with Digital Flashcards',
+      title: 'Notecards - Digital Flashcards',
       loadTime: 1250
     };
     

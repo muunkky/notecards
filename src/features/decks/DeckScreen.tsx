@@ -257,7 +257,7 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 space-y-4 sm:space-y-0">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">My Decks</h1>
-            <h2 className="text-gray-300 text-sm sm:text-base">Organize your study materials into focused collections</h2>
+            <h2 className="text-gray-300 text-sm sm:text-base">Organize your cards into focused collections</h2>
           </div>
           <nav role="navigation" aria-label="Deck actions" className="flex items-center space-x-4">
             <button
@@ -310,7 +310,7 @@ export default function DeckScreen({ onSelectDeck }: DeckScreenProps) {
               </div>
               <div className="text-white text-xl mb-4 font-medium">No decks yet</div>
               <div className="text-gray-300 mb-8 max-w-md mx-auto leading-relaxed">
-                Get started by creating your first deck of cards. Perfect for studying, memorizing, or organizing any kind of information.
+                Get started by creating your first deck of cards. Perfect for organizing and memorizing any kind of information.
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}

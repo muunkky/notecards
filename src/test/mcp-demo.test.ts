@@ -141,7 +141,7 @@ describe('MCP-Enhanced Testing Demo', () => {
       
       const browserResult = await mcpFramework.navigateAndVerify(
         devServerUrl,
-        'Notecards - Study with Digital Flashcards'
+        'Notecards - Digital Flashcards'
       );
       
       results[browser] = browserResult;

@@ -720,7 +720,7 @@ export default function CardScreen({ deckId, deckTitle, onBack }: CardScreenProp
               </div>
               <div className="text-white text-xl mb-4 font-medium">No cards yet</div>
               <div className="text-gray-300 mb-8 max-w-md mx-auto leading-relaxed">
-                Start building your {deckTitle || 'deck'} by creating your first card. Add questions, notes, or any content you want to study.
+                Start building your {deckTitle || 'deck'} by creating your first card. Add questions, notes, or any content you want to remember.
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
