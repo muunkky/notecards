@@ -1,0 +1,22 @@
+{
+  "sprint_id": "sprint-writer-sprint-1-mobile-first-foundation-20251026",
+  "sprint_name": "WRITER-Sprint-1-Mobile-First-Foundation",
+  "sprint_folder": "sprint-writer-sprint-1-mobile-first-foundation-20251026",
+  "created_at": "2025-10-26T04:43:48.532616",
+  "start_date": null,
+  "end_date": "2025-10-26",
+  "archived_at": "2025-10-26T04:43:48.532616",
+  "card_ids": [],
+  "metrics": {
+    "total_cards": 19,
+    "by_priority": {
+      "P1": 19
+    },
+    "by_type": {
+      "feature": 19
+    },
+    "by_owner": {
+      "CAMERON": 19
+    }
+  }
+}
