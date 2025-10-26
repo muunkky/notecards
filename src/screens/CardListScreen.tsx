@@ -21,7 +21,7 @@ import { useState } from 'react';
 import { Card } from '../design-system/components/Card';
 import { Button } from '../design-system/components/Button';
 import { AddCardButton } from '../design-system/components/AddCardButton';
-import { CategoryValue } from '../domain/categories';
+import { CategoryValue, CATEGORIES, getCategoryColor } from '../domain/categories';
 
 // Card data structure
 export interface NoteCard {
@@ -59,6 +59,14 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
   onEditCard,
   onDeleteCard,
 }) => {
+  // Filter state ('all' or specific category)
+  const [selectedFilter, setSelectedFilter] = useState<'all' | CategoryValue>('all');
+
+  // Filter cards based on selected category
+  const filteredCards = selectedFilter === 'all'
+    ? cards
+    : cards.filter(card => card.category === selectedFilter);
+
   // Container styles (full viewport)
   const containerStyles: React.CSSProperties = {
     display: 'flex',
@@ -120,7 +128,7 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
 
   return (
     <>
-      {/* Inject hover styles for card action buttons */}
+      {/* Inject hover styles for card action buttons and filter chips */}
       <style>{`
         .card-action-btn:hover {
           background: var(--primitive-gray-50) !important;
@@ -133,6 +141,18 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
         }
         .card-action-btn-delete:active {
           background: var(--primitive-red-100) !important;
+        }
+        .filter-chip:hover {
+          background: var(--primitive-gray-50) !important;
+        }
+        .filter-chip:active {
+          background: var(--primitive-gray-100) !important;
+        }
+        .filter-chip-active:hover {
+          background: var(--primitive-gray-800) !important;
+        }
+        .filter-chip-active:active {
+          background: var(--primitive-gray-900) !important;
         }
       `}</style>
 
@@ -148,9 +168,86 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
           </span>
         </header>
 
+        {/* Category Filter */}
+        <div
+          style={{
+            display: 'flex',
+            gap: 'var(--semantic-spacing-xs)', // 8px
+            padding: 'var(--semantic-spacing-md)', // 16px
+            paddingTop: 'var(--semantic-spacing-sm)', // 12px
+            paddingBottom: 'var(--semantic-spacing-sm)', // 12px
+            overflowX: 'auto',
+            borderBottom: '1px solid var(--primitive-gray-200)',
+            background: 'var(--primitive-white)',
+          }}
+        >
+          {/* All filter */}
+          <button
+            onClick={() => setSelectedFilter('all')}
+            className={selectedFilter === 'all' ? 'filter-chip-active' : 'filter-chip'}
+            style={{
+              padding: '6px 12px',
+              background: selectedFilter === 'all' ? 'var(--primitive-black)' : 'var(--primitive-white)',
+              color: selectedFilter === 'all' ? 'var(--primitive-white)' : 'var(--primitive-black)',
+              border: '1px solid var(--primitive-black)',
+              borderRadius: 'var(--primitive-radii-none)', // 0px
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontFamily: 'var(--semantic-typography-font-primary)',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              transition: 'var(--primitive-transitions-none)', // 0ms
+            }}
+          >
+            All ({cards.length})
+          </button>
+
+          {/* Category filters */}
+          {CATEGORIES.map((category) => {
+            const count = cards.filter(card => card.category === category.value).length;
+            const isActive = selectedFilter === category.value;
+
+            return (
+              <button
+                key={category.value}
+                onClick={() => setSelectedFilter(category.value)}
+                className={isActive ? 'filter-chip-active' : 'filter-chip'}
+                style={{
+                  padding: '6px 12px',
+                  background: isActive ? 'var(--primitive-black)' : 'var(--primitive-white)',
+                  color: isActive ? 'var(--primitive-white)' : 'var(--primitive-black)',
+                  border: '1px solid var(--primitive-black)',
+                  borderRadius: 'var(--primitive-radii-none)', // 0px
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontFamily: 'var(--semantic-typography-font-primary)',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  transition: 'var(--primitive-transitions-none)', // 0ms
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                {/* Color indicator */}
+                <div
+                  style={{
+                    width: '12px',
+                    height: '12px',
+                    background: category.color,
+                    border: '1px solid var(--primitive-black)',
+                  }}
+                  aria-hidden="true"
+                />
+                {category.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+
         {/* Card List */}
         <div style={cardListStyles}>
-          {cards.length === 0 ? (
+          {filteredCards.length === 0 ? (
             <div
               style={{
                 textAlign: 'center',
@@ -159,10 +256,12 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
                 fontFamily: 'var(--semantic-typography-font-primary)',
               }}
             >
-              No cards yet. Tap + to add your first card.
+              {cards.length === 0
+                ? 'No cards yet. Tap + to add your first card.'
+                : `No ${selectedFilter !== 'all' ? CATEGORIES.find(c => c.value === selectedFilter)?.label.toLowerCase() : ''} cards.`}
             </div>
           ) : (
-            cards.map((card) => (
+            filteredCards.map((card) => (
               <div key={card.id} style={{ position: 'relative', marginBottom: '8px' }}>
                 <Card
                   title={card.title}
