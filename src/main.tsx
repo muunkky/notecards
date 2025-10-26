@@ -5,10 +5,18 @@ import WriterDemo from './pages/WriterDemo'
 import './index.css'
 import { AuthProvider } from './providers/AuthProvider'
 import { themeManager } from './design-system/theme/theme-manager'
+import { registerServiceWorker } from './services/sw-register'
 
 // Initialize Writer theme on app startup
 themeManager.switchTheme('writer').then(() => {
   console.log('Writer theme activated - brutalist digital minimalism for writers');
+});
+
+// Register service worker for offline support
+registerServiceWorker().then((registration) => {
+  if (registration) {
+    console.log('PWA service worker registered');
+  }
 });
 
 // Check if demo mode is active (via URL query parameter)
