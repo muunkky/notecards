@@ -10,6 +10,7 @@
 
 import { DesignTokens, defaultTokens } from '../tokens/design-tokens.js';
 import { writerTheme } from '../themes/writer-theme.js';
+import { writerDarkTheme } from '../themes/writer-dark-theme.js';
 
 export interface ThemeDefinition {
   id: string;
@@ -187,6 +188,9 @@ export class ThemeManager {
 
     // Writer theme - Brutalist digital minimalism for screenwriters
     this.registerTheme(writerTheme);
+
+    // Writer Dark theme - Brutalist digital minimalism (dark mode variant)
+    this.registerTheme(writerDarkTheme);
 
     // Conservative Corporate Theme
     this.registerTheme({
