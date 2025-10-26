@@ -604,6 +604,8 @@ export { CategoryPicker } from './CategoryPicker';
 export { AddCardButton } from './AddCardButton';
 export { OverlayMenu } from './OverlayMenu';
 export type { MenuItem } from './OverlayMenu';
+export { CardItem } from './CardItem';
+export type { CardItemProps } from './CardItem';
 
 // Component composition helpers
 export const ComponentLibrary = {
