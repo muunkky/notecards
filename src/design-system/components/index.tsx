@@ -610,6 +610,8 @@ export { Toast } from './Toast';
 export type { ToastProps } from './Toast';
 export { SwipeableCardItem } from './SwipeableCardItem';
 export type { SwipeableCardItemProps } from './SwipeableCardItem';
+export { ReorderableCardList } from './ReorderableCardList';
+export type { ReorderableCardListProps, CardData } from './ReorderableCardList';
 
 // Component composition helpers
 export const ComponentLibrary = {
