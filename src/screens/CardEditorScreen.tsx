@@ -20,7 +20,8 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Input } from '../design-system/components/Input';
 import { Button } from '../design-system/components/Button';
-import { CATEGORIES, CategoryValue, getCategoryColor } from '../domain/categories';
+import { CategoryPicker } from '../design-system/components/CategoryPicker';
+import { CATEGORIES, CategoryValue, getCategoryColor, getCategoryLabel } from '../domain/categories';
 
 export interface CardEditorScreenProps {
   /** Initial title (for editing existing card) */
@@ -54,6 +55,7 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
   const [category, setCategory] = useState<CategoryValue>(initialCategory);
   const [content, setContent] = useState(initialContent);
   const [isDirty, setIsDirty] = useState(false);
+  const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
 
   // Track if form has been modified
   useEffect(() => {
@@ -192,21 +194,27 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
 
           {/* Category Picker */}
           <div style={categoryPickerStyles}>
-            <label htmlFor="category-select" style={categoryLabelStyles}>
+            <label htmlFor="category-button" style={categoryLabelStyles}>
               Category
             </label>
-            <select
-              id="category-select"
-              value={category}
-              onChange={(e) => setCategory(e.target.value as CategoryValue)}
-              style={selectStyles}
+
+            {/* Category button (opens BottomSheet picker) */}
+            <button
+              id="category-button"
+              type="button"
+              style={{
+                ...selectStyles,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+              onClick={() => setIsCategoryPickerOpen(true)}
+              aria-label={`Select category, current: ${getCategoryLabel(category)}`}
             >
-              {CATEGORIES.map((category) => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
-              ))}
-            </select>
+              <span>{getCategoryLabel(category)}</span>
+              <span style={{ fontSize: '12px' }}>▼</span>
+            </button>
 
             {/* Category preview */}
             <div style={categoryPreviewStyles}>
@@ -233,6 +241,16 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
           />
         </div>
       </div>
+
+      {/* Category Picker Bottom Sheet */}
+      <CategoryPicker
+        isOpen={isCategoryPickerOpen}
+        onClose={() => setIsCategoryPickerOpen(false)}
+        selectedCategory={category}
+        onSelectCategory={(newCategory) => {
+          setCategory(newCategory);
+        }}
+      />
     </>
   );
 };

@@ -600,6 +600,7 @@ export { Button as WriterButton } from './Button';
 export { Card as WriterCard } from './Card';
 export { Input as WriterInput } from './Input';
 export { BottomSheet } from './BottomSheet';
+export { CategoryPicker } from './CategoryPicker';
 
 // Component composition helpers
 export const ComponentLibrary = {
