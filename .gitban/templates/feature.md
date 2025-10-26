@@ -16,6 +16,11 @@
 
 [Copy relevant context from roadmap.yaml here for easy reference]
 
+**Development Process Requirements**
+- [ ] Test driven design [required or not required]
+- [ ] Docs as Code [required or not required]
+- [ ] Infrastructure as Code [required or not required]
+
 ## Acceptance Criteria
 
 Core requirements that define "done":
