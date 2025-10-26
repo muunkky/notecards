@@ -9,8 +9,12 @@
 Implement touch gesture system - tap, long-press, swipe interactions
 
 ## Tasks
-- [ ] Task 1
-- [ ] Task 2
+
+- [x] Implement useLongPress hook with TDD (22 tests passing)
+- [x] Implement useSwipe hook with TDD (23 tests passing)
+- [x] Export hooks from src/hooks/index.ts
+- [x] Verify TypeScript compilation passes
+- [x] All tests passing (45/45)
 
 ## Notes
 *Add any relevant notes here*
