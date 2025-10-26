@@ -25,6 +25,44 @@ Use **react-window** (maintained by Brian Vaughn, former React core team):
 ## Tasks
 
 ### Phase 1: Performance Baseline
+- [x] Write performance benchmark tests (14 tests)
+- [x] Measure current render time for 100/500/1000 cards
+- [x] Measure current scroll FPS
+- [x] Measure current memory usage
+- [x] Document baseline metrics
+
+### Phase 2: Virtualized Component
+- [x] Install react-window library
+- [x] Write TDD tests for VirtualizedCardList (26 tests)
+- [x] Implement VirtualizedCardList component
+  - FixedSizeList for consistent card heights
+  - Dynamic item height support (expanded/collapsed)
+  - Preserve card interactions (expand, edit, reorder)
+  - Maintain keyboard navigation
+  - Maintain accessibility (screen readers)
+- [x] Handle edge cases (empty list, single card, filtering)
+
+### Phase 3: Integration (Deferred)
+- [ ] Integrate VirtualizedCardList into CardScreen
+- [ ] Preserve existing CardScreen functionality
+  - Card expansion/collapse
+  - Reorder mode with drag handles
+  - Filtering and search
+  - Snapshot loading
+- [ ] Update CardScreen tests
+- [ ] Test with real large datasets
+
+**Note:** Phase 3 deferred - requires architectural planning for complex CardScreen features
+
+### Phase 4: Performance Verification
+- [x] Run performance comparison benchmarks
+- [x] Verify 100 cards: <100ms initial render (vs ~5s)
+- [x] Verify 500 cards: <150ms initial render
+- [x] Verify 1000 cards: <200ms initial render
+- [x] Verify 60fps scrolling at all sizes
+- [x] Document performance improvements
+
+### Phase 1: Performance Baseline
 - [ ] Write performance benchmark tests (15 tests)
 - [ ] Measure current render time for 100/500/1000 cards
 - [ ] Measure current scroll FPS
