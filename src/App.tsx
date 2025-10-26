@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "./providers/AuthProvider";
 import LoginScreen from "./features/auth/LoginScreen";
-import DeckScreen from "./features/decks/DeckScreen";
-import CardScreen from "./features/cards/CardScreen";
+import { DeckListScreen } from "./screens/DeckListScreen";
+import { CardListScreen, NoteCard } from "./screens/CardListScreen";
+import { CardEditorScreen } from "./screens/CardEditorScreen";
+import { CategoryValue } from "./domain/categories";
 
-// Loading component for smooth transitions
+// Loading component for auth loading
 const LoadingSpinner = () => (
   <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 flex items-center justify-center">
     <div className="flex items-center space-x-3 text-white">
@@ -14,24 +16,47 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Simple navigation state management
-type Screen = 'decks' | 'cards'
+// Navigation state management (Writer theme: instant state changes, zero animations)
+type Screen = 'deckList' | 'cardList' | 'cardEditor';
 
-interface AppState {
-  currentScreen: Screen
-  selectedDeckId: string | null
-  selectedDeckTitle: string | null
-  isTransitioning: boolean
+interface NavigationState {
+  screen: Screen;
+  deckId: string | null;
+  deckTitle: string | null;
+  cardId: string | null;
+  editorMode: 'create' | 'edit';
+  initialCardData: {
+    title: string;
+    category: CategoryValue;
+    content: string;
+  } | null;
 }
 
 function App() {
   const { user, loading } = useAuth();
-  const [appState, setAppState] = useState<AppState>({
-    currentScreen: 'decks',
-    selectedDeckId: null,
-    selectedDeckTitle: null,
-    isTransitioning: false
+
+  // Navigation state (Writer theme: instant state changes, zero animations)
+  const [navState, setNavState] = useState<NavigationState>({
+    screen: 'deckList',
+    deckId: null,
+    deckTitle: null,
+    cardId: null,
+    editorMode: 'create',
+    initialCardData: null,
   });
+
+  // Mock data (will be replaced with Firebase data in card integration)
+  const mockDecks = [
+    { id: 'deck-1', title: 'Story Project Alpha', cardCount: 12, lastUpdated: new Date(Date.now() - 1000 * 60 * 30) },
+    { id: 'deck-2', title: 'Character Development', cardCount: 8, lastUpdated: new Date(Date.now() - 1000 * 60 * 60 * 2) },
+    { id: 'deck-3', title: 'World Building', cardCount: 15, lastUpdated: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3) },
+  ];
+
+  const mockCards: NoteCard[] = [
+    { id: 'card-1', title: 'Opening Scene', category: 'action' as CategoryValue, content: 'The protagonist enters the abandoned warehouse...' },
+    { id: 'card-2', title: 'Main Character Arc', category: 'character' as CategoryValue, content: 'Sarah begins as a skeptic but learns to trust...' },
+    { id: 'card-3', title: 'Central Conflict', category: 'conflict' as CategoryValue, content: 'The tension between duty and personal freedom...' },
+  ];
 
   if (loading) {
     return <LoadingSpinner />;
@@ -50,82 +75,160 @@ function App() {
     );
   }
 
-  // Enhanced navigation with smooth transitions
-  const navigateToCards = (deckId: string, deckTitle: string) => {
-    setAppState(prev => ({ ...prev, isTransitioning: true }));
-    
-    setTimeout(() => {
-      setAppState({
-        currentScreen: 'cards',
-        selectedDeckId: deckId,
-        selectedDeckTitle: deckTitle,
-        isTransitioning: false
-      });
-    }, 150); // Short transition delay
+  // Navigation functions (instant state changes, no animations)
+  const navigateToDeckList = () => {
+    setNavState({
+      screen: 'deckList',
+      deckId: null,
+      deckTitle: null,
+      cardId: null,
+      editorMode: 'create',
+      initialCardData: null,
+    });
   };
 
-  const navigateToDecks = () => {
-    setAppState(prev => ({ ...prev, isTransitioning: true }));
-    
-    setTimeout(() => {
-      setAppState({
-        currentScreen: 'decks',
-        selectedDeckId: null,
-        selectedDeckTitle: null,
-        isTransitioning: false
-      });
-    }, 150); // Short transition delay
+  const navigateToCardList = (deckId: string, deckTitle: string) => {
+    setNavState({
+      screen: 'cardList',
+      deckId,
+      deckTitle,
+      cardId: null,
+      editorMode: 'create',
+      initialCardData: null,
+    });
   };
 
-  // Show loading during transitions
-  if (appState.isTransitioning) {
-    return <LoadingSpinner />;
-  }
+  const navigateToCardEditor = (
+    deckId: string,
+    mode: 'create' | 'edit',
+    cardId?: string,
+    initialData?: { title: string; category: CategoryValue; content: string }
+  ) => {
+    setNavState({
+      screen: 'cardEditor',
+      deckId,
+      deckTitle: navState.deckTitle,
+      cardId: cardId || null,
+      editorMode: mode,
+      initialCardData: initialData || null,
+    });
+  };
 
-  // Render appropriate screen based on state with transitions
-  const currentContent = () => {
-    switch (appState.currentScreen) {
-      case 'cards':
+  // Screen-specific handlers
+  const handleAddDeck = () => {
+    const title = prompt('Enter deck name:');
+    if (title && title.trim()) {
+      // TODO: Create deck in Firebase
+      console.log('Create deck:', title);
+    }
+  };
+
+  const handleRenameDeck = (deckId: string, newTitle: string) => {
+    // TODO: Update deck in Firebase
+    console.log('Rename deck:', deckId, newTitle);
+  };
+
+  const handleDeleteDeck = (deckId: string) => {
+    // TODO: Delete deck from Firebase
+    console.log('Delete deck:', deckId);
+  };
+
+  const handleAddCard = () => {
+    if (navState.deckId) {
+      navigateToCardEditor(navState.deckId, 'create');
+    }
+  };
+
+  const handleEditCard = (cardId: string) => {
+    if (navState.deckId) {
+      // Find card data (mock for now)
+      const card = mockCards.find(c => c.id === cardId);
+      if (card) {
+        navigateToCardEditor(navState.deckId, 'edit', cardId, {
+          title: card.title,
+          category: card.category,
+          content: card.content,
+        });
+      }
+    }
+  };
+
+  const handleDeleteCard = (cardId: string) => {
+    // TODO: Delete card from Firebase
+    console.log('Delete card:', cardId);
+  };
+
+  const handleSaveCard = (data: { title: string; category: CategoryValue; content: string }) => {
+    if (navState.editorMode === 'create') {
+      // TODO: Create card in Firebase
+      console.log('Create card:', data);
+    } else {
+      // TODO: Update card in Firebase
+      console.log('Update card:', navState.cardId, data);
+    }
+    // Navigate back to card list
+    if (navState.deckId && navState.deckTitle) {
+      navigateToCardList(navState.deckId, navState.deckTitle);
+    }
+  };
+
+  const handleCancelEditor = () => {
+    // Navigate back to card list
+    if (navState.deckId && navState.deckTitle) {
+      navigateToCardList(navState.deckId, navState.deckTitle);
+    }
+  };
+
+  // Render current screen (instant state changes, zero animations)
+  const renderScreen = () => {
+    switch (navState.screen) {
+      case 'deckList':
         return (
-          <CardScreen 
-            deckId={appState.selectedDeckId!}
-            deckTitle={appState.selectedDeckTitle}
-            onBack={navigateToDecks}
+          <DeckListScreen
+            decks={mockDecks}
+            onSelectDeck={(deckId) => {
+              const deck = mockDecks.find(d => d.id === deckId);
+              if (deck) navigateToCardList(deckId, deck.title);
+            }}
+            onAddDeck={handleAddDeck}
+            onRenameDeck={handleRenameDeck}
+            onDeleteDeck={handleDeleteDeck}
           />
         );
-      case 'decks':
-      default:
+
+      case 'cardList':
         return (
-          <DeckScreen onSelectDeck={navigateToCards} />
+          <CardListScreen
+            deckTitle={navState.deckTitle || 'Untitled Deck'}
+            cards={mockCards}
+            onBack={navigateToDeckList}
+            onAddCard={handleAddCard}
+            onEditCard={handleEditCard}
+            onDeleteCard={handleDeleteCard}
+          />
         );
+
+      case 'cardEditor':
+        return (
+          <CardEditorScreen
+            mode={navState.editorMode}
+            initialTitle={navState.initialCardData?.title}
+            initialCategory={navState.initialCardData?.category}
+            initialContent={navState.initialCardData?.content}
+            onSave={handleSaveCard}
+            onCancel={handleCancelEditor}
+          />
+        );
+
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-      {/* Skip Links for Accessibility */}
-      <a 
-        href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-3 z-50 rounded-br"
-      >
-        Skip to main content
-      </a>
-      
-      <header role="banner" className="sr-only">
-        <h1>Notecards Study App</h1>
-        <nav role="navigation" aria-label="Main navigation">
-          {/* Navigation will be handled by individual screens */}
-        </nav>
-      </header>
-      
-      <main role="main" id="main-content" className={appState.isTransitioning ? "opacity-50 transition-opacity" : "transition-opacity"}>
-        {currentContent()}
-      </main>
-      
-      <footer role="contentinfo" className="sr-only">
-        <p>Notecards Study App - Organize your learning materials</p>
-      </footer>
-    </div>
+    <>
+      {renderScreen()}
+    </>
   );
 }
 
