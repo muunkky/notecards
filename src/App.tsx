@@ -5,6 +5,7 @@ import { DeckListScreen } from "./screens/DeckListScreen";
 import { CardListScreen, NoteCard } from "./screens/CardListScreen";
 import { CardEditorScreen } from "./screens/CardEditorScreen";
 import { CategoryValue } from "./domain/categories";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 
 // Loading component for auth loading
 const LoadingSpinner = () => (
@@ -227,6 +228,7 @@ function App() {
 
   return (
     <>
+      <OfflineIndicator />
       {renderScreen()}
     </>
   );

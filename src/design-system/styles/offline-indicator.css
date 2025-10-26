@@ -1,0 +1,136 @@
+/**
+ * OfflineIndicator Styles
+ *
+ * Brutalist mobile-first styling for network status indicator.
+ * Fixed position banner with Writer theme aesthetics.
+ */
+
+.offline-indicator {
+  /* Fixed positioning - top of screen */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+
+  /* Brutalist borders */
+  border-bottom: 4px solid var(--color-border-primary);
+
+  /* Mobile-first sizing */
+  padding: 12px 16px;
+
+  /* Typography */
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+
+  /* Animation */
+  animation: slideDown 300ms ease-out;
+
+  /* Accessibility */
+  user-select: none;
+}
+
+/* Error severity (offline) */
+.offline-indicator--error {
+  background-color: var(--color-error-bg, #ffebee);
+  color: var(--color-error-text, #c62828);
+  border-color: var(--color-error-border, #c62828);
+}
+
+/* Warning severity (slow connection) */
+.offline-indicator--warning {
+  background-color: var(--color-warning-bg, #fff8e1);
+  color: var(--color-warning-text, #f57f17);
+  border-color: var(--color-warning-border, #f57f17);
+}
+
+/* Content layout */
+.offline-indicator__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Icon */
+.offline-indicator__icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Message text */
+.offline-indicator__message {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Slide down animation */
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .offline-indicator {
+    padding: 16px 24px;
+    font-size: 16px;
+  }
+
+  .offline-indicator__icon {
+    font-size: 20px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .offline-indicator {
+    /* Position at top-right corner on desktop */
+    left: auto;
+    right: 0;
+    width: 400px;
+    border-left: 4px solid var(--color-border-primary);
+    border-radius: 0 0 0 8px;
+  }
+
+  .offline-indicator--error {
+    border-left-color: var(--color-error-border, #c62828);
+  }
+
+  .offline-indicator--warning {
+    border-left-color: var(--color-warning-border, #f57f17);
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .offline-indicator--error {
+    background-color: var(--color-error-bg-dark, #5f1a1a);
+    color: var(--color-error-text-dark, #ffcdd2);
+    border-color: var(--color-error-border-dark, #ef5350);
+  }
+
+  .offline-indicator--warning {
+    background-color: var(--color-warning-bg-dark, #5f4c1a);
+    color: var(--color-warning-text-dark, #fff9c4);
+    border-color: var(--color-warning-border-dark, #ffca28);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .offline-indicator {
+    animation: none;
+  }
+}

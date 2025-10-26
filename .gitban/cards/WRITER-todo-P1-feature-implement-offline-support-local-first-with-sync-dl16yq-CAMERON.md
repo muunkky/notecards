@@ -1,0 +1,61 @@
+# Implement Offline Support Local First With Sync
+
+**Type:** Feature
+**Priority:** P1
+**Status:** backlog
+**Created:** Generated via MCP
+
+## Description
+Implement offline support - local-first with sync
+
+## Tasks
+
+### Phase 1: Online/Offline Detection ✅ COMPLETE
+- [x] Write TDD tests for network status detection (17 tests)
+- [x] Implement network status detector service
+  - `src/services/network-status.ts` - NetworkStatusDetector class
+  - Singleton pattern with global `networkStatus` instance
+  - Detects online/offline status via `navigator.onLine`
+  - Detects connection quality via Network Information API
+  - Event listeners for online/offline changes
+  - Callback system with unsubscribe functions
+- [x] Write TDD tests for useNetworkStatus hook (15 tests)
+- [x] Implement useNetworkStatus React hook
+  - `src/hooks/useNetworkStatus.ts`
+  - Wraps networkStatus service for React components
+  - Automatic re-renders on network changes
+  - Returns complete status snapshot
+- [x] Write TDD tests for OfflineIndicator component (15 tests)
+- [x] Implement OfflineIndicator component
+  - `src/components/OfflineIndicator.tsx`
+  - Brutalist styling matching Writer theme
+  - Shows offline banner when disconnected
+  - Shows slow connection warning (2g/slow-2g)
+  - Accessible with aria-live region
+  - Fixed position, mobile-first design
+- [x] Integrate OfflineIndicator into main App
+  - Added to `src/App.tsx` for global display
+
+**Phase 1 Test Coverage:** 47 tests passing (17 + 15 + 15)
+
+### Phase 2: Local Storage Layer (PENDING)
+- [ ] Design IndexedDB schema for decks and cards
+- [ ] Write TDD tests for IndexedDB wrapper
+- [ ] Implement local storage layer
+  - Deck CRUD operations
+  - Card CRUD operations
+  - Query and filter operations
+- [ ] Queue pending changes for sync
+
+### Phase 3: Sync Manager (PENDING)
+- [ ] Write TDD tests for sync manager
+- [ ] Implement Firebase sync when online
+  - Detect when online
+  - Upload pending changes
+  - Download remote changes
+  - Handle conflicts (last-write-wins)
+- [ ] Implement retry logic for failed syncs
+- [ ] Add sync status indicator
+
+## Notes
+*Add any relevant notes here*
