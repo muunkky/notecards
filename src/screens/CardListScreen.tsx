@@ -120,6 +120,22 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
 
   return (
     <>
+      {/* Inject hover styles for card action buttons */}
+      <style>{`
+        .card-action-btn:hover {
+          background: var(--primitive-gray-50) !important;
+        }
+        .card-action-btn:active {
+          background: var(--primitive-gray-100) !important;
+        }
+        .card-action-btn-delete:hover {
+          background: var(--primitive-red-50) !important;
+        }
+        .card-action-btn-delete:active {
+          background: var(--primitive-red-100) !important;
+        }
+      `}</style>
+
       <div style={containerStyles}>
         {/* Sticky Header */}
         <header style={headerStyles}>
@@ -147,15 +163,67 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
             </div>
           ) : (
             cards.map((card) => (
-              <Card
-                key={card.id}
-                title={card.title}
-                category={card.category}
-                collapsible
-                defaultExpanded={false}
-              >
-                {card.content}
-              </Card>
+              <div key={card.id} style={{ position: 'relative', marginBottom: '8px' }}>
+                <Card
+                  title={card.title}
+                  category={card.category}
+                  collapsible
+                  defaultExpanded={false}
+                >
+                  <div>{card.content}</div>
+
+                  {/* Card actions (edit, delete) */}
+                  <div
+                    style={{
+                      marginTop: 'var(--semantic-spacing-sm)', // 12px
+                      paddingTop: 'var(--semantic-spacing-sm)', // 12px
+                      borderTop: '1px solid var(--primitive-gray-200)',
+                      display: 'flex',
+                      gap: 'var(--semantic-spacing-xs)', // 8px
+                    }}
+                  >
+                    <button
+                      style={{
+                        padding: '6px 12px',
+                        background: 'var(--primitive-white)',
+                        border: '1px solid var(--primitive-black)',
+                        borderRadius: 'var(--primitive-radii-none)',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontFamily: 'var(--semantic-typography-font-primary)',
+                        transition: 'var(--primitive-transitions-none)', // 0ms
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditCard?.(card.id);
+                      }}
+                      className="card-action-btn"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      style={{
+                        padding: '6px 12px',
+                        background: 'var(--primitive-white)',
+                        border: '1px solid var(--primitive-red-600)',
+                        color: 'var(--primitive-red-600)',
+                        borderRadius: 'var(--primitive-radii-none)',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontFamily: 'var(--semantic-typography-font-primary)',
+                        transition: 'var(--primitive-transitions-none)', // 0ms
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteCard?.(card.id);
+                      }}
+                      className="card-action-btn-delete"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </Card>
+              </div>
             ))
           )}
         </div>

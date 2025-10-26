@@ -11,6 +11,24 @@
  * - System font for body content
  * - Collapsible functionality
  *
+ * INSTANT STATE CHANGE PATTERN (0ms):
+ * This component follows the Writer theme philosophy of zero animations.
+ * When a card is expanded or collapsed, the state change is INSTANT - no
+ * fade-in, slide-down, or any other animation. Content appears/disappears
+ * immediately (0ms transition).
+ *
+ * This instant feedback:
+ * - Feels snappier and more responsive
+ * - Reduces cognitive load (no waiting for animations)
+ * - Aligns with brutalist "no decoration" philosophy
+ * - Improves performance (no animation calculations)
+ * - Better for users with motion sensitivity
+ *
+ * Implementation:
+ * - transition: 'var(--primitive-transitions-none)' // 0ms
+ * - Content visibility: (!collapsible || isExpanded) && <div>...</div>
+ * - React immediately updates DOM (no CSS transitions)
+ *
  * TDD: This component is built to pass writer-theme-card.test.tsx
  */
 
