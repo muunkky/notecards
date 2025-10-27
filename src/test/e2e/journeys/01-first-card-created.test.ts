@@ -31,6 +31,14 @@ describe('Journey 01: First Card Created', () => {
     });
     page = await browser.newPage();
 
+    // Enable console logging from browser
+    page.on('console', msg => {
+      const text = msg.text();
+      if (text.includes('[service-account-auth]') || text.includes('[Firebase]') || text.includes('[auth-helper]')) {
+        console.log('[BROWSER]', text);
+      }
+    });
+
     // Set viewport to simulate typical desktop
     await page.setViewport({ width: 1280, height: 720 });
   });

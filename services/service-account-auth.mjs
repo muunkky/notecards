@@ -137,14 +137,18 @@ export async function signInWithCustomToken(page, token, { timeoutMs = 60000 } =
   }
 
   return page.evaluate(async (customToken, timeout) => {
+    console.log('[service-account-auth] Starting authentication flow');
+
     // Wait for Firebase auth to be available (with retry logic)
     const waitForFirebaseAuth = async (maxWaitMs = 10000) => {
+      console.log('[service-account-auth] Waiting for Firebase auth to be available...');
       const startTime = Date.now();
       const checkInterval = 100; // Check every 100ms
 
       while (Date.now() - startTime < maxWaitMs) {
         const auth = window.firebaseAuth || (window.firebase && window.firebase.auth && window.firebase.auth());
         if (auth) {
+          console.log('[service-account-auth] Firebase auth found after', Date.now() - startTime, 'ms');
           return auth;
         }
         // Wait before checking again
@@ -160,24 +164,32 @@ export async function signInWithCustomToken(page, token, { timeoutMs = 60000 } =
     // Firebase v8 compat exposes auth methods on the auth instance itself
     // Try v9 first (check for module functions), fall back to v8 compat (instance methods)
     const isV9Modular = window.firebase && window.firebase.auth && typeof window.firebase.auth.signInWithCustomToken === 'function';
+    console.log('[service-account-auth] Firebase v9 modular detected:', isV9Modular);
 
     if (isV9Modular) {
       // Firebase v9: signInWithCustomToken(auth, token)
+      console.log('[service-account-auth] Calling window.firebase.auth.signInWithCustomToken(auth, token)');
       await window.firebase.auth.signInWithCustomToken(auth, customToken);
+      console.log('[service-account-auth] signInWithCustomToken completed');
     } else if (typeof auth.signInWithCustomToken === 'function') {
       // Firebase v8 compat: auth.signInWithCustomToken(token)
+      console.log('[service-account-auth] Calling auth.signInWithCustomToken(token)');
       await auth.signInWithCustomToken(customToken);
+      console.log('[service-account-auth] signInWithCustomToken completed');
     } else {
       throw new Error('signInWithCustomToken is not available on window.firebase.auth or auth instance. Ensure Firebase Auth is properly initialized.');
     }
 
+    console.log('[service-account-auth] Waiting for auth state change...');
     return await new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
+        console.log('[service-account-auth] Auth state change timeout!');
         reject(new Error('Timed out waiting for Firebase authentication to complete.'))
       }, timeout)
 
       // onAuthStateChanged is available on both v8 and v9 auth instances
       const unsubscribe = auth.onAuthStateChanged(user => {
+        console.log('[service-account-auth] Auth state changed, user:', user ? user.uid : 'null');
         if (user) {
           clearTimeout(timer)
           unsubscribe()
@@ -188,6 +200,7 @@ export async function signInWithCustomToken(page, token, { timeoutMs = 60000 } =
           })
         }
       }, error => {
+        console.log('[service-account-auth] Auth state change error:', error);
         clearTimeout(timer)
         unsubscribe()
         reject(error)
