@@ -102,8 +102,12 @@ function App() {
           title: data.title || '',
           category: data.category || 'other',
           content: data.content || '',
+          order: data.order || 0, // Add order field
         };
       });
+
+      // Sort by order field, then by creation time
+      deckCards.sort((a, b) => (a.order || 0) - (b.order || 0));
 
       setCards(deckCards);
     } catch (error) {
@@ -245,6 +249,76 @@ function App() {
     console.log('Delete card:', cardId);
   };
 
+  const handleMoveCardUp = async (cardId: string, currentIndex: number) => {
+    if (!user || !navState.deckId || currentIndex <= 0) return;
+
+    try {
+      // Find the two cards to swap
+      const currentCard = cards[currentIndex];
+      const previousCard = cards[currentIndex - 1];
+
+      if (!currentCard || !previousCard) return;
+
+      // Swap order values
+      const currentOrder = currentCard.order ?? currentIndex;
+      const previousOrder = previousCard.order ?? currentIndex - 1;
+
+      // Update both cards in Firebase
+      const currentCardRef = doc(db, 'decks', navState.deckId, 'cards', currentCard.id);
+      const previousCardRef = doc(db, 'decks', navState.deckId, 'cards', previousCard.id);
+
+      await setDoc(currentCardRef, { order: previousOrder }, { merge: true });
+      await setDoc(previousCardRef, { order: currentOrder }, { merge: true });
+
+      // Update local state for instant feedback
+      const newCards = [...cards];
+      newCards[currentIndex] = previousCard;
+      newCards[currentIndex - 1] = currentCard;
+      newCards[currentIndex].order = currentOrder;
+      newCards[currentIndex - 1].order = previousOrder;
+      setCards(newCards);
+
+      console.log(`✅ Moved card up: ${currentCard.title}`);
+    } catch (error) {
+      console.error('Failed to move card up:', error);
+    }
+  };
+
+  const handleMoveCardDown = async (cardId: string, currentIndex: number) => {
+    if (!user || !navState.deckId || currentIndex >= cards.length - 1) return;
+
+    try {
+      // Find the two cards to swap
+      const currentCard = cards[currentIndex];
+      const nextCard = cards[currentIndex + 1];
+
+      if (!currentCard || !nextCard) return;
+
+      // Swap order values
+      const currentOrder = currentCard.order ?? currentIndex;
+      const nextOrder = nextCard.order ?? currentIndex + 1;
+
+      // Update both cards in Firebase
+      const currentCardRef = doc(db, 'decks', navState.deckId, 'cards', currentCard.id);
+      const nextCardRef = doc(db, 'decks', navState.deckId, 'cards', nextCard.id);
+
+      await setDoc(currentCardRef, { order: nextOrder }, { merge: true });
+      await setDoc(nextCardRef, { order: currentOrder }, { merge: true });
+
+      // Update local state for instant feedback
+      const newCards = [...cards];
+      newCards[currentIndex] = nextCard;
+      newCards[currentIndex + 1] = currentCard;
+      newCards[currentIndex].order = currentOrder;
+      newCards[currentIndex + 1].order = nextOrder;
+      setCards(newCards);
+
+      console.log(`✅ Moved card down: ${currentCard.title}`);
+    } catch (error) {
+      console.error('Failed to move card down:', error);
+    }
+  };
+
   const handleSaveCard = async (data: { title: string; category: CategoryValue; content: string }) => {
     if (!user || !navState.deckId) return;
 
@@ -254,11 +328,16 @@ function App() {
         const cardId = `card-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
         const now = Timestamp.now();
 
+        // Calculate next order value (max + 1)
+        const maxOrder = cards.reduce((max, card) => Math.max(max, card.order ?? 0), -1);
+        const newOrder = maxOrder + 1;
+
         const cardRef = doc(db, 'decks', navState.deckId, 'cards', cardId);
         await setDoc(cardRef, {
           title: data.title,
           category: data.category,
           content: data.content,
+          order: newOrder,
           createdAt: now,
           updatedAt: now,
         });
@@ -269,6 +348,7 @@ function App() {
           title: data.title,
           category: data.category,
           content: data.content,
+          order: newOrder,
         };
         setCards(prevCards => [...prevCards, newCard]);
 
@@ -330,6 +410,8 @@ function App() {
             onAddCard={handleAddCard}
             onEditCard={handleEditCard}
             onDeleteCard={handleDeleteCard}
+            onMoveCardUp={handleMoveCardUp}
+            onMoveCardDown={handleMoveCardDown}
           />
         );
 

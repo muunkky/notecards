@@ -29,6 +29,7 @@ export interface NoteCard {
   title: string;
   content: string;
   category: CategoryValue;
+  order?: number;
 }
 
 export interface CardListScreenProps {
@@ -49,6 +50,12 @@ export interface CardListScreenProps {
 
   /** Callback when card is deleted */
   onDeleteCard?: (cardId: string) => void;
+
+  /** Callback when card is moved up */
+  onMoveCardUp?: (cardId: string, currentIndex: number) => void;
+
+  /** Callback when card is moved down */
+  onMoveCardDown?: (cardId: string, currentIndex: number) => void;
 }
 
 export const CardListScreen: React.FC<CardListScreenProps> = ({
@@ -58,6 +65,8 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
   onAddCard,
   onEditCard,
   onDeleteCard,
+  onMoveCardUp,
+  onMoveCardDown,
 }) => {
   // Filter state ('all' or specific category)
   const [selectedFilter, setSelectedFilter] = useState<'all' | CategoryValue>('all');
@@ -261,7 +270,7 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
                 : `No ${selectedFilter !== 'all' ? CATEGORIES.find(c => c.value === selectedFilter)?.label.toLowerCase() : ''} cards.`}
             </div>
           ) : (
-            filteredCards.map((card) => (
+            filteredCards.map((card, index) => (
               <div
                 key={card.id}
                 data-testid="card-item"
@@ -289,7 +298,7 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
                 >
                   <div>{card.content}</div>
 
-                  {/* Card actions (edit, delete) */}
+                  {/* Card actions (reorder, edit, delete) */}
                   <div
                     style={{
                       marginTop: 'var(--semantic-spacing-sm)', // 12px
@@ -299,6 +308,56 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
                       gap: 'var(--semantic-spacing-xs)', // 8px
                     }}
                   >
+                    {/* Move up button */}
+                    {index > 0 && onMoveCardUp && (
+                      <button
+                        data-testid="move-card-up"
+                        style={{
+                          padding: '6px 12px',
+                          background: 'var(--primitive-white)',
+                          border: '1px solid var(--primitive-black)',
+                          borderRadius: 'var(--primitive-radii-none)',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontFamily: 'var(--semantic-typography-font-primary)',
+                          transition: 'var(--primitive-transitions-none)', // 0ms
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const actualIndex = cards.findIndex(c => c.id === card.id);
+                          onMoveCardUp(card.id, actualIndex);
+                        }}
+                        className="card-action-btn"
+                      >
+                        ↑
+                      </button>
+                    )}
+
+                    {/* Move down button */}
+                    {index < filteredCards.length - 1 && onMoveCardDown && (
+                      <button
+                        data-testid="move-card-down"
+                        style={{
+                          padding: '6px 12px',
+                          background: 'var(--primitive-white)',
+                          border: '1px solid var(--primitive-black)',
+                          borderRadius: 'var(--primitive-radii-none)',
+                          cursor: 'pointer',
+                          fontSize: '14px',
+                          fontFamily: 'var(--semantic-typography-font-primary)',
+                          transition: 'var(--primitive-transitions-none)', // 0ms
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const actualIndex = cards.findIndex(c => c.id === card.id);
+                          onMoveCardDown(card.id, actualIndex);
+                        }}
+                        className="card-action-btn"
+                      >
+                        ↓
+                      </button>
+                    )}
+
                     <button
                       style={{
                         padding: '6px 12px',
