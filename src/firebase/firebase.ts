@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getAuth, connectAuthEmulator, signInWithCustomToken, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
@@ -34,7 +34,16 @@ export const analytics = getAnalytics(app);
 (window as any).firebaseAuth = auth;
 (window as any).firebaseDb = db;
 (window as any).firebaseApp = app;
-console.log('[Firebase] Exposed Firebase instances on window for e2e testing');
+
+// Expose Firebase v9 modular auth functions for e2e tests
+// Service-account-auth.mjs needs these to call signInWithCustomToken(auth, token)
+(window as any).firebase = {
+  auth: {
+    signInWithCustomToken,
+    onAuthStateChanged
+  }
+};
+console.log('[Firebase] Exposed Firebase instances and auth functions on window for e2e testing');
 
 // Connect to emulators in development
 // Check for VITE_USE_EMULATORS env var or import.meta.env.DEV for Vite dev mode

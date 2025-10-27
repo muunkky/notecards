@@ -14,6 +14,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import puppeteer, { Browser, Page } from 'puppeteer';
+import { authenticatePage } from '../support/auth-helper';
 
 const TEST_URL = 'https://notecards-1b054.web.app';
 const PERFORMANCE_BUDGET_MS = 30000; // 30 seconds
@@ -43,12 +44,10 @@ describe('Journey 01: First Card Created', () => {
   it('should complete first card creation journey within performance budget', async () => {
     const journeyStartTime = Date.now();
 
-    // Step 1: Navigate to app
-    await page.goto(TEST_URL, { waitUntil: 'networkidle0' });
-
-    // Step 2: Sign in (using Google OAuth - will need auth helper)
-    // TODO: Implement auth flow
-    // For now, we'll test the authenticated state
+    // Step 1 & 2: Navigate to app and authenticate using service account custom token
+    await authenticatePage(page, TEST_URL, {
+      userEmail: 'e2e-test@notecards.test'
+    });
 
     // Step 3: Create first deck "My First Story"
     const createDeckButton = await page.waitForSelector('[data-testid="create-deck-button"]', {

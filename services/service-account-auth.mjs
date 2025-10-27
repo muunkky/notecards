@@ -155,13 +155,28 @@ export async function signInWithCustomToken(page, token, { timeoutMs = 60000 } =
     };
 
     const auth = await waitForFirebaseAuth();
-    await auth.signInWithCustomToken(customToken)
+
+    // Firebase v9 modular SDK exposes auth functions on window.firebase.auth module
+    // Firebase v8 compat exposes auth methods on the auth instance itself
+    // Try v9 first (check for module functions), fall back to v8 compat (instance methods)
+    const isV9Modular = window.firebase && window.firebase.auth && typeof window.firebase.auth.signInWithCustomToken === 'function';
+
+    if (isV9Modular) {
+      // Firebase v9: signInWithCustomToken(auth, token)
+      await window.firebase.auth.signInWithCustomToken(auth, customToken);
+    } else if (typeof auth.signInWithCustomToken === 'function') {
+      // Firebase v8 compat: auth.signInWithCustomToken(token)
+      await auth.signInWithCustomToken(customToken);
+    } else {
+      throw new Error('signInWithCustomToken is not available on window.firebase.auth or auth instance. Ensure Firebase Auth is properly initialized.');
+    }
 
     return await new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         reject(new Error('Timed out waiting for Firebase authentication to complete.'))
       }, timeout)
 
+      // onAuthStateChanged is available on both v8 and v9 auth instances
       const unsubscribe = auth.onAuthStateChanged(user => {
         if (user) {
           clearTimeout(timer)
