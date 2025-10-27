@@ -131,11 +131,16 @@ describe('Journey 03: Card Reordering', () => {
     const swapStartTime = Date.now();
 
     for (let i = 0; i < 3; i++) {
+      // Re-query the button each time as the card's position changes
+      await page.waitForSelector('[data-testid="card-item"][data-card-title="Scene 5: Resolution Setup"] [data-testid="move-card-up"]', {
+        timeout: 1000
+      });
+
       const button = await page.$('[data-testid="card-item"][data-card-title="Scene 5: Resolution Setup"] [data-testid="move-card-up"]');
       await button!.click();
 
-      // Wait briefly for swap to complete using setTimeout wrapped in Promise
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for Firebase and UI to update
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
 
     const swapDuration = Date.now() - swapStartTime;
