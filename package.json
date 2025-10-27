@@ -7,6 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
+    "postinstall": "bash scripts/install-hooks.sh",
     "dev": "vite",
     "dev:emulators": "cross-env VITE_USE_EMULATORS=true vite",
     "emulators:start": "firebase emulators:start --only auth,firestore --import=./.emulator-data --export-on-exit=./.emulator-data",
@@ -23,6 +24,7 @@
     "deploy": "node scripts/check-firebase-auth.mjs && npm run build && firebase deploy",
     "deploy:hosting": "node scripts/check-firebase-auth.mjs && npm run build && firebase deploy --only hosting",
     "deploy:rules": "node scripts/check-firebase-auth.mjs && firebase deploy --only firestore:rules",
+    "deploy:check": "bash scripts/deploy-check.sh",
     "deploy:indexes": "node scripts/check-firebase-auth.mjs && firebase deploy --only firestore:indexes",
     "deploy:all": "node scripts/check-firebase-auth.mjs && npm run build && firebase deploy",
     "deploy:capture": "powershell -ExecutionPolicy Bypass -File ./scripts/deploy-capture.ps1",

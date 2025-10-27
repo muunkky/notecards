@@ -1,0 +1,31 @@
+#!/bin/bash
+# Pre-push hook: Run deployment checks before pushing to remote
+
+# Only run on push to main branch
+remote="$1"
+url="$2"
+
+# Get the branch being pushed
+while read local_ref local_sha remote_ref remote_sha
+do
+    if [[ "$remote_ref" == "refs/heads/main" ]]; then
+        echo "🔒 Pre-push hook: Running deployment checks for main branch..."
+        echo ""
+
+        # Run the deployment check script
+        if ! bash scripts/deploy-check.sh; then
+            echo ""
+            echo "❌ Pre-push checks failed!"
+            echo "Fix the issues above before pushing to main."
+            echo ""
+            echo "To skip this hook (NOT RECOMMENDED):"
+            echo "  git push --no-verify"
+            exit 1
+        fi
+
+        echo ""
+        echo "✅ Pre-push checks passed! Proceeding with push..."
+    fi
+done
+
+exit 0

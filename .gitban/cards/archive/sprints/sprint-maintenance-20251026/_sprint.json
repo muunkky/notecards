@@ -1,0 +1,27 @@
+{
+  "sprint_id": "sprint-maintenance-20251026",
+  "sprint_name": "maintenance",
+  "sprint_folder": "sprint-maintenance-20251026",
+  "created_at": "2025-10-26T15:26:45.095347",
+  "start_date": null,
+  "end_date": null,
+  "archived_at": "2025-10-26T15:26:45.095347",
+  "card_ids": [
+    "C0002"
+  ],
+  "metrics": {
+    "total_cards": 4,
+    "by_priority": {
+      "P1": 1,
+      "P2": 3
+    },
+    "by_type": {
+      "chore": 1,
+      "C": 1,
+      "docs": 2
+    },
+    "by_owner": {
+      "Unassigned": 4
+    }
+  }
+}

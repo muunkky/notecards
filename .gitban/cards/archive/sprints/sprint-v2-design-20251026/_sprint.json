@@ -1,0 +1,24 @@
+{
+  "sprint_id": "sprint-v2-design-20251026",
+  "sprint_name": "v2-design",
+  "sprint_folder": "sprint-v2-design-20251026",
+  "created_at": "2025-10-26T15:27:02.457919",
+  "start_date": null,
+  "end_date": null,
+  "archived_at": "2025-10-26T15:27:02.457919",
+  "card_ids": [],
+  "metrics": {
+    "total_cards": 12,
+    "by_priority": {
+      "P1": 10,
+      "P0": 2
+    },
+    "by_type": {
+      "docs": 2,
+      "feature": 10
+    },
+    "by_owner": {
+      "Unassigned": 12
+    }
+  }
+}
