@@ -8,7 +8,8 @@ import { CategoryValue } from "./domain/categories";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import { getUserDecks, setDeck } from "./services/firebase-service";
 import { LocalDeck } from "./services/storage/schema";
-import { Timestamp } from "firebase/firestore";
+import { Timestamp, doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "./firebase/firebase";
 
 // Loading component for auth loading
 const LoadingSpinner = () => (
@@ -53,12 +54,23 @@ function App() {
   const [decks, setDecks] = useState<LocalDeck[]>([]);
   const [decksLoading, setDecksLoading] = useState(true);
 
+  // Real card state from Firebase (for current deck)
+  const [cards, setCards] = useState<NoteCard[]>([]);
+  const [cardsLoading, setCardsLoading] = useState(false);
+
   // Load decks from Firebase when user is authenticated
   useEffect(() => {
     if (user) {
       loadDecks();
     }
   }, [user]);
+
+  // Load cards when navigating to a deck
+  useEffect(() => {
+    if (user && navState.deckId && navState.screen === 'cardList') {
+      loadCards(navState.deckId);
+    }
+  }, [user, navState.deckId, navState.screen]);
 
   const loadDecks = async () => {
     if (!user) return;
@@ -74,11 +86,32 @@ function App() {
     }
   };
 
-  const mockCards: NoteCard[] = [
-    { id: 'card-1', title: 'Opening Scene', category: 'action' as CategoryValue, content: 'The protagonist enters the abandoned warehouse...' },
-    { id: 'card-2', title: 'Main Character Arc', category: 'character' as CategoryValue, content: 'Sarah begins as a skeptic but learns to trust...' },
-    { id: 'card-3', title: 'Central Conflict', category: 'conflict' as CategoryValue, content: 'The tension between duty and personal freedom...' },
-  ];
+  const loadCards = async (deckId: string) => {
+    if (!user) return;
+
+    try {
+      setCardsLoading(true);
+      // Query cards subcollection under deck
+      const cardsRef = collection(db, 'decks', deckId, 'cards');
+      const snapshot = await getDocs(cardsRef);
+
+      const deckCards: NoteCard[] = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title || '',
+          category: data.category || 'other',
+          content: data.content || '',
+        };
+      });
+
+      setCards(deckCards);
+    } catch (error) {
+      console.error('Failed to load cards:', error);
+    } finally {
+      setCardsLoading(false);
+    }
+  };
 
   if (loading) {
     return <LoadingSpinner />;
@@ -195,8 +228,8 @@ function App() {
 
   const handleEditCard = (cardId: string) => {
     if (navState.deckId) {
-      // Find card data (mock for now)
-      const card = mockCards.find(c => c.id === cardId);
+      // Find card data from real cards state
+      const card = cards.find((c: NoteCard) => c.id === cardId);
       if (card) {
         navigateToCardEditor(navState.deckId, 'edit', cardId, {
           title: card.title,
@@ -212,17 +245,45 @@ function App() {
     console.log('Delete card:', cardId);
   };
 
-  const handleSaveCard = (data: { title: string; category: CategoryValue; content: string }) => {
-    if (navState.editorMode === 'create') {
-      // TODO: Create card in Firebase
-      console.log('Create card:', data);
-    } else {
-      // TODO: Update card in Firebase
-      console.log('Update card:', navState.cardId, data);
-    }
-    // Navigate back to card list
-    if (navState.deckId && navState.deckTitle) {
-      navigateToCardList(navState.deckId, navState.deckTitle);
+  const handleSaveCard = async (data: { title: string; category: CategoryValue; content: string }) => {
+    if (!user || !navState.deckId) return;
+
+    try {
+      if (navState.editorMode === 'create') {
+        // Create card in Firebase subcollection
+        const cardId = `card-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        const now = Timestamp.now();
+
+        const cardRef = doc(db, 'decks', navState.deckId, 'cards', cardId);
+        await setDoc(cardRef, {
+          title: data.title,
+          category: data.category,
+          content: data.content,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        // Update local state for instant UI feedback
+        const newCard: NoteCard = {
+          id: cardId,
+          title: data.title,
+          category: data.category,
+          content: data.content,
+        };
+        setCards(prevCards => [...prevCards, newCard]);
+
+        console.log('✅ Card created:', data.title, cardId);
+      } else {
+        // TODO: Update card in Firebase
+        console.log('Update card:', navState.cardId, data);
+      }
+
+      // Navigate back to card list
+      if (navState.deckId && navState.deckTitle) {
+        navigateToCardList(navState.deckId, navState.deckTitle);
+      }
+    } catch (error) {
+      console.error('Failed to save card:', error);
     }
   };
 
@@ -264,7 +325,7 @@ function App() {
         return (
           <CardListScreen
             deckTitle={navState.deckTitle || 'Untitled Deck'}
-            cards={mockCards}
+            cards={cards}
             onBack={navigateToDeckList}
             onAddCard={handleAddCard}
             onEditCard={handleEditCard}
