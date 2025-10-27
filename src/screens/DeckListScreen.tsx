@@ -19,6 +19,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { Card } from '../design-system/components/Card';
 import { Button } from '../design-system/components/Button';
+import { CreateDeckDialog } from '../ui/CreateDeckDialog';
 
 // Deck data structure
 export interface Deck {
@@ -36,7 +37,7 @@ export interface DeckListScreenProps {
   onSelectDeck?: (deckId: string) => void;
 
   /** Callback when add deck button is clicked */
-  onAddDeck?: () => void;
+  onAddDeck?: (name: string) => void | Promise<void>;
 
   /** Callback when deck is renamed */
   onRenameDeck?: (deckId: string, newTitle: string) => void;
@@ -54,6 +55,14 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
 }) => {
   // Track which deck's menu is open
   const [openMenuDeckId, setOpenMenuDeckId] = useState<string | null>(null);
+
+  // Track create deck dialog visibility
+  const [showCreateDeckDialog, setShowCreateDeckDialog] = useState(false);
+
+  // Handle create deck from dialog
+  const handleCreateDeck = async (name: string) => {
+    await onAddDeck?.(name);
+  };
 
   // Toggle menu for a deck
   const toggleMenu = (deckId: string, e: React.MouseEvent) => {
@@ -250,7 +259,7 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
               cursor: 'pointer',
               fontWeight: 600,
             }}
-            onClick={onAddDeck}
+            onClick={() => setShowCreateDeckDialog(true)}
             aria-label="Add deck"
             title="Add deck"
           >
@@ -329,6 +338,14 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
           )}
         </div>
       </div>
+
+      {/* Create Deck Dialog */}
+      {showCreateDeckDialog && (
+        <CreateDeckDialog
+          onClose={() => setShowCreateDeckDialog(false)}
+          onCreateDeck={handleCreateDeck}
+        />
+      )}
     </>
   );
 };

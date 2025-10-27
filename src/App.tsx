@@ -116,12 +116,11 @@ function App() {
   };
 
   // Screen-specific handlers
-  const handleAddDeck = () => {
-    const title = prompt('Enter deck name:');
-    if (title && title.trim()) {
-      // TODO: Create deck in Firebase
-      console.log('Create deck:', title);
-    }
+  const handleAddDeck = (name: string) => {
+    // TODO: Create deck in Firebase
+    console.log('Create deck:', name);
+    // For now, just log. When Firebase integration is complete,
+    // the deck will be created and instantly appear in the list
   };
 
   const handleRenameDeck = (deckId: string, newTitle: string) => {

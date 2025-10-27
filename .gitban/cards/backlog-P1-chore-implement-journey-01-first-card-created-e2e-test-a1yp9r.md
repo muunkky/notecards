@@ -30,8 +30,6 @@ See full journey specification: `docs/testing/critical-user-journeys.md` - Core 
 ## Test Location
 Create at: `src/test/e2e/journeys/01-first-card-created.test.ts`
 
-
-
 ## TDD Progress
 
 ### Test Created ✅
@@ -40,8 +38,15 @@ Create at: `src/test/e2e/journeys/01-first-card-created.test.ts`
 - Performance budgets defined: 30s total, 300ms card creation
 
 ### Production Code Changes (Green Phase)
+
 - ✅ Added `data-testid="create-deck-button"` to DeckListScreen:243
 - ✅ Added `data-testid="deck-card"` with `data-deck-name` to deck items
+- ✅ Created CreateDeckDialog component with testids (src/ui/CreateDeckDialog.tsx)
+  - `data-testid="deck-name-input"` - Input field
+  - `data-testid="create-deck-submit"` - Submit button
+- ✅ Integrated CreateDeckDialog into DeckListScreen
+- ✅ Updated DeckListScreen interface to accept deck name parameter
+- ✅ Updated App.tsx handleAddDeck to accept name parameter
 
 ### Next Steps (To Make Test Green)
 1. Add deck creation dialog/modal with testids:
