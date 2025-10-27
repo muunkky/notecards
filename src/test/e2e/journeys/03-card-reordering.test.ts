@@ -131,6 +131,13 @@ describe('Journey 03: Card Reordering', () => {
     const swapStartTime = Date.now();
 
     for (let i = 0; i < 3; i++) {
+      // First, expand the card by clicking its title (needed because re-renders collapse it)
+      const cardItem = await page.$('[data-testid="card-item"][data-card-title="Scene 5: Resolution Setup"]');
+      await cardItem!.click();
+
+      // Wait a bit for card to expand
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Re-query the button each time as the card's position changes
       await page.waitForSelector('[data-testid="card-item"][data-card-title="Scene 5: Resolution Setup"] [data-testid="move-card-up"]', {
         timeout: 1000
@@ -140,7 +147,7 @@ describe('Journey 03: Card Reordering', () => {
       await button!.click();
 
       // Wait for Firebase and UI to update
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
 
     const swapDuration = Date.now() - swapStartTime;
