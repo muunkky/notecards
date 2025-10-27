@@ -175,7 +175,7 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
           <Button variant="secondary" size="md" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button variant="primary" size="md" onClick={handleSave}>
+          <Button variant="primary" size="md" onClick={handleSave} data-testid="create-card-submit">
             Save
           </Button>
         </header>
@@ -190,6 +190,7 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
             onChange={(e) => setTitle(e.target.value)}
             placeholder="INT. COFFEE SHOP - DAY"
             required
+            data-testid="card-title-input"
           />
 
           {/* Category Picker */}

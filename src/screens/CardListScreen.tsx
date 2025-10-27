@@ -330,7 +330,7 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
       </div>
 
       {/* Floating Action Button */}
-      <AddCardButton onClick={onAddCard} />
+      <AddCardButton onClick={onAddCard} testId="create-card-button" />
     </>
   );
 };
