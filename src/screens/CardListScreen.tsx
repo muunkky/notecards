@@ -275,19 +275,9 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
                 key={card.id}
                 data-testid="card-item"
                 data-card-title={card.title}
-                onClick={() => onEditCard?.(card.id)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onEditCard?.(card.id);
-                  }
-                }}
                 style={{
                   position: 'relative',
                   marginBottom: '8px',
-                  cursor: 'pointer',
                 }}
               >
                 <Card
