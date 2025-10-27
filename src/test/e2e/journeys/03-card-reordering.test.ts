@@ -134,8 +134,8 @@ describe('Journey 03: Card Reordering', () => {
       const button = await page.$('[data-testid="card-item"][data-card-title="Scene 5: Resolution Setup"] [data-testid="move-card-up"]');
       await button!.click();
 
-      // Wait briefly for swap to complete
-      await page.waitForTimeout(100);
+      // Wait briefly for swap to complete using setTimeout wrapped in Promise
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
 
     const swapDuration = Date.now() - swapStartTime;
