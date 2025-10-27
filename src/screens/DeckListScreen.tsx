@@ -240,6 +240,7 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
         <header style={headerStyles}>
           <h1 style={titleStyles}>NOTECARDS</h1>
           <button
+            data-testid="create-deck-button"
             style={{
               ...addButtonStyles,
               background: 'var(--primitive-black)',
@@ -274,6 +275,8 @@ export const DeckListScreen: React.FC<DeckListScreenProps> = ({
             decks.map((deck) => (
               <div
                 key={deck.id}
+                data-testid="deck-card"
+                data-deck-name={deck.title}
                 className="deck-card"
                 style={deckCardStyles}
                 onClick={() => onSelectDeck?.(deck.id)}
