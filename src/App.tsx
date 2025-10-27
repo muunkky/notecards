@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "./providers/AuthProvider";
 import LoginScreen from "./features/auth/LoginScreen";
 import { DeckListScreen } from "./screens/DeckListScreen";
@@ -6,6 +6,8 @@ import { CardListScreen, NoteCard } from "./screens/CardListScreen";
 import { CardEditorScreen } from "./screens/CardEditorScreen";
 import { CategoryValue } from "./domain/categories";
 import { OfflineIndicator } from "./components/OfflineIndicator";
+import { getUserDecks, setDeck } from "./services/firebase-service";
+import { LocalDeck } from "./services/storage/schema";
 
 // Loading component for auth loading
 const LoadingSpinner = () => (
@@ -46,12 +48,30 @@ function App() {
     initialCardData: null,
   });
 
-  // Mock data (will be replaced with Firebase data in card integration)
-  const mockDecks = [
-    { id: 'deck-1', title: 'Story Project Alpha', cardCount: 12, lastUpdated: new Date(Date.now() - 1000 * 60 * 30) },
-    { id: 'deck-2', title: 'Character Development', cardCount: 8, lastUpdated: new Date(Date.now() - 1000 * 60 * 60 * 2) },
-    { id: 'deck-3', title: 'World Building', cardCount: 15, lastUpdated: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3) },
-  ];
+  // Real deck state from Firebase
+  const [decks, setDecks] = useState<LocalDeck[]>([]);
+  const [decksLoading, setDecksLoading] = useState(true);
+
+  // Load decks from Firebase when user is authenticated
+  useEffect(() => {
+    if (user) {
+      loadDecks();
+    }
+  }, [user]);
+
+  const loadDecks = async () => {
+    if (!user) return;
+
+    try {
+      setDecksLoading(true);
+      const userDecks = await getUserDecks(user.uid);
+      setDecks(userDecks);
+    } catch (error) {
+      console.error('Failed to load decks:', error);
+    } finally {
+      setDecksLoading(false);
+    }
+  };
 
   const mockCards: NoteCard[] = [
     { id: 'card-1', title: 'Opening Scene', category: 'action' as CategoryValue, content: 'The protagonist enters the abandoned warehouse...' },
@@ -116,11 +136,35 @@ function App() {
   };
 
   // Screen-specific handlers
-  const handleAddDeck = (name: string) => {
-    // TODO: Create deck in Firebase
-    console.log('Create deck:', name);
-    // For now, just log. When Firebase integration is complete,
-    // the deck will be created and instantly appear in the list
+  const handleAddDeck = async (name: string) => {
+    if (!user) return;
+
+    try {
+      // Generate new deck ID
+      const deckId = `deck-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const now = Date.now();
+
+      const newDeck: LocalDeck = {
+        id: deckId,
+        title: name,
+        cardCount: 0,
+        lastUpdated: now,
+        userId: user.uid,
+        createdAt: now,
+        synced: true,
+        pendingChanges: false,
+      };
+
+      // Save to Firebase
+      await setDeck(user.uid, deckId, newDeck);
+
+      // Update local state for instant UI feedback
+      setDecks(prevDecks => [...prevDecks, newDeck]);
+
+      console.log('✅ Deck created:', name, deckId);
+    } catch (error) {
+      console.error('Failed to create deck:', error);
+    }
   };
 
   const handleRenameDeck = (deckId: string, newTitle: string) => {
@@ -179,15 +223,25 @@ function App() {
     }
   };
 
+  // Convert LocalDeck to DeckListScreen Deck format
+  const convertToDisplayDecks = (localDecks: LocalDeck[]) => {
+    return localDecks.map(deck => ({
+      id: deck.id,
+      title: deck.title,
+      cardCount: deck.cardCount,
+      lastUpdated: new Date(deck.lastUpdated)
+    }));
+  };
+
   // Render current screen (instant state changes, zero animations)
   const renderScreen = () => {
     switch (navState.screen) {
       case 'deckList':
         return (
           <DeckListScreen
-            decks={mockDecks}
+            decks={convertToDisplayDecks(decks)}
             onSelectDeck={(deckId) => {
-              const deck = mockDecks.find(d => d.id === deckId);
+              const deck = decks.find(d => d.id === deckId);
               if (deck) navigateToCardList(deckId, deck.title);
             }}
             onAddDeck={handleAddDeck}
