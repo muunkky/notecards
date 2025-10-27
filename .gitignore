@@ -127,6 +127,13 @@ share-dialog-report.json
 share-dialog-report-*.json
 unit-*.json
 
+# Test session data (Puppeteer browser sessions)
+.test-session/
+
+# Authentication keys (NEVER COMMIT)
+auth/keys/
+auth/*.json
+
 # Old backup archives
 *-local-backup-*.zip
 
