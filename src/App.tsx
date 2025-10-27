@@ -8,6 +8,7 @@ import { CategoryValue } from "./domain/categories";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 import { getUserDecks, setDeck } from "./services/firebase-service";
 import { LocalDeck } from "./services/storage/schema";
+import { Timestamp } from "firebase/firestore";
 
 // Loading component for auth loading
 const LoadingSpinner = () => (
@@ -144,7 +145,19 @@ function App() {
       const deckId = `deck-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const now = Date.now();
 
-      const newDeck: LocalDeck = {
+      // Firestore document (matches security rules schema)
+      const firestoreDeck = {
+        ownerId: user.uid,  // Security rules expect 'ownerId', not 'userId'
+        title: name,
+        createdAt: Timestamp.fromMillis(now),  // Firestore Timestamp type
+        updatedAt: Timestamp.fromMillis(now),
+      };
+
+      // Save to Firebase
+      await setDeck(user.uid, deckId, firestoreDeck as any);
+
+      // Local state representation (for UI)
+      const localDeck: LocalDeck = {
         id: deckId,
         title: name,
         cardCount: 0,
@@ -155,11 +168,8 @@ function App() {
         pendingChanges: false,
       };
 
-      // Save to Firebase
-      await setDeck(user.uid, deckId, newDeck);
-
       // Update local state for instant UI feedback
-      setDecks(prevDecks => [...prevDecks, newDeck]);
+      setDecks(prevDecks => [...prevDecks, localDeck]);
 
       console.log('✅ Deck created:', name, deckId);
     } catch (error) {
