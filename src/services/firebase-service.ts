@@ -6,7 +6,7 @@
  */
 
 import { collection, doc, getDocs, setDoc, deleteDoc, query, where } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../firebase/firebase';
 import { LocalDeck, LocalCard } from './storage/schema';
 
 /**
