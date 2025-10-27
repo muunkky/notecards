@@ -49,16 +49,11 @@ Create at: `src/test/e2e/journeys/01-first-card-created.test.ts`
 - ✅ Updated App.tsx handleAddDeck to accept name parameter
 
 ### Next Steps (To Make Test Green)
-1. Add deck creation dialog/modal with testids:
-   - `data-testid="deck-name-input"`
-   - `data-testid="create-deck-submit"`
-2. Add card creation UI with testids:
-   - `data-testid="create-card-button"`
-   - `data-testid="card-title-input"`
-   - `data-testid="create-card-submit"`
-3. Add card list/detail views with testids:
-   - `data-testid="card-item"` with `data-card-title`
-   - `data-testid="card-detail-view"`
-   - `data-testid="card-detail-title"`
-4. Run test again to see next failure
-5. Repeat Red-Green-Refactor cycle
+
+1. ✅ Add deck creation dialog/modal with testids
+2. ✅ Add card creation UI with testids
+3. ✅ Add card list/detail views with testids
+4. 🟡 Run test to verify all selectors work
+5. 🟡 Add Firebase integration to actually create deck/card data
+6. 🟡 Fix any remaining test failures
+7. 🟡 Verify performance budgets are met

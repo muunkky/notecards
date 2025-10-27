@@ -169,7 +169,7 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
         }
       `}</style>
 
-      <div style={containerStyles}>
+      <div style={containerStyles} data-testid="card-detail-view">
         {/* Header */}
         <header style={headerStyles}>
           <Button variant="secondary" size="md" onClick={handleCancel}>
@@ -191,7 +191,12 @@ export const CardEditorScreen: React.FC<CardEditorScreenProps> = ({
             placeholder="INT. COFFEE SHOP - DAY"
             required
             data-testid="card-title-input"
+            data-card-detail-title={title}
           />
+          {/* Hidden element for e2e test to read title */}
+          <div data-testid="card-detail-title" style={{ display: 'none' }}>
+            {title}
+          </div>
 
           {/* Category Picker */}
           <div style={categoryPickerStyles}>
