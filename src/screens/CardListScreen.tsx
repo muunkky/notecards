@@ -287,68 +287,21 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
                   defaultExpanded={false}
                 >
                   <div>{card.content}</div>
+                </Card>
 
-                  {/* Card actions (reorder, edit, delete) */}
-                  <div
-                    style={{
-                      marginTop: 'var(--semantic-spacing-sm)', // 12px
-                      paddingTop: 'var(--semantic-spacing-sm)', // 12px
-                      borderTop: '1px solid var(--primitive-gray-200)',
-                      display: 'flex',
-                      gap: 'var(--semantic-spacing-xs)', // 8px
-                    }}
-                  >
-                    {/* Move up button */}
-                    {index > 0 && onMoveCardUp && (
-                      <button
-                        data-testid="move-card-up"
-                        style={{
-                          padding: '6px 12px',
-                          background: 'var(--primitive-white)',
-                          border: '1px solid var(--primitive-black)',
-                          borderRadius: 'var(--primitive-radii-none)',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          fontFamily: 'var(--semantic-typography-font-primary)',
-                          transition: 'var(--primitive-transitions-none)', // 0ms
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const actualIndex = cards.findIndex(c => c.id === card.id);
-                          onMoveCardUp(card.id, actualIndex);
-                        }}
-                        className="card-action-btn"
-                      >
-                        ↑
-                      </button>
-                    )}
-
-                    {/* Move down button */}
-                    {index < filteredCards.length - 1 && onMoveCardDown && (
-                      <button
-                        data-testid="move-card-down"
-                        style={{
-                          padding: '6px 12px',
-                          background: 'var(--primitive-white)',
-                          border: '1px solid var(--primitive-black)',
-                          borderRadius: 'var(--primitive-radii-none)',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          fontFamily: 'var(--semantic-typography-font-primary)',
-                          transition: 'var(--primitive-transitions-none)', // 0ms
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const actualIndex = cards.findIndex(c => c.id === card.id);
-                          onMoveCardDown(card.id, actualIndex);
-                        }}
-                        className="card-action-btn"
-                      >
-                        ↓
-                      </button>
-                    )}
-
+                {/* Card actions (reorder, edit, delete) - OUTSIDE Card so always visible */}
+                <div
+                  style={{
+                    marginTop: 'var(--semantic-spacing-xs)', // 8px
+                    display: 'flex',
+                    gap: 'var(--semantic-spacing-xs)', // 8px
+                    paddingLeft: '4px', // Align with card decorator
+                  }}
+                >
+                  {/* Move up button */}
+                  {index > 0 && onMoveCardUp && (
                     <button
+                      data-testid="move-card-up"
                       style={{
                         padding: '6px 12px',
                         background: 'var(--primitive-white)',
@@ -361,18 +314,23 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onEditCard?.(card.id);
+                        const actualIndex = cards.findIndex(c => c.id === card.id);
+                        onMoveCardUp(card.id, actualIndex);
                       }}
                       className="card-action-btn"
                     >
-                      Edit
+                      ↑
                     </button>
+                  )}
+
+                  {/* Move down button */}
+                  {index < filteredCards.length - 1 && onMoveCardDown && (
                     <button
+                      data-testid="move-card-down"
                       style={{
                         padding: '6px 12px',
                         background: 'var(--primitive-white)',
-                        border: '1px solid var(--primitive-red-600)',
-                        color: 'var(--primitive-red-600)',
+                        border: '1px solid var(--primitive-black)',
                         borderRadius: 'var(--primitive-radii-none)',
                         cursor: 'pointer',
                         fontSize: '14px',
@@ -381,14 +339,55 @@ export const CardListScreen: React.FC<CardListScreenProps> = ({
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDeleteCard?.(card.id);
+                        const actualIndex = cards.findIndex(c => c.id === card.id);
+                        onMoveCardDown(card.id, actualIndex);
                       }}
-                      className="card-action-btn-delete"
+                      className="card-action-btn"
                     >
-                      Delete
+                      ↓
                     </button>
-                  </div>
-                </Card>
+                  )}
+
+                  <button
+                    style={{
+                      padding: '6px 12px',
+                      background: 'var(--primitive-white)',
+                      border: '1px solid var(--primitive-black)',
+                      borderRadius: 'var(--primitive-radii-none)',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontFamily: 'var(--semantic-typography-font-primary)',
+                      transition: 'var(--primitive-transitions-none)', // 0ms
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditCard?.(card.id);
+                    }}
+                    className="card-action-btn"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    style={{
+                      padding: '6px 12px',
+                      background: 'var(--primitive-white)',
+                      border: '1px solid var(--primitive-red-600)',
+                      color: 'var(--primitive-red-600)',
+                      borderRadius: 'var(--primitive-radii-none)',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontFamily: 'var(--semantic-typography-font-primary)',
+                      transition: 'var(--primitive-transitions-none)', // 0ms
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteCard?.(card.id);
+                    }}
+                    className="card-action-btn-delete"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))
           )}
