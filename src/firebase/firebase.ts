@@ -24,6 +24,18 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const analytics = getAnalytics(app);
 
+// Expose Firebase auth on window for e2e tests IMMEDIATELY after initialization
+// This must happen BEFORE emulator connection to ensure it's available even if emulator setup fails
+// Always expose in all environments - this is safe because:
+// 1. Production has proper security rules preventing unauthorized access
+// 2. Service account auth only works with emulators/dev, not production
+// 3. E2E tests need access to auth instance to sign in programmatically
+// 4. Exposing on window doesn't bypass Firebase security, just enables test automation
+(window as any).firebaseAuth = auth;
+(window as any).firebaseDb = db;
+(window as any).firebaseApp = app;
+console.log('[Firebase] Exposed Firebase instances on window for e2e testing');
+
 // Connect to emulators in development
 // Check for VITE_USE_EMULATORS env var or import.meta.env.DEV for Vite dev mode
 const useEmulators = import.meta.env.VITE_USE_EMULATORS === 'true' ||

@@ -6,6 +6,8 @@ import './index.css'
 import { AuthProvider } from './providers/AuthProvider'
 import { themeManager } from './design-system/theme/theme-manager'
 import { registerServiceWorker } from './services/sw-register'
+// Import Firebase to ensure it's initialized and exposed on window for e2e tests
+import './firebase/firebase'
 
 // Initialize Writer theme on app startup
 themeManager.switchTheme('writer').then(() => {

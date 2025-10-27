@@ -20,7 +20,7 @@ describeServiceAccount('Service Account + Central Browser Service E2E', () => {
   beforeAll(async () => {
     console.log('[service-account] Starting integrated service-account tests');
 
-    const authSuccess = await browserService.quickServiceAuth();
+    const authSuccess = await browserService.quickServiceAuth({ keepBrowserOpen: true });
     if (!authSuccess) {
       throw new Error('quickServiceAuth returned false even though credentials were detected');
     }

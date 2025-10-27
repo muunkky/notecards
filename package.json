@@ -33,6 +33,8 @@
     "test:unit": "node scripts/run-tests-log.mjs",
     "test:unit:watch": "vitest",
     "test:e2e": "node scripts/run-e2e-tests-log.mjs",
+    "test:e2e:prod": "vitest run --config vitest.e2e.config.ts src/test/e2e/real-browser-ui.test.ts",
+    "test:e2e:local": "vitest run --config vitest.e2e.config.ts --exclude src/test/e2e/service-account-integration.test.ts",
     "test:e2e:dev": "E2E_TERMINAL_MODE=full node scripts/run-e2e-tests-log.mjs",
     "test:e2e:smoke": "E2E_MODE=smoke node tests/e2e/smoke/01-auth-and-create.mjs",
     "test:e2e:vitest": "vitest run --config vitest.e2e.config.ts",

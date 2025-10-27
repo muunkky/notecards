@@ -137,11 +137,24 @@ export async function signInWithCustomToken(page, token, { timeoutMs = 60000 } =
   }
 
   return page.evaluate(async (customToken, timeout) => {
-    const auth = window.firebaseAuth || (window.firebase && window.firebase.auth && window.firebase.auth())
-    if (!auth) {
-      throw new Error('window.firebaseAuth is not available. Ensure the app exposes Firebase auth on window.')
-    }
+    // Wait for Firebase auth to be available (with retry logic)
+    const waitForFirebaseAuth = async (maxWaitMs = 10000) => {
+      const startTime = Date.now();
+      const checkInterval = 100; // Check every 100ms
 
+      while (Date.now() - startTime < maxWaitMs) {
+        const auth = window.firebaseAuth || (window.firebase && window.firebase.auth && window.firebase.auth());
+        if (auth) {
+          return auth;
+        }
+        // Wait before checking again
+        await new Promise(resolve => setTimeout(resolve, checkInterval));
+      }
+
+      throw new Error('window.firebaseAuth is not available. Ensure the app exposes Firebase auth on window.');
+    };
+
+    const auth = await waitForFirebaseAuth();
     await auth.signInWithCustomToken(customToken)
 
     return await new Promise((resolve, reject) => {
